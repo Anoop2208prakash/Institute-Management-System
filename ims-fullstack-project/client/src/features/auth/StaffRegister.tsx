@@ -1,7 +1,9 @@
 // client/src/features/auth/StaffRegister.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUserPlus, FaCamera } from 'react-icons/fa';
+import { FaUserPlus, FaCamera, FaTimes, FaCheck } from 'react-icons/fa';
+import Cropper from 'react-easy-crop'; // <--- Import Cropper
+import { getCroppedImg } from '../../utils/canvasUtils'; // <--- Import Helper
 import './StaffRegister.scss';
 
 // Define the shape of a Role object
@@ -9,6 +11,14 @@ interface Role {
   id: string;
   name: string;
   displayName: string;
+}
+
+// Crop Type definition
+interface PixelCrop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 const StaffRegister: React.FC = () => {
@@ -30,9 +40,16 @@ const StaffRegister: React.FC = () => {
     joiningDate: new Date().toISOString().split('T')[0],
   });
 
-  // 3. State for Image Handling
+  // 3. State for Image & Cropper
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  
+  // Cropper Controls
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
   // 4. Fetch Roles on Component Mount
   useEffect(() => {
@@ -59,20 +76,46 @@ const StaffRegister: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle Image Selection
+  // --- CROPPER LOGIC START ---
+
+  // 1. Trigger Modal on File Select
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file); // Store the actual file object for upload
-      
-      // Create a preview URL
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+      reader.onload = () => {
+        setTempImageSrc(reader.result as string);
+        setIsCropping(true); // Open Modal
       };
       reader.readAsDataURL(file);
     }
   };
+
+  // 2. Capture Crop Coordinates
+  const onCropComplete = useCallback((croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  // 3. Generate Cropped File
+  const showCroppedImage = async () => {
+    if (!tempImageSrc || !croppedAreaPixels) return;
+    try {
+      const croppedFile = await getCroppedImg(
+        tempImageSrc,
+        croppedAreaPixels,
+        'staff-avatar.jpeg'
+      );
+      if (croppedFile) {
+        setImageFile(croppedFile); // Store the cropped file for upload
+        setImagePreview(URL.createObjectURL(croppedFile)); // Show preview
+        setIsCropping(false); // Close Modal
+        setTempImageSrc(null);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+  // --- CROPPER LOGIC END ---
 
   // Handle Registration Logic (Multipart Submission)
   const handleSubmit = async () => {
@@ -83,10 +126,7 @@ const StaffRegister: React.FC = () => {
     }
 
     try {
-      // 1. Create FormData object
       const data = new FormData();
-
-      // 2. Append Text Fields
       data.append('fullName', formData.fullName);
       data.append('email', formData.email);
       data.append('password', formData.password);
@@ -96,18 +136,15 @@ const StaffRegister: React.FC = () => {
       data.append('bloodGroup', formData.bloodGroup);
       data.append('joiningDate', formData.joiningDate);
 
-      // 3. Append Image File (if exists)
+      // Append the CROPPED image
       if (imageFile) {
         data.append('profileImage', imageFile);
       }
 
-      // 4. Send Request
       console.log("📤 Sending FormData to Backend...");
       
       const response = await fetch('http://localhost:5000/api/staff/register', {
         method: 'POST',
-        // Note: Do NOT set 'Content-Type': 'multipart/form-data' header manually.
-        // The browser sets it automatically with the correct boundary.
         body: data,
       });
 
@@ -115,7 +152,7 @@ const StaffRegister: React.FC = () => {
         const result = await response.json();
         console.log("✅ Registration Success:", result);
         alert("Staff Registered Successfully!");
-        navigate('/login'); // Redirect on success
+        navigate('/staff'); // Redirect to Staff List
       } else {
         const errorData = await response.json();
         alert(`Registration Failed: ${errorData.message || 'Unknown error'}`);
@@ -129,12 +166,52 @@ const StaffRegister: React.FC = () => {
 
   return (
     <div className="register-container">
+      
+      {/* --- CROPPER MODAL --- */}
+      {isCropping && (
+        <div className="cropper-modal">
+          <div className="cropper-container">
+            <div className="crop-area">
+                <Cropper
+                image={tempImageSrc || ''}
+                crop={crop}
+                zoom={zoom}
+                aspect={1} // Square aspect ratio for ID Cards
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+                />
+            </div>
+            <div className="controls">
+                <input
+                    type="range"
+                    value={zoom}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    aria-labelledby="Zoom"
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="zoom-range"
+                />
+                <div className="buttons">
+                    <button className="btn-cancel" onClick={() => setIsCropping(false)}>
+                        <FaTimes /> Cancel
+                    </button>
+                    <button className="btn-apply" onClick={showCroppedImage}>
+                        <FaCheck /> Crop & Apply
+                    </button>
+                </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="register-card">
         
         {/* Header */}
         <div className="card-header">
           <FaUserPlus className="icon" />
-          <h2>Staff Registration (Temporary)</h2>
+          <h2>Staff Registration</h2>
         </div>
 
         {/* Body */}
@@ -283,7 +360,7 @@ const StaffRegister: React.FC = () => {
             Back to Login
           </button>
           <button className="btn btn-primary" onClick={handleSubmit}>
-            Register
+            Register Staff
           </button>
         </div>
       </div>
