@@ -1,44 +1,24 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
-    // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
-
-    // Environment Settings
-    // See also https://aka.ms/tsconfig/module
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
-
-    // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-
-    // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-
-    // Recommended Options
-    "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true,
-  }
+    // 1. Core Output Settings
+    "target": "es2020",                // Modern JS features
+    "module": "commonjs",              // Standard for Node.js backends
+    "lib": ["es2020"],                 // Library definitions
+    
+    // 2. Path & Resolution
+    "rootDir": "./src",                // Where your code lives
+    "outDir": "./dist",                // Where built code goes
+    "moduleResolution": "node",        // Standard Node resolution strategy
+    "esModuleInterop": true,           // Allows importing CommonJS modules cleanly
+    
+    // 3. Strictness (High-End Standards)
+    "strict": true,                    // Enable all strict type checks
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,              // Skip checking .d.ts files in node_modules to save time
+    
+    // 4. Disable Frontend Settings
+    "jsx": "preserve"                  // Not needed for backend, but 'preserve' prevents errors if referenced
+  },
+  "include": ["src/**/*", "prisma/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

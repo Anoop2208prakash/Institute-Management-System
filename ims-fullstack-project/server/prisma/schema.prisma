@@ -1,14 +1,212 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// server/prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL") // Restored for Prisma 5 Stability
+}
+
+// --------------------------------------
+// 1. ENUMS
+// --------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+// --------------------------------------
+// 2. USER & AUTHENTICATION
+// --------------------------------------
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   
+  role      Role     @default(STUDENT)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Profile Relations
+  studentProfile Student?
+  teacherProfile Teacher?
+  adminProfile   Admin?
+
+  @@map("users")
+}
+
+// --------------------------------------
+// 3. PROFILES
+// --------------------------------------
+
+model Admin {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  fullName  String
+  phone     String?
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+model Teacher {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  fullName      String
+  phone         String
+  address       String?
+  qualification String?
+  joiningDate   DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  subjects      Subject[]
+  classes       Class[]  @relation("ClassTeacher") 
+  attendance    Attendance[]
+
+  @@map("teachers")
+}
+
+model Student {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  admissionNo String   @unique
+  fullName    String
+  dob         DateTime
+  gender      Gender
+  address     String?
+  phone       String?  
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Academic Relations
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+  
+  // Records
+  attendance  Attendance[]
+  fees        FeeRecord[]
+  results     Result[]
+
+  @@index([classId])
+  @@map("students")
+}
+
+// --------------------------------------
+// 4. ACADEMIC STRUCTURE
+// --------------------------------------
+
+model Class {
+  id        String   @id @default(uuid())
+  name      String   // e.g. "Grade 10"
+  section   String   // e.g. "A"
+  
+  teacherId String?  // Class Teacher
+  teacher   Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
+  
+  students  Student[]
+  subjects  Subject[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, section]) 
+  @@map("classes")
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  name      String   
+  code      String   
+  
+  classId   String
+  class     Class    @relation(fields: [classId], references: [id])
+  
+  teacherId String?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  
+  results   Result[]
+
+  @@map("subjects")
+}
+
+// --------------------------------------
+// 5. DAILY OPERATIONS
+// --------------------------------------
+
+model Attendance {
+  id        String           @id @default(uuid())
+  date      DateTime         @default(now())
+  status    AttendanceStatus
+  
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  
+  markedBy  String
+  teacher   Teacher          @relation(fields: [markedBy], references: [id])
+
+  @@unique([date, studentId]) 
+  @@map("attendance")
+}
+
+model Result {
+  id            String   @id @default(uuid())
+  examName      String   
+  marksObtained Float
+  totalMarks    Float
+  
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id])
+  
+  subjectId     String
+  subject       Subject  @relation(fields: [subjectId], references: [id])
+
+  @@map("results")
+}
+
+// --------------------------------------
+// 6. FINANCE
+// --------------------------------------
+
+model FeeRecord {
+  id        String        @id @default(uuid())
+  title     String        
+  amount    Decimal
+  dueDate   DateTime
+  paidDate  DateTime?
+  status    PaymentStatus @default(PENDING)
+  
+  studentId String
+  student   Student       @relation(fields: [studentId], references: [id])
+
+  @@map("fee_records")
 }
