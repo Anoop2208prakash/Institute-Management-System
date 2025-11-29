@@ -1,0 +1,233 @@
+// client/src/pages/admin/RoleManagement.scss
+
+.role-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+
+    // 1. Header & Action Bar
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+
+        .header-content {
+            h2 {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.75rem;
+                color: var(--heading-color);
+                margin: 0 0 0.5rem 0;
+
+                svg {
+                    color: var(--primary-color);
+                }
+            }
+
+            p {
+                margin: 0;
+                color: var(--text-muted-color);
+                font-size: 0.95rem;
+            }
+        }
+
+        // Modern Inline Form
+        .add-role-form {
+            display: flex;
+            gap: 0.75rem;
+            background-color: var(--card-bg-default);
+            padding: 0.5rem;
+            border: 1px solid var(--card-border-color);
+            border-radius: 8px;
+            box-shadow: var(--box-shadow-1);
+
+            input {
+                padding: 0.6rem 1rem;
+                border: 1px solid transparent;
+                background: var(--bg-secondary-color);
+                border-radius: 6px;
+                color: var(--font-color);
+                font-size: 0.9rem;
+                outline: none;
+                transition: all 0.2s;
+                min-width: 200px;
+
+                &:focus {
+                    background: var(--bg-color);
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 2px var(--form-focus-outline);
+                }
+
+                &::placeholder {
+                    color: var(--text-muted-color);
+                }
+            }
+
+            .btn-add {
+                background-color: var(--btn-primary-bg);
+                color: #fff;
+                border: none;
+                padding: 0 1.25rem;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: background 0.2s;
+                white-space: nowrap;
+
+                &:hover {
+                    background-color: var(--btn-primary-hover-bg);
+                }
+
+                &:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+            }
+        }
+    }
+
+    // 2. Roles Grid Layout
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+
+        // 3. The Role Card
+        .role-card {
+            background-color: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 160px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--box-shadow-2);
+                border-color: var(--border-heading-color);
+            }
+
+            // Card Header
+            .card-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+
+                .icon-wrapper {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.25rem;
+
+                    &.system {
+                        background-color: rgba(9, 105, 218, 0.1);
+                        color: var(--primary-color);
+                    }
+
+                    &.custom {
+                        background-color: rgba(26, 127, 55, 0.1);
+                        color: var(--font-color-success);
+                    }
+                }
+
+                .badge {
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    padding: 4px 8px;
+                    border-radius: 20px;
+                    letter-spacing: 0.5px;
+
+                    &.system {
+                        background-color: var(--bg-secondary-color);
+                        color: var(--text-muted-color);
+                        border: 1px solid var(--border-light-color);
+                    }
+                }
+            }
+
+            // Card Content
+            .card-content {
+                flex: 1;
+
+                h3 {
+                    margin: 0 0 0.25rem 0;
+                    font-size: 1.25rem;
+                    color: var(--heading-color);
+                }
+
+                .role-id {
+                    font-family: monospace;
+                    color: var(--text-muted-color);
+                    font-size: 0.85rem;
+                    background: var(--bg-secondary-color);
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    display: inline-block;
+                    margin-bottom: 0.75rem;
+                }
+
+                p {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    color: var(--font-color);
+                    line-height: 1.5;
+                    opacity: 0.8;
+                }
+            }
+
+            // Card Footer (Actions)
+            .card-actions {
+                margin-top: 1.5rem;
+                display: flex;
+                justify-content: flex-end;
+                border-top: 1px solid var(--border-light-color);
+                padding-top: 1rem;
+
+                button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    transition: color 0.2s;
+
+                    &.delete-btn {
+                        color: var(--font-color-danger);
+
+                        &:hover {
+                            text-decoration: underline;
+                            opacity: 0.8;
+                        }
+                    }
+
+                    &.lock-btn {
+                        color: var(--text-muted-color);
+                        cursor: default;
+                    }
+                }
+            }
+        }
+    }
+}

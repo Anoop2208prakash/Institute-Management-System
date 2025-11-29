@@ -3,11 +3,14 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../utils/prisma';
 
+// ------------------------------------------
+// 1. REGISTER STAFF
+// ------------------------------------------
 export const registerStaff = async (req: Request, res: Response): Promise<void> => {
   try {
     const { fullName, email, password, phone, dob, roleId, bloodGroup, joiningDate } = req.body;
     
-    // 1. Get the file path
+    // Get the file path if an image was uploaded
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
 
     if (!email || !password || !roleId) {
@@ -24,18 +27,18 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await prisma.$transaction(async (tx) => {
-      // A. Create User with Avatar (Saving it here now!)
+      // A. Create User with Avatar (Centralized in User table)
       const newUser = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
           roleId,
-          avatar: profileImage, // <--- SAVED TO USER TABLE
+          avatar: profileImage, 
           isActive: true,
         },
       });
 
-      // B. Create Profile (Without duplicating avatar)
+      // B. Create specific profile based on Role
       const role = await tx.role.findUnique({ where: { id: roleId } });
 
       if (role?.name === 'teacher') {
@@ -45,16 +48,16 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
             fullName,
             phone,
             bloodGroup,
-            // avatar removed from here
+            joiningDate: joiningDate ? new Date(joiningDate) : new Date(),
           },
         });
       } else {
+         // Default to Admin profile for non-teachers (Super Admin, Finance, etc.)
          await tx.admin.create({
             data: {
                 userId: newUser.id,
                 fullName,
                 phone,
-                // avatar removed from here
             }
          });
       }
@@ -62,11 +65,72 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
       return newUser;
     });
 
-    console.log(`✅ Staff registered: ${result.email} with avatar: ${result.avatar}`);
+    console.log(`✅ Staff registered: ${result.email}`);
     res.status(201).json({ message: "Staff registered successfully", userId: result.id });
 
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// ------------------------------------------
+// 2. GET ALL STAFF (For Directory)
+// ------------------------------------------
+export const getAllStaff = async (req: Request, res: Response) => {
+  try {
+    // Fetch users who are NOT students
+    const staff = await prisma.user.findMany({
+      where: {
+        role: {
+          name: { not: 'student' } 
+        }
+      },
+      include: {
+        role: true,
+        teacherProfile: true,
+        adminProfile: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // Format data for the frontend table
+    const formattedStaff = staff.map(u => ({
+      id: u.id,
+      email: u.email,
+      role: u.role.displayName,
+      avatar: u.avatar,
+      // Pick name/phone from the correct profile (Teacher vs Admin)
+      name: u.teacherProfile?.fullName || u.adminProfile?.fullName || 'N/A',
+      phone: u.teacherProfile?.phone || u.adminProfile?.phone || 'N/A',
+      joinDate: u.createdAt
+    }));
+
+    res.json(formattedStaff);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch staff list' });
+  }
+};
+
+// ------------------------------------------
+// 3. DELETE STAFF
+// ------------------------------------------
+export const deleteStaff = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Optional: Add a check to prevent deleting yourself
+    // if (req.user?.id === id) return res.status(403).json({ message: "Cannot delete yourself" });
+
+    // Prisma cascade delete handles profiles automatically
+    await prisma.user.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Staff member removed successfully' });
+  } catch (error) {
+    console.error("Delete Error:", error);
+    res.status(500).json({ message: 'Failed to delete staff member' });
   }
 };

@@ -18,12 +18,14 @@
             width: 80px; // Collapsed Width
         }
 
-        background-color: #0d1117; // Exact Dark Background from Image
-        border-right: 1px solid #30363d; // Dark border
+        // USE VARIABLES HERE
+        background-color: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
         display: flex;
         flex-direction: column;
         padding-top: 1rem;
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease; // Added bg transition
         z-index: 10;
         position: relative;
 
@@ -32,9 +34,12 @@
             position: absolute;
             top: 20px;
             right: -12px;
-            background-color: #21262d; // Dark button bg
-            border: 1px solid #30363d;
-            color: #c9d1d9;
+
+            // USE VARIABLES HERE
+            background-color: var(--sidebar-toggle-bg);
+            border: 1px solid var(--sidebar-border);
+            color: var(--sidebar-toggle-arrow);
+
             width: 24px;
             height: 24px;
             border-radius: 50%;
@@ -48,8 +53,8 @@
             transition: all 0.2s;
 
             &:hover {
-                color: #58a6ff; // Blue on hover
-                border-color: #58a6ff;
+                color: var(--primary-color); // Blue on hover
+                border-color: var(--primary-color);
             }
         }
 
@@ -64,7 +69,7 @@
             overflow: hidden;
 
             h2 {
-                color: #f0f6fc;
+                color: var(--heading-color);
                 font-size: 1.25rem;
                 font-weight: 700;
                 margin: 0;
@@ -88,7 +93,7 @@
             }
 
             &::-webkit-scrollbar-thumb {
-                background: #30363d;
+                background: var(--sidebar-border);
                 border-radius: 2px;
             }
 
@@ -97,7 +102,10 @@
                 align-items: center;
                 width: 100%;
                 height: 40px; // Compact height
-                color: #8b949e; // Muted text color (Inactive)
+
+                // USE VARIABLES HERE
+                color: var(--sidebar-text-muted);
+
                 text-decoration: none;
                 position: relative;
                 transition: all 0.15s ease;
@@ -125,14 +133,14 @@
 
                 // Hover State
                 &:hover {
-                    background-color: rgba(177, 186, 196, 0.12); // Subtle hover
-                    color: #c9d1d9; // Brighter text on hover
+                    background-color: var(--sidebar-item-hover-bg);
+                    color: var(--sidebar-text-hover); // Brighter text on hover
                 }
 
                 // ACTIVE STATE (Matches Image Exactly)
                 &.active {
-                    background-color: rgba(56, 139, 253, 0.15); // Dark blue background
-                    color: #58a6ff; // Blue text
+                    background-color: var(--sidebar-active-bg);
+                    color: var(--active-text-color); // Blue text
 
                     // The Blue Bar on the Left
                     &::before {
@@ -142,7 +150,7 @@
                         top: 0;
                         bottom: 0;
                         width: 4px;
-                        background-color: #1f6feb; // Solid blue bar
+                        background-color: var(--sidebar-active-bar); // Solid blue bar
                         border-radius: 4px 0 0 4px;
                     }
                 }

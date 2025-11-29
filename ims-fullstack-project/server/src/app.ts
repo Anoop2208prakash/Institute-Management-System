@@ -2,12 +2,13 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path'; // Import path
+import path from 'path';
 
+// Import Routes
 import roleRoutes from './routes/roleRoutes';
-import staffRoutes from './routes/staffRoutes'; // <--- Import Staff Routes
-import profileRoutes from './routes/profileRoutes';
 import authRoutes from './routes/authRoutes';
+import staffRoutes from './routes/staffRoutes';
+import profileRoutes from './routes/profileRoutes';
 
 dotenv.config();
 
@@ -18,21 +19,22 @@ app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
-// 1. Serve Uploaded Images Statically
-// This allows <img src="http://localhost:5000/uploads/profiles/..." />
+// Static Files (Images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// 2. Routes
+// Register Routes
+// The error happens if any of these variables (roleRoutes, etc.) are undefined
 app.use('/api/roles', roleRoutes);
-app.use('/api/staff', staffRoutes); // <--- Register Staff Routes
-app.use('/api/profile', profileRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'success' });
+  res.status(200).json({ status: 'success', message: 'Backend is active' });
 });
 
 export default app;

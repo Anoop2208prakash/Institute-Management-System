@@ -3,8 +3,13 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Login from './features/auth/Login';
 import StaffRegister from './features/auth/StaffRegister';
 import Dashboard from './pages/Dashboard';
-import MainLayout from './layouts/MainLayout'; // Import the layout
+import MainLayout from './layouts/MainLayout';
 import IDCardPage from './pages/IDCardPage';
+import ProfilePage from './pages/ProfilePage'; // <--- 1. Import Profile Page
+
+// Admin Pages
+import RoleManagement from './pages/admin/RoleManagement';
+import StaffList from './pages/admin/StaffList';
 
 export const router = createBrowserRouter([
   {
@@ -22,21 +27,30 @@ export const router = createBrowserRouter([
   
   // PROTECTED ROUTES WRAPPED IN MAIN LAYOUT
   {
-    element: <MainLayout />, // Use the shell here
+    element: <MainLayout />,
     children: [
       {
         path: '/dashboard',
         element: <Dashboard />,
       },
-      // You can add more pages here later (e.g., /finance, /students)
       {
         path: '/profile',
-        element: <div>My Profile Page (Coming Soon)</div>
+        element: <ProfilePage /> // <--- 2. Use the Component here (removed placeholder)
       },
       {
-  path: '/id-card',
-  element: <IDCardPage />
-}
+        path: '/id-card',
+        element: <IDCardPage />
+      },
+      
+      // --- ADMIN MODULES ---
+      {
+        path: '/roles',
+        element: <RoleManagement />
+      },
+      {
+        path: '/staff',
+        element: <StaffList />
+      },
     ]
   },
 
