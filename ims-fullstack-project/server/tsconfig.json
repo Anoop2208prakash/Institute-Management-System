@@ -1,23 +1,23 @@
 {
   "compilerOptions": {
     // 1. Core Output Settings
-    "target": "es2020",                // Modern JS features
-    "module": "commonjs",              // Standard for Node.js backends
-    "lib": ["es2020"],                 // Library definitions
-    
+    "target": "es2020",
+    "module": "commonjs",
+    "lib": ["es2020"],
+
     // 2. Path & Resolution
-    "rootDir": "./src",                // Where your code lives
-    "outDir": "./dist",                // Where built code goes
-    "moduleResolution": "node",        // Standard Node resolution strategy
-    "esModuleInterop": true,           // Allows importing CommonJS modules cleanly
-    
-    // 3. Strictness (High-End Standards)
-    "strict": true,                    // Enable all strict type checks
+    "rootDir": ".",                  // CHANGED: Allows files outside 'src' (like seed.ts)
+    "outDir": "./dist",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+
+    // 3. Strictness
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,              // Skip checking .d.ts files in node_modules to save time
-    
+    "skipLibCheck": true,
+
     // 4. Disable Frontend Settings
-    "jsx": "preserve"                  // Not needed for backend, but 'preserve' prevents errors if referenced
+    "jsx": "preserve"
   },
   "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist"]

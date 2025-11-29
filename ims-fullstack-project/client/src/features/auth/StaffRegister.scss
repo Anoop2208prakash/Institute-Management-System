@@ -1,0 +1,218 @@
+// client/src/features/auth/StaffRegister.scss
+
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-secondary-color);
+    padding: 2rem;
+}
+
+.register-card {
+    background-color: var(--card-bg-default);
+    border: 1px solid var(--card-border-color);
+    border-radius: 8px;
+    box-shadow: var(--box-shadow-2);
+    width: 100%;
+    max-width: 950px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    // --------------------------------------------------
+    // 1. HEADER
+    // --------------------------------------------------
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--card-border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background-color: var(--card-bg-default);
+
+        h2 {
+            font-size: 1.15rem;
+            color: var(--heading-color);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .icon {
+            color: var(--heading-color);
+            font-size: 1.1rem;
+        }
+    }
+
+    // --------------------------------------------------
+    // 2. BODY
+    // --------------------------------------------------
+    .card-body {
+        padding: 2rem;
+        display: flex;
+        gap: 2.5rem;
+        background-color: var(--card-bg-default);
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        // Shared Label Styling
+        .field-label {
+            display: block;
+            margin-bottom: 0.4rem;
+            color: var(--form-label-color);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        // --- Left Column: Image Upload ---
+        .image-upload-section {
+            width: 240px;
+            flex-shrink: 0;
+
+            .image-preview-box {
+                width: 100%;
+                height: 180px;
+                border: 2px dashed var(--primary-color); // Matches the blue dash in your image
+                background-color: var(--bg-secondary-color);
+                border-radius: 6px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                overflow: hidden;
+                position: relative;
+
+                &:hover {
+                    background-color: var(--active-menu-bg-color);
+                    opacity: 0.9;
+                }
+
+                .upload-placeholder {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    color: var(--text-muted-color);
+                    text-align: center;
+
+                    .upload-icon {
+                        font-size: 2rem;
+                        margin-bottom: 0.5rem;
+                        color: var(--secondary-color);
+                    }
+
+                    span {
+                        font-size: 0.9rem;
+                        font-weight: 500;
+                    }
+                }
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
+        }
+
+        // --- Right Column: Form Grid ---
+        .form-grid {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr; // Exact 2-column layout
+            column-gap: 1.5rem;
+            row-gap: 1.25rem;
+
+            @media (max-width: 600px) {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+
+                .form-input,
+                .form-select {
+                    width: 100%;
+                    padding: 0.6rem 0.75rem;
+                    border: 1px solid var(--form-input-border-color);
+                    border-radius: 4px; // Matches the sharp but slightly rounded look
+                    background-color: var(--bg-color);
+                    color: var(--font-color);
+                    font-size: 0.9rem;
+                    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+                    height: 40px; // Enforce consistent height
+
+                    &::placeholder {
+                        color: var(--form-placeholder-text-color);
+                    }
+
+                    // THE FOCUS STATE (Matches your screenshot's blue ring)
+                    &:focus {
+                        outline: none;
+                        border-color: var(--primary-color);
+                        box-shadow: 0 0 0 4px var(--form-focus-outline); // The "Glow" effect
+                    }
+                }
+
+                // Custom arrow for select (optional cross-browser fix)
+                .form-select {
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+                    background-repeat: no-repeat;
+                    background-position: right 0.75rem center;
+                    background-size: 16px 12px;
+                }
+            }
+        }
+    }
+
+    // --------------------------------------------------
+    // 3. FOOTER
+    // --------------------------------------------------
+    .card-footer {
+        padding: 1rem 2rem;
+        border-top: 1px solid var(--card-border-color);
+        background-color: var(--bg-secondary-color); // Slightly darker footer bg
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+
+            // "Back to Login" Button
+            &.btn-secondary {
+                background-color: #fff;
+                border-color: var(--btn-border-light-color);
+                color: var(--font-color);
+
+                &:hover {
+                    background-color: var(--btn-secondary-hover-bg);
+                    border-color: var(--btn-secondary-hover-border);
+                }
+            }
+
+            // "Register" Button
+            &.btn-primary {
+                background-color: var(--btn-primary-bg);
+                border-color: var(--btn-primary-border);
+                color: #fff;
+
+                &:hover {
+                    background-color: var(--btn-primary-hover-bg);
+                    border-color: var(--btn-primary-hover-border);
+                }
+            }
+        }
+    }
+}
