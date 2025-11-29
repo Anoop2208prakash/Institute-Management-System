@@ -6,20 +6,30 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL") // Restored for Prisma 5 Stability
+  url      = env("DATABASE_URL")
 }
 
 // --------------------------------------
-// 1. ENUMS
+// 1. DYNAMIC ROLES
 // --------------------------------------
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  TEACHER
-  STUDENT
-  PARENT
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  displayName String   
+  description String?  
+  
+  users       User[]   
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("roles")
 }
+
+// --------------------------------------
+// 2. ENUMS
+// --------------------------------------
 
 enum Gender {
   MALE
@@ -42,28 +52,34 @@ enum PaymentStatus {
 }
 
 // --------------------------------------
-// 2. USER & AUTHENTICATION
+// 3. USER & AUTHENTICATION
 // --------------------------------------
 
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String   
-  role      Role     @default(STUDENT)
+  
+  // CENTRALIZED AVATAR: The single place for profile photos
+  avatar    String?  
+  
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id])
+  
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Profile Relations
   studentProfile Student?
   teacherProfile Teacher?
   adminProfile   Admin?
 
+  @@index([roleId])
   @@map("users")
 }
 
 // --------------------------------------
-// 3. PROFILES
+// 4. PROFILES
 // --------------------------------------
 
 model Admin {
@@ -71,6 +87,7 @@ model Admin {
   userId    String   @unique
   fullName  String
   phone     String?
+  // Avatar removed (We use User.avatar)
   
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -84,11 +101,12 @@ model Teacher {
   phone         String
   address       String?
   qualification String?
+  bloodGroup    String?  
+  // Avatar removed (We use User.avatar)
   joiningDate   DateTime @default(now())
   
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Relations
   subjects      Subject[]
   classes       Class[]  @relation("ClassTeacher") 
   attendance    Attendance[]
@@ -105,14 +123,14 @@ model Student {
   gender      Gender
   address     String?
   phone       String?  
+  bloodGroup  String?  
+  // Avatar removed (We use User.avatar)
   
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Academic Relations
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
   
-  // Records
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
@@ -122,15 +140,15 @@ model Student {
 }
 
 // --------------------------------------
-// 4. ACADEMIC STRUCTURE
+// 5. ACADEMIC STRUCTURE
 // --------------------------------------
 
 model Class {
   id        String   @id @default(uuid())
-  name      String   // e.g. "Grade 10"
-  section   String   // e.g. "A"
+  name      String   
+  section   String   
   
-  teacherId String?  // Class Teacher
+  teacherId String?  
   teacher   Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
   
   students  Student[]
@@ -160,7 +178,7 @@ model Subject {
 }
 
 // --------------------------------------
-// 5. DAILY OPERATIONS
+// 6. DAILY OPERATIONS
 // --------------------------------------
 
 model Attendance {
@@ -194,7 +212,7 @@ model Result {
 }
 
 // --------------------------------------
-// 6. FINANCE
+// 7. FINANCE
 // --------------------------------------
 
 model FeeRecord {

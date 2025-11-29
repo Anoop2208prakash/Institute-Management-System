@@ -1,0 +1,30 @@
+// client/src/styles/main.scss
+
+// 1. Helpers & Variables (If you have them, otherwise optional for now)
+// @import 'variables';
+// @import 'mixins';
+
+// 2. THEMES (CRITICAL: This loads your Light/Dark variables)
+@import 'themes';
+
+// 3. Global Reset & Base Styles
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-secondary-color); // Uses theme variable
+    color: var(--font-color); // Uses theme variable
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+// Optional: Adjust default input styles to match theme
+input,
+select,
+button {
+    font-family: inherit;
+}

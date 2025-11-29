@@ -1,0 +1,112 @@
+// client/src/features/auth/Login.scss
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    // Use theme secondary background (e.g., light gray or dark gray)
+    background-color: var(--bg-secondary-color);
+    padding: 1rem;
+}
+
+.login-card {
+    // Use theme default card background (white or dark gray)
+    background-color: var(--card-bg-default);
+    // Use theme shadow for depth
+    box-shadow: var(--box-shadow-2);
+    border-radius: 8px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 450px; // Fixed width similar to screenshot
+    text-align: center;
+    border: 1px solid var(--card-border-color);
+
+    h2 {
+        margin-bottom: 2rem;
+        font-weight: 700;
+        color: var(--heading-color);
+    }
+
+    .login-form {
+        text-align: left;
+
+        .form-group {
+            margin-bottom: 1.5rem;
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: var(--form-label-color);
+                font-size: 0.95rem;
+            }
+
+            .form-input {
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid var(--form-input-border-color);
+                border-radius: 4px;
+                font-size: 1rem;
+                color: var(--font-color);
+                background-color: var(--bg-color);
+                transition: all 0.2s ease-in-out;
+
+                &::placeholder {
+                    color: var(--form-placeholder-text-color);
+                }
+
+                // High-end focus state matching registration page
+                &:focus {
+                    outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 4px var(--form-focus-outline);
+                }
+            }
+        }
+
+        .forgot-password-link {
+            display: block;
+            text-align: right;
+            margin-bottom: 1.5rem;
+            color: var(--link-color-blue);
+            font-size: 0.9rem;
+            text-decoration: none;
+            font-weight: 500;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: var(--btn-primary-bg);
+            color: var(--btn-primary-hover-color);
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: var(--btn-primary-hover-bg);
+            }
+        }
+    }
+
+    .staff-reg-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: var(--link-color-blue);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+}
