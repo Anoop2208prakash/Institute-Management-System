@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaSearch, FaUserPlus, FaTrash, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { DeleteModal } from '../../components/common/DeleteModal'; // <--- Import Modal
 import './StaffList.scss';
 
 interface Staff {
@@ -19,6 +20,11 @@ const StaffList: React.FC = () => {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // --- DELETE MODAL STATE ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [staffToDelete, setStaffToDelete] = useState<{ id: string, name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 1. Fetch Staff
   const fetchStaff = useCallback(async () => {
@@ -39,26 +45,43 @@ const StaffList: React.FC = () => {
     fetchStaff();
   }, [fetchStaff]);
 
-  // 2. Delete Logic
-  const handleDelete = async (id: string, name: string) => {
-    if (window.confirm(`Are you sure you want to remove ${name}? This action is permanent.`)) {
-      try {
-        const res = await fetch(`http://localhost:5000/api/staff/${id}`, {
-          method: 'DELETE',
-        });
-        
-        if (res.ok) {
-          fetchStaff(); // Refresh list
-        } else {
-          alert('Failed to delete staff member');
-        }
-      } catch (error) {
-        console.error("Delete failed", error);
+  // 2. Open Modal Logic
+  const openDeleteModal = (id: string, name: string) => {
+    setStaffToDelete({ id, name });
+    setIsDeleteModalOpen(true);
+  };
+
+  // 3. Close Modal Logic
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setStaffToDelete(null);
+  };
+
+  // 4. Confirm Delete Logic (API Call)
+  const handleConfirmDelete = async () => {
+    if (!staffToDelete) return;
+    setIsDeleting(true);
+    
+    try {
+      const res = await fetch(`http://localhost:5000/api/staff/${staffToDelete.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (res.ok) {
+        fetchStaff(); // Refresh list
+        closeDeleteModal(); // Close modal
+      } else {
+        alert('Failed to delete staff member');
       }
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Network error while deleting.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  // 3. Filter Logic
+  // 5. Filter Logic
   const filteredStaff = staff.filter(member => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,9 +145,11 @@ const StaffList: React.FC = () => {
 
                 <div className="card-footer">
                     <span className="date">Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
+                    
+                    {/* Updated Delete Button: Opens Modal */}
                     <button 
                         className="btn-delete" 
-                        onClick={() => handleDelete(member.id, member.name)}
+                        onClick={() => openDeleteModal(member.id, member.name)}
                         title="Remove Staff"
                     >
                         <FaTrash />
@@ -136,6 +161,17 @@ const StaffList: React.FC = () => {
             <div className="empty-state">No staff members found.</div>
         )}
       </div>
+
+      {/* 6. Render Delete Modal */}
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="Remove Staff Member"
+        message="Are you sure you want to remove"
+        itemName={staffToDelete?.name || ''}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
