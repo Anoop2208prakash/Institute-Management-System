@@ -11,6 +11,13 @@ import staffRoutes from './routes/staffRoutes';
 import profileRoutes from './routes/profileRoutes';
 import studentRoutes from './routes/studentRoutes';
 import libraryRoutes from './routes/libraryRoutes';
+import classRoutes from './routes/classRoutes';
+import subjectRoutes from './routes/subjectRoutes';
+import semesterRoutes from './routes/semesterRoutes';
+import examRoutes from './routes/examRoutes';
+import inventoryRoutes from './routes/inventoryRoutes';
+import orderRoutes from './routes/orderRoutes';
+import announcementRoutes from './routes/announcementRoutes';
 
 dotenv.config();
 
@@ -35,6 +42,13 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/library', libraryRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/semesters', semesterRoutes);
+app.use('/api/exams', examRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
