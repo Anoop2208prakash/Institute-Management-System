@@ -1,0 +1,163 @@
+// client/src/components/common/DeleteModal.scss
+
+// Overlay background
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); // Semi-transparent dark overlay
+    z-index: 1000; // Ensure it's on top of everything
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+// The actual modal box
+.modal-container {
+    background-color: var(--card-bg-default);
+    width: 90%;
+    max-width: 450px;
+    border-radius: 16px;
+    box-shadow: var(--box-shadow-3);
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+    border: 1px solid var(--card-border-color);
+}
+
+// --- Header ---
+.modal-header {
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+
+        &.danger {
+            background-color: #fee2e2; // Light red bg
+            color: #dc2626; // Red icon
+        }
+    }
+
+    .close-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted-color);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 4px;
+        transition: color 0.2s;
+
+        &:hover {
+            color: var(--heading-color);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+}
+
+// --- Body ---
+.modal-body {
+    padding: 1.5rem;
+    text-align: left;
+
+    h2 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.25rem;
+        color: var(--heading-color);
+        font-weight: 700;
+    }
+
+    p {
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+        color: var(--font-color);
+        line-height: 1.5;
+    }
+
+    .sub-text {
+        font-size: 0.9rem;
+        color: var(--text-muted-color);
+    }
+}
+
+// --- Footer ---
+.modal-footer {
+    padding: 1rem 1.5rem 1.5rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    background-color: var(--bg-secondary-color);
+    border-top: 1px solid var(--border-light-color);
+
+    button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-cancel {
+        background-color: var(--card-bg-default);
+        color: var(--heading-color);
+        border: 1px solid var(--border-light-color);
+
+        &:hover:not(:disabled) {
+            background-color: var(--bg-secondary-color);
+        }
+    }
+
+    .btn-delete {
+        background-color: #dc2626; // Brand Danger Red
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+
+        &:hover:not(:disabled) {
+            background-color: #b91c1c; // Darker red
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+    }
+}
+
+// --- Animations ---
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

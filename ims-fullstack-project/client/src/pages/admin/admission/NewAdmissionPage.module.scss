@@ -1,0 +1,310 @@
+// client/src/pages/admin/admission/NewAdmissionPage.module.scss
+
+// --- Main Page Wrapper ---
+.pageWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background-color: var(--bg-secondary-color); // Use theme variable
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+// --- Admission Form Container ---
+.admissionForm {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg-default);
+    color: var(--font-color);
+    box-shadow: var(--box-shadow-2);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border-light-color);
+}
+
+// --- Angled Header ---
+.header {
+    background-color: var(--bg-secondary-color); // Light gray background for contrast
+    color: var(--heading-color);
+    padding: 30px 40px;
+    // This clip-path creates the angled bottom edge
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+    position: relative;
+    border-bottom: 1px solid var(--border-light-color);
+
+    h2 {
+        text-align: center;
+        margin-top: 20px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        border-top: 2px solid var(--primary-color); // Accent line
+        padding-top: 15px;
+        color: var(--primary-color);
+    }
+}
+
+.headerContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.logoArea {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    .logo {
+        height: 70px;
+        width: auto;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--heading-color);
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-muted-color);
+        font-weight: 500;
+    }
+}
+
+.photoBox {
+    height: 130px;
+    width: 110px;
+    border: 2px dashed var(--border-light-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: var(--text-muted-color);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--bg-secondary-color);
+    transition: all 0.2s;
+
+    &:hover {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+// --- Form Body ---
+.formBody {
+    padding: 30px 50px;
+}
+
+.formRow {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+
+    &>* {
+        flex: 1;
+    }
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+
+    label {
+        font-size: 0.85rem;
+        color: var(--text-muted-color);
+        margin-bottom: 6px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    // Underline Style Inputs
+    input[type="text"],
+    input[type="date"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="password"],
+    select {
+        border: none;
+        border-bottom: 1px dotted var(--border-light-color);
+        padding: 8px 4px;
+        font-size: 1rem;
+        background: transparent;
+        transition: border-color 0.3s;
+        color: var(--font-color);
+        width: 100%;
+
+        &:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        &::placeholder {
+            color: var(--text-muted-color);
+            opacity: 0.5;
+        }
+    }
+
+    select {
+        cursor: pointer;
+        background-color: var(--card-bg-default);
+    }
+}
+
+.radioGroup {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    padding-top: 8px;
+
+    label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        margin-bottom: 0;
+        color: var(--font-color);
+        font-weight: 500;
+        text-transform: none; // Reset uppercase from parent label
+    }
+}
+
+// --- Address Fieldset ---
+.addressFieldset {
+    border: 1px dashed var(--border-light-color);
+    padding: 20px 25px;
+    margin: 30px 0;
+    border-radius: 6px;
+    background-color: rgba(var(--bg-secondary-color), 0.3);
+
+    legend {
+        padding: 0 10px;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+}
+
+// --- Footer Section ---
+.footer {
+    background-color: var(--bg-secondary-color);
+    padding: 50px 40px 40px;
+    margin-top: 30px;
+    // Angled top edge
+    clip-path: polygon(0 10%, 100% 0, 100% 100%, 0% 100%);
+}
+
+.declaration {
+    text-align: center;
+    margin-bottom: 40px;
+
+    h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--heading-color);
+        text-decoration: underline;
+    }
+
+    p {
+        font-size: 0.9rem;
+        color: var(--text-muted-color);
+        max-width: 80%;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
+}
+
+.signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    padding: 0 40px;
+}
+
+.signatureBox {
+    width: 35%;
+    border-top: 1px dotted var(--font-color);
+    padding-top: 10px;
+    text-align: center;
+
+    label {
+        font-size: 0.9rem;
+        color: var(--heading-color);
+        font-weight: 600;
+    }
+}
+
+.submissionArea {
+    display: flex;
+    justify-content: center;
+}
+
+.submitButton {
+    padding: 14px 40px;
+    background-color: var(--btn-primary-bg);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+
+    &:hover {
+        background-color: var(--btn-primary-hover-bg);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+}
+
+// --- Responsive ---
+@media (max-width: 768px) {
+    .pageWrapper {
+        padding: 10px;
+    }
+
+    .header,
+    .footer {
+        clip-path: none;
+    }
+
+    .headerContent {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .logoArea {
+        flex-direction: column;
+    }
+
+    .formRow {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .signatures {
+        flex-direction: column;
+        gap: 40px;
+        align-items: center;
+    }
+
+    .signatureBox {
+        width: 80%;
+    }
+}

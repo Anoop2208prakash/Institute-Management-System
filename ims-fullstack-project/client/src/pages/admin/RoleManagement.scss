@@ -37,60 +37,24 @@
             }
         }
 
-        // Modern Inline Form
-        .add-role-form {
-            display: flex;
-            gap: 0.75rem;
-            background-color: var(--card-bg-default);
-            padding: 0.5rem;
-            border: 1px solid var(--card-border-color);
+        // --- NEW: Primary Button Style ---
+        .btn-add-primary {
+            background-color: var(--btn-primary-bg);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
             border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
             box-shadow: var(--box-shadow-1);
 
-            input {
-                padding: 0.6rem 1rem;
-                border: 1px solid transparent;
-                background: var(--bg-secondary-color);
-                border-radius: 6px;
-                color: var(--font-color);
-                font-size: 0.9rem;
-                outline: none;
-                transition: all 0.2s;
-                min-width: 200px;
-
-                &:focus {
-                    background: var(--bg-color);
-                    border-color: var(--primary-color);
-                    box-shadow: 0 0 0 2px var(--form-focus-outline);
-                }
-
-                &::placeholder {
-                    color: var(--text-muted-color);
-                }
-            }
-
-            .btn-add {
-                background-color: var(--btn-primary-bg);
-                color: #fff;
-                border: none;
-                padding: 0 1.25rem;
-                border-radius: 6px;
-                font-weight: 600;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                transition: background 0.2s;
-                white-space: nowrap;
-
-                &:hover {
-                    background-color: var(--btn-primary-hover-bg);
-                }
-
-                &:disabled {
-                    opacity: 0.7;
-                    cursor: not-allowed;
-                }
+            &:hover {
+                background-color: var(--btn-primary-hover-bg);
+                transform: translateY(-2px);
             }
         }
     }
