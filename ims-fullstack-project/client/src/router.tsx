@@ -12,6 +12,8 @@ import RoleManagement from './pages/admin/RoleManagement';
 import StaffList from './pages/admin/StaffList';
 import AdmissionList from './pages/admin/admission/AdmissionList';
 import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
+import BookList from './pages/librarian/BookList';
+import LoanManager from './pages/librarian/LoanManager';
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +62,14 @@ export const router = createBrowserRouter([
       {
         path : '/new-admission',
         element: <NewAdmissionPage />
+      },
+      {
+        path: '/books',
+        element: <BookList />
+      },
+      {
+        path: '/loans',
+        element: <LoanManager />
       }
     ]
   },
