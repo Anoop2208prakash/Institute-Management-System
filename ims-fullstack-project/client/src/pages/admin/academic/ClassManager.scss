@@ -1,0 +1,134 @@
+.class-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+
+    .page-header {
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--heading-color);
+
+            svg {
+                color: var(--primary-color);
+            }
+        }
+
+        p {
+            color: var(--text-muted-color);
+            margin: 0;
+        }
+    }
+
+    .action-bar {
+        display: flex;
+        gap: 1rem;
+        background: var(--card-bg-default);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--card-border-color);
+        box-shadow: var(--box-shadow-1);
+        flex-wrap: wrap;
+
+        input {
+            flex: 1;
+            padding: 0.7rem;
+            border: 1px solid var(--form-input-border-color);
+            background: var(--bg-secondary-color);
+            border-radius: 6px;
+            color: var(--font-color);
+            outline: none;
+
+            &:focus {
+                border-color: var(--primary-color);
+            }
+        }
+
+        button {
+            padding: 0 1.5rem;
+            background: var(--btn-primary-bg);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+
+            &:hover {
+                background: var(--btn-primary-hover-bg);
+            }
+        }
+    }
+
+    .class-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+
+        .class-card {
+            background: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+                border-color: var(--primary-color);
+            }
+
+            .card-left {
+                h3 {
+                    margin: 0 0 0.25rem 0;
+                    color: var(--heading-color);
+                }
+
+                .section-badge {
+                    background: var(--bg-secondary-color);
+                    color: var(--text-muted-color);
+                    font-size: 0.8rem;
+                    padding: 2px 8px;
+                    border-radius: 4px;
+                    border: 1px solid var(--border-light-color);
+                    font-weight: 600;
+                }
+            }
+
+            .card-right {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+
+                .student-count {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-size: 0.9rem;
+                    color: var(--font-color);
+                }
+
+                .delete-btn {
+                    background: none;
+                    border: none;
+                    color: var(--text-muted-color);
+                    cursor: pointer;
+                    padding: 5px;
+
+                    &:hover {
+                        color: var(--font-color-danger);
+                    }
+                }
+            }
+        }
+    }
+}

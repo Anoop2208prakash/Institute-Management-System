@@ -51,7 +51,6 @@ enum PaymentStatus {
   OVERDUE
 }
 
-// --- NEW: LIBRARY ENUMS ---
 enum LoanStatus {
   ISSUED
   RETURNED
@@ -80,6 +79,9 @@ model User {
   studentProfile Student?
   teacherProfile Teacher?
   adminProfile   Admin?
+  
+  // Relations for new modules
+  announcements  Announcement[] // User can author announcements
 
   @@index([roleId])
   @@map("users")
@@ -138,8 +140,6 @@ model Student {
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
-  
-  // --- NEW: LIBRARY RELATION ---
   loans       Loan[]   
 
   @@index([classId])
@@ -160,6 +160,7 @@ model Class {
   
   students  Student[]
   subjects  Subject[]
+  exams     Exam[]    // <--- Added relation for exams
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,8 +181,46 @@ model Subject {
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   
   results   Result[]
+  exams     Exam[]   // <--- Added relation for exams
 
   @@map("subjects")
+}
+
+// --- NEW: SEMESTER & EXAM ---
+
+model Semester {
+  id        String   @id @default(uuid())
+  name      String   // e.g. "Spring 2025"
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("UPCOMING") 
+  
+  exams     Exam[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("semesters")
+}
+
+model Exam {
+  id         String   @id @default(uuid())
+  name       String   // e.g. "Mid-Term Physics"
+  date       DateTime
+  
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+  
+  classId    String
+  class      Class    @relation(fields: [classId], references: [id])
+  
+  subjectId  String
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("exams")
 }
 
 // --------------------------------------
@@ -237,7 +276,7 @@ model FeeRecord {
 }
 
 // --------------------------------------
-// 8. LIBRARY MODULE (New)
+// 8. LIBRARY MODULE
 // --------------------------------------
 
 model Book {
@@ -246,8 +285,8 @@ model Book {
   author    String
   isbn      String   @unique
   category  String   
-  quantity  Int      @default(1) // Total physical copies
-  available Int      @default(1) // Copies currently on shelf
+  quantity  Int      @default(1)
+  available Int      @default(1)
   
   loans     Loan[]
   
@@ -272,4 +311,52 @@ model Loan {
   status     LoanStatus @default(ISSUED)
 
   @@map("loans")
+}
+
+// --------------------------------------
+// 9. INVENTORY & ORDERS (New)
+// --------------------------------------
+
+model InventoryItem {
+  id        String   @id @default(uuid())
+  name      String   
+  category  String   
+  quantity  Int      @default(0)
+  price     Float    @default(0.0)
+  
+  orders    Order[]
+
+  @@map("inventory_items")
+}
+
+model Order {
+  id        String        @id @default(uuid())
+  
+  itemId    String
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  
+  quantity  Int
+  status    String        @default("PENDING") 
+  orderBy   String        
+  
+  date      DateTime      @default(now())
+
+  @@map("orders")
+}
+
+// --------------------------------------
+// 10. COMMUNICATION (New)
+// --------------------------------------
+
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text
+  target    String   // "ALL", "STUDENT", "TEACHER", "ADMIN"
+  date      DateTime @default(now())
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@map("announcements")
 }

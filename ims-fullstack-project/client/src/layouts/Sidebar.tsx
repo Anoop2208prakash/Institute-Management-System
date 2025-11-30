@@ -1,46 +1,76 @@
 // client/src/layouts/Sidebar.tsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaUserPlus, FaList, FaIdCard, FaUserCircle, FaClipboardList, FaBook } from 'react-icons/fa';
+import { 
+  FaHome, FaUserCircle, FaIdCard, FaUsers, 
+  FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
+  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
+  FaChevronLeft, FaChevronRight, FaIdBadge
+} from 'react-icons/fa';
 
 interface SidebarProps {
   isOpen: boolean;
   toggle: () => void;
-  role: string; // Receive Role
+  role: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
   
-  const allMenuItems = [
-    // COMMON
+  const menuItems = [
+    // --- COMMON ---
     { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
     { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
     { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
 
-    // ADMINISTRATOR ONLY
-    { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator'] },
-    { path: '/view-admission', label: 'View Admission', icon: <FaList />, roles: ['administrator'] },
+    // --- ADMIN MODULES ---
+    // Students & Staff
+    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admin', 'super_admin'] },
+    { path: '/staff', label: 'Manage Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
     
-    // SUPER ADMIN ONLY
-    { path: '/staff', label: 'Manage Staff', icon: <FaUserPlus />, roles: ['super_admin'] },
-    { path: '/roles', label: 'Manage Roles', icon: <FaUserPlus />, roles: ['super_admin'] },
+    // Academic Management
+    { path: '/programs', label: 'Manage Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
+    { path: '/semesters', label: 'Manage Semester', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
+    { path: '/subjects', label: 'Manage Subject', icon: <FaBook />, roles: ['admin', 'super_admin'] },
+    { path: '/exams', label: 'Manage Exam', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
 
-    // LIBRARY MODULE (Librarian & Super Admin)
+    // Inventory
+    { path: '/inventory', label: 'Manage Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
+    { path: '/orders', label: 'View Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
+
+    // Communication
+    { path: '/announcements', label: 'Announcement', icon: <FaBullhorn />, roles: ['admin', 'super_admin', 'teacher'] },
+
+    // --- SUPER ADMIN ONLY ---
+    { path: '/roles', label: 'Manage Roles', icon: <FaIdBadge />, roles: ['super_admin'] },
+    
+    // --- LIBRARIAN ---
     { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
     { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
   ];
 
   // Filter Logic
-  const filteredMenu = allMenuItems.filter(item => 
+  const filteredMenu = menuItems.filter(item => 
     item.roles.includes('all') || item.roles.includes(role)
   );
 
   return (
     <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-      {/* ... toggle & logo ... */}
+      <div className="sidebar-toggle" onClick={toggle}>
+        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
+      </div>
+
+      <div className="sidebar-logo">
+         {isOpen ? <h2>IMS Pro</h2> : <h2>IP</h2>}
+      </div>
+
       <nav>
           {filteredMenu.map((item) => (
-              <NavLink key={item.path} to={item.path} className="nav-item">
+              <NavLink 
+                  key={item.path} 
+                  to={item.path} 
+                  className="nav-item" 
+                  title={!isOpen ? item.label : ''}
+              >
                   {item.icon}
                   <span>{item.label}</span>
               </NavLink>
