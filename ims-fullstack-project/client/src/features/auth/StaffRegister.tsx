@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserPlus, FaCamera, FaTimes, FaCheck } from 'react-icons/fa';
-import Cropper from 'react-easy-crop'; // <--- Import Cropper
-import { getCroppedImg } from '../../utils/canvasUtils'; // <--- Import Helper
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from '../../utils/canvasUtils';
+import FeedbackAlert from '../../components/common/FeedbackAlert'; // <--- Import Alert
+import { type AlertColor } from '@mui/material/Alert'; // <--- Import Type
 import './StaffRegister.scss';
 
 // Define the shape of a Role object
@@ -28,7 +30,24 @@ const StaffRegister: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(true);
 
-  // 2. State for Form Data
+  // 2. Alert State (Replaces simple alerts)
+  const [alertInfo, setAlertInfo] = useState<{
+    show: boolean; 
+    type: AlertColor; 
+    msg: string;
+  }>({ 
+    show: false, 
+    type: 'success', 
+    msg: '' 
+  });
+
+  // Helper to show alert
+  const showAlert = (type: AlertColor, msg: string) => {
+    setAlertInfo({ show: true, type, msg });
+    setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+  };
+
+  // 3. State for Form Data
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -40,7 +59,7 @@ const StaffRegister: React.FC = () => {
     joiningDate: new Date().toISOString().split('T')[0],
   });
 
-  // 3. State for Image & Cropper
+  // 4. State for Image & Cropper
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   
@@ -51,7 +70,7 @@ const StaffRegister: React.FC = () => {
   const [isCropping, setIsCropping] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
-  // 4. Fetch Roles on Component Mount
+  // 5. Fetch Roles on Component Mount
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -61,9 +80,11 @@ const StaffRegister: React.FC = () => {
           setRoles(data);
         } else {
           console.error('Failed to fetch roles');
+          showAlert('error', 'Failed to load roles from server.');
         }
       } catch (error) {
         console.error('Error connecting to server:', error);
+        showAlert('error', 'Network error. Check server connection.');
       } finally {
         setLoadingRoles(false);
       }
@@ -113,6 +134,7 @@ const StaffRegister: React.FC = () => {
       }
     } catch (e) {
       console.error(e);
+      showAlert('error', 'Failed to crop image.');
     }
   };
   // --- CROPPER LOGIC END ---
@@ -121,7 +143,7 @@ const StaffRegister: React.FC = () => {
   const handleSubmit = async () => {
     // Basic Validation
     if (!formData.fullName || !formData.email || !formData.password || !formData.roleId) {
-      alert("Please fill in all required fields (Name, Email, Password, Role)");
+      showAlert('warning', "Please fill in all required fields (Name, Email, Password, Role)");
       return;
     }
 
@@ -141,8 +163,6 @@ const StaffRegister: React.FC = () => {
         data.append('profileImage', imageFile);
       }
 
-      console.log("📤 Sending FormData to Backend...");
-      
       const response = await fetch('http://localhost:5000/api/staff/register', {
         method: 'POST',
         body: data,
@@ -151,22 +171,32 @@ const StaffRegister: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         console.log("✅ Registration Success:", result);
-        alert("Staff Registered Successfully!");
-        navigate('/staff'); // Redirect to Staff List
+        showAlert('success', "Staff Registered Successfully!");
+        
+        // Delay redirect to show success message
+        setTimeout(() => navigate('/staff'), 1000);
       } else {
         const errorData = await response.json();
-        alert(`Registration Failed: ${errorData.message || 'Unknown error'}`);
+        showAlert('error', `Registration Failed: ${errorData.message || 'Unknown error'}`);
       }
 
     } catch (error) {
       console.error("❌ Network Error:", error);
-      alert("Network Error: Could not connect to server.");
+      showAlert('error', "Network Error: Could not connect to server.");
     }
   };
 
   return (
     <div className="register-container">
       
+      {/* 1. Feedback Alert Component */}
+      <FeedbackAlert 
+        isOpen={alertInfo.show} 
+        type={alertInfo.type} 
+        message={alertInfo.msg} 
+        onClose={() => setAlertInfo({ ...alertInfo, show: false })}
+      />
+
       {/* --- CROPPER MODAL --- */}
       {isCropping && (
         <div className="cropper-modal">

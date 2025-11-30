@@ -10,6 +10,7 @@ import authRoutes from './routes/authRoutes';
 import staffRoutes from './routes/staffRoutes';
 import profileRoutes from './routes/profileRoutes';
 import studentRoutes from './routes/studentRoutes';
+import libraryRoutes from './routes/libraryRoutes';
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/library', libraryRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

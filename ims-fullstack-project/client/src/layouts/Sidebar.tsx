@@ -1,7 +1,7 @@
 // client/src/layouts/Sidebar.tsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaHome, FaUserPlus, FaList, FaIdCard, FaUserCircle } from 'react-icons/fa';
+import { FaHome, FaUserPlus, FaList, FaIdCard, FaUserCircle, FaClipboardList, FaBook } from 'react-icons/fa';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -24,6 +24,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
     // SUPER ADMIN ONLY
     { path: '/staff', label: 'Manage Staff', icon: <FaUserPlus />, roles: ['super_admin'] },
     { path: '/roles', label: 'Manage Roles', icon: <FaUserPlus />, roles: ['super_admin'] },
+
+    // LIBRARY MODULE (Librarian & Super Admin)
+    { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
+    { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
   ];
 
   // Filter Logic

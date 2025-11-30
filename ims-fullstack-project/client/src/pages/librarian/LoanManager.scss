@@ -1,0 +1,237 @@
+// client/src/pages/librarian/LoanManager.scss
+
+.loan-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+
+    // ------------------------------------
+    // 1. Header & Issue Form
+    // ------------------------------------
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+
+        .header-content {
+            h2 {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.75rem;
+                color: var(--heading-color);
+                margin: 0 0 0.5rem 0;
+
+                svg {
+                    color: var(--primary-color);
+                }
+            }
+        }
+
+        // Inline Issue Form
+        .issue-form {
+            display: flex;
+            gap: 0.75rem;
+            background-color: var(--card-bg-default);
+            padding: 0.75rem;
+            border: 1px solid var(--card-border-color);
+            border-radius: 10px;
+            box-shadow: var(--box-shadow-1);
+            flex-wrap: wrap;
+            align-items: center;
+
+            select,
+            input {
+                padding: 0.6rem 1rem;
+                border: 1px solid var(--form-input-border-color);
+                background: var(--bg-secondary-color);
+                border-radius: 6px;
+                color: var(--font-color);
+                font-size: 0.9rem;
+                outline: none;
+                min-width: 150px;
+                transition: border-color 0.2s;
+
+                &:focus {
+                    background: var(--bg-color);
+                    border-color: var(--primary-color);
+                }
+            }
+
+            button.btn-issue {
+                background-color: var(--btn-primary-bg);
+                color: #fff;
+                border: none;
+                padding: 0.6rem 1.25rem;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+
+                &:hover {
+                    background-color: var(--btn-primary-hover-bg);
+                    transform: translateY(-1px);
+                }
+            }
+        }
+    }
+
+    // ------------------------------------
+    // 2. Loans Grid
+    // ------------------------------------
+    .loans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted-color);
+            background: var(--card-bg-default);
+            border-radius: 12px;
+            border: 1px dashed var(--card-border-color);
+        }
+
+        // ------------------------------------
+        // 3. The Loan Card
+        // ------------------------------------
+        .loan-card {
+            background-color: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 180px;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+
+            // Dim returned books to focus attention on active loans
+            &.returned {
+                opacity: 0.6;
+                background-color: var(--bg-secondary-color);
+                border-style: dashed;
+
+                &:hover {
+                    opacity: 1;
+                    border-style: solid;
+                    background-color: var(--card-bg-default);
+                }
+            }
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--box-shadow-2);
+                border-color: var(--border-heading-color);
+            }
+
+            .card-content {
+                flex: 1;
+
+                h3 {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.2rem;
+                    color: var(--heading-color);
+                    line-height: 1.4;
+                }
+
+                .student-info {
+                    font-size: 0.95rem;
+                    color: var(--font-color);
+                    margin-bottom: 0.5rem;
+
+                    strong {
+                        color: var(--primary-color);
+                    }
+
+                    span {
+                        color: var(--text-muted-color);
+                        font-size: 0.85rem;
+                        margin-left: 5px;
+                    }
+                }
+
+                .due-date {
+                    font-size: 0.9rem;
+                    color: var(--text-muted-color);
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                // Status Badges
+                .status-badge {
+                    display: inline-block;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    padding: 4px 10px;
+                    border-radius: 20px;
+                    letter-spacing: 0.5px;
+
+                    &.issued {
+                        background-color: rgba(210, 153, 34, 0.15); // Orange bg
+                        color: #d29922; // Orange text
+                        border: 1px solid rgba(210, 153, 34, 0.3);
+                    }
+
+                    &.returned {
+                        background-color: rgba(26, 127, 55, 0.15); // Green bg
+                        color: #1a7f37; // Green text
+                        border: 1px solid rgba(26, 127, 55, 0.3);
+                    }
+
+                    &.overdue {
+                        background-color: rgba(207, 34, 46, 0.15); // Red bg
+                        color: #cf222e; // Red text
+                        border: 1px solid rgba(207, 34, 46, 0.3);
+                    }
+                }
+            }
+
+            // Card Footer (Return Button)
+            .card-actions {
+                margin-top: 1.5rem;
+                display: flex;
+                justify-content: flex-end;
+                border-top: 1px solid var(--border-light-color);
+                padding-top: 1rem;
+
+                button {
+                    background: none;
+                    border: 1px solid transparent;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 6px;
+                    transition: all 0.2s;
+
+                    &.return-btn {
+                        color: #1a7f37; // Green
+                        background-color: rgba(26, 127, 55, 0.1);
+
+                        &:hover {
+                            background-color: #1a7f37;
+                            color: white;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
