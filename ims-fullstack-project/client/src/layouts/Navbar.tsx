@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaMoon, FaSun, FaUser, FaSignOutAlt } from 'react-icons/fa';
+import LinearProgress from '@mui/material/LinearProgress'; // Import MUI loader
 
 interface NavbarProps {
   theme: string;
   toggleTheme: () => void;
+  isLoading: boolean; // <--- NEW PROP
 }
 
 interface UserProfile {
@@ -15,12 +17,11 @@ interface UserProfile {
   avatar?: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
+const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isLoading }) => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
 
-  // Fetch User Profile to get Avatar & Name
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token');
@@ -48,30 +49,26 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
     navigate('/login');
   };
 
-  // Determine Avatar URL
   const avatarUrl = user?.avatar 
     ? `http://localhost:5000${user.avatar}` 
     : `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0D8ABC&color=fff`;
 
   return (
-    <header className="navbar">
+    <header className="navbar" style={{ position: 'relative' }}> 
+      {/* Added relative positioning for the loader */}
+      
       <div className="navbar-left">
-        {/* Optional: Breadcrumbs or Page Title */}
+        {/* Breadcrumbs or Title */}
       </div>
 
       <div className="navbar-right">
-        {/* Theme Toggle */}
         <button className="theme-btn" onClick={toggleTheme} title="Toggle Theme">
           {theme === 'light' ? <FaMoon /> : <FaSun />}
         </button>
 
-        {/* Profile Dropdown */}
         <div className="profile-menu">
           <div className="profile-trigger" onClick={() => setIsProfileOpen(!isProfileOpen)}>
-            <img 
-              src={avatarUrl} 
-              alt="Profile" 
-            />
+            <img src={avatarUrl} alt="Profile" />
           </div>
 
           <div className={`dropdown-content ${isProfileOpen ? 'open' : ''}`}>
@@ -90,7 +87,6 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
           </div>
         </div>
         
-        {/* Close dropdown when clicking outside */}
         {isProfileOpen && (
             <div 
               style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 99 }} 
@@ -98,6 +94,21 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
             />
         )}
       </div>
+
+      {/* --- GLOBAL LOADER --- */}
+      {isLoading && (
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%' }}>
+            <LinearProgress 
+                sx={{ 
+                    height: 2, // Ultra thin
+                    backgroundColor: 'transparent',
+                    '& .MuiLinearProgress-bar': {
+                        backgroundColor: 'var(--primary-color)' 
+                    }
+                }} 
+            />
+        </div>
+      )}
     </header>
   );
 };

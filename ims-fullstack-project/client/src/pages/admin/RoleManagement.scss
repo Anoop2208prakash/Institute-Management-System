@@ -12,7 +12,7 @@
     .page-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center; // Align center vertically
         flex-wrap: wrap;
         gap: 1.5rem;
 
@@ -37,24 +37,64 @@
             }
         }
 
-        // --- NEW: Primary Button Style ---
-        .btn-add-primary {
-            background-color: var(--btn-primary-bg);
-            color: #fff;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
+        // Container for Search + Button
+        .header-actions {
             display: flex;
+            gap: 1rem;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-            box-shadow: var(--box-shadow-1);
+            flex-wrap: wrap;
 
-            &:hover {
-                background-color: var(--btn-primary-hover-bg);
-                transform: translateY(-2px);
+            // Search Bar Style
+            .search-box {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                background-color: var(--card-bg-default);
+                padding: 0.6rem 1rem;
+                border-radius: 8px;
+                border: 1px solid var(--card-border-color);
+                box-shadow: var(--box-shadow-1);
+                color: var(--text-muted-color);
+                transition: border-color 0.2s;
+
+                &:focus-within {
+                    border-color: var(--primary-color);
+                    color: var(--primary-color);
+                }
+
+                input {
+                    border: none;
+                    background: transparent;
+                    outline: none;
+                    color: var(--font-color);
+                    font-size: 0.9rem;
+                    width: 200px;
+
+                    &::placeholder {
+                        color: var(--text-muted-color);
+                    }
+                }
+            }
+
+            // Primary Button
+            .btn-add-primary {
+                background-color: var(--btn-primary-bg);
+                color: #fff;
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.2s;
+                box-shadow: var(--box-shadow-1);
+
+                &:hover {
+                    background-color: var(--btn-primary-hover-bg);
+                    transform: translateY(-2px);
+                }
             }
         }
     }
@@ -64,6 +104,16 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted-color);
+            background: var(--card-bg-default);
+            border-radius: 12px;
+            border: 1px dashed var(--card-border-color);
+        }
 
         // 3. The Role Card
         .role-card {
