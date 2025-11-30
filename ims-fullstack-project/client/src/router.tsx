@@ -10,6 +10,8 @@ import ProfilePage from './pages/ProfilePage'; // <--- 1. Import Profile Page
 // Admin Pages
 import RoleManagement from './pages/admin/RoleManagement';
 import StaffList from './pages/admin/StaffList';
+import AdmissionList from './pages/admin/admission/AdmissionList';
+import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +53,14 @@ export const router = createBrowserRouter([
         path: '/staff',
         element: <StaffList />
       },
+      {
+        path : '/view-admission',
+        element: <AdmissionList />
+      },
+      {
+        path : '/new-admission',
+        element: <NewAdmissionPage />
+      }
     ]
   },
 

@@ -1,7 +1,9 @@
 // client/src/pages/admin/RoleManagement.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaShieldAlt, FaPlus, FaLock, FaUserTag } from 'react-icons/fa';
+import { DeleteModal } from '../../components/common/DeleteModal';
 import './RoleManagement.scss';
+import { CreateRoleModal } from './CreateRoleModal';
 
 interface Role {
   id: string;
@@ -13,13 +15,21 @@ interface Role {
 
 const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [newRole, setNewRole] = useState({ displayName: '', description: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Core System Roles (Cannot be deleted)
+  // Modal States
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<{ id: string, name: string } | null>(null);
+  
+  // Loading States for Actions
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const SYSTEM_ROLES = ['super_admin', 'admin', 'teacher', 'student'];
 
+  // Fetch Roles
   const fetchRoles = useCallback(async () => {
     setIsLoading(true);
     setError('');
@@ -38,74 +48,76 @@ const RoleManagement: React.FC = () => {
 
   useEffect(() => { void fetchRoles(); }, [fetchRoles]);
 
-  const handleCreate = async () => {
-    if (!newRole.displayName) return;
+  // --- CREATE ROLE LOGIC ---
+  const handleCreate = async (newRoleData: { displayName: string; description: string }) => {
+    setIsCreating(true);
     try {
       const res = await fetch('http://localhost:5000/api/roles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRole)
+        body: JSON.stringify(newRoleData)
       });
       if (res.ok) {
-        setNewRole({ displayName: '', description: '' });
         void fetchRoles();
+        setIsCreateModalOpen(false); // Close modal on success
+      } else {
+        alert("Failed to create role. It might already exist.");
       }
     } catch (error) {
-      // FIX: Log the error so the variable is "used"
       console.error("Create Role Error:", error);
       alert("Failed to create role.");
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Delete this role? This cannot be undone.')) {
-      try {
-        await fetch(`http://localhost:5000/api/roles/${id}`, { method: 'DELETE' });
+  // --- DELETE ROLE LOGIC ---
+  const openDeleteModal = (id: string, name: string) => {
+    setRoleToDelete({ id, name });
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!roleToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/roles/${roleToDelete.id}`, { method: 'DELETE' });
+      if (res.ok) {
         void fetchRoles();
-      } catch (error) {
-        console.error("Delete Role Error:", error);
+        setIsDeleteModalOpen(false);
+      } else {
         alert("Failed to delete role.");
       }
+    } catch (error) {
+      console.error("Delete Role Error:", error);
+      alert("Failed to delete role.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   return (
     <div className="role-page">
       
-      {/* 1. Modern Header & Action Bar */}
+      {/* 1. Header with "Create New" Button */}
       <div className="page-header">
         <div className="header-content">
           <h2><FaShieldAlt /> Role Management</h2>
           <p>Define access levels and manage user permissions across the institute.</p>
         </div>
 
-        <div className="add-role-form">
-          <input 
-            type="text" 
-            placeholder="Role Name (e.g. Accountant)" 
-            value={newRole.displayName}
-            onChange={(e) => setNewRole({...newRole, displayName: e.target.value})}
-          />
-          <input 
-            type="text" 
-            placeholder="Description (Optional)" 
-            value={newRole.description}
-            onChange={(e) => setNewRole({...newRole, description: e.target.value})}
-          />
-          <button className="btn-add" onClick={handleCreate} disabled={isLoading}>
-            <FaPlus /> Create Role
-          </button>
-        </div>
+        {/* This button now triggers the Modal */}
+        <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
+          <FaPlus /> Create New Role
+        </button>
       </div>
 
-      {/* Error State */}
       {error && <div style={{color: 'red', padding: '1rem'}}>{error}</div>}
 
-      {/* 2. Premium Card Grid */}
+      {/* 2. Roles Grid */}
       <div className="roles-grid">
         {roles.map((role) => {
           const isSystem = SYSTEM_ROLES.includes(role.name);
-          
           return (
             <div key={role.id} className="role-card">
               <div className="card-top">
@@ -127,7 +139,7 @@ const RoleManagement: React.FC = () => {
                     <FaLock /> Protected
                   </button>
                 ) : (
-                  <button className="delete-btn" onClick={() => handleDelete(role.id)}>
+                  <button className="delete-btn" onClick={() => openDeleteModal(role.id, role.displayName)}>
                     <FaTrash /> Delete Role
                   </button>
                 )}
@@ -136,11 +148,28 @@ const RoleManagement: React.FC = () => {
           );
         })}
         
-        {/* Empty State */}
         {!isLoading && roles.length === 0 && !error && (
             <p>No roles found.</p>
         )}
       </div>
+
+      {/* 3. MODALS */}
+      <CreateRoleModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSave={handleCreate}
+        isLoading={isCreating}
+      />
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Role"
+        message="Are you sure you want to delete the role"
+        itemName={roleToDelete?.name || ''}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

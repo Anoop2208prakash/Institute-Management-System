@@ -1,55 +1,42 @@
 // client/src/layouts/Sidebar.tsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  FaHome, 
-  FaIdCard, 
-  FaChevronLeft, 
-  FaChevronRight, 
-  FaIdBadge,
-  FaUsers // <--- Imported for Manage Staff
-} from 'react-icons/fa';
+import { FaHome, FaUserPlus, FaList, FaIdCard, FaUserCircle } from 'react-icons/fa';
 
 interface SidebarProps {
   isOpen: boolean;
   toggle: () => void;
+  role: string; // Receive Role
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
   
-  // Sidebar Menu Configuration
-  const menuItems = [
-    { path: '/dashboard', label: 'Home', icon: <FaHome /> },
-    { path: '/id-card', label: 'ID Card', icon: <FaIdCard /> },
+  const allMenuItems = [
+    // COMMON
+    { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
+    { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
+    { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
+
+    // ADMINISTRATOR ONLY
+    { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator'] },
+    { path: '/view-admission', label: 'View Admission', icon: <FaList />, roles: ['administrator'] },
     
-    // --- NEW ITEM ---
-    { path: '/staff', label: 'Manage Staff', icon: <FaUsers /> },
-    // ----------------
-    
-    { path: '/roles', label: 'Role', icon: <FaIdBadge /> },
+    // SUPER ADMIN ONLY
+    { path: '/staff', label: 'Manage Staff', icon: <FaUserPlus />, roles: ['super_admin'] },
+    { path: '/roles', label: 'Manage Roles', icon: <FaUserPlus />, roles: ['super_admin'] },
   ];
+
+  // Filter Logic
+  const filteredMenu = allMenuItems.filter(item => 
+    item.roles.includes('all') || item.roles.includes(role)
+  );
 
   return (
     <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-      {/* Toggle Button */}
-      <div className="sidebar-toggle" onClick={toggle}>
-        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
-      </div>
-
-      {/* Logo */}
-      <div className="sidebar-logo">
-         {isOpen ? <h2>IMS Pro</h2> : <h2>IP</h2>}
-      </div>
-
-      {/* Navigation List */}
+      {/* ... toggle & logo ... */}
       <nav>
-          {menuItems.map((item) => (
-              <NavLink 
-                  key={item.label}
-                  to={item.path} 
-                  className="nav-item" 
-                  title={!isOpen ? item.label : ''}
-              >
+          {filteredMenu.map((item) => (
+              <NavLink key={item.path} to={item.path} className="nav-item">
                   {item.icon}
                   <span>{item.label}</span>
               </NavLink>
