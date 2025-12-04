@@ -1,11 +1,10 @@
 // client/src/pages/admin/inventory/InventoryManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaBoxOpen, FaPlus, FaTrash, FaTshirt, FaPen } from 'react-icons/fa';
+import { FaBoxOpen, FaPlus, FaTrash, FaSearch, FaFileAlt } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
-import '../academic/ClassManager.scss';
+import './InventoryManager.scss';
 import { CreateInventoryModal, type InventoryFormData } from './CreateInventoryModal';
 
 interface InventoryItem {
@@ -21,7 +20,10 @@ const InventoryManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // States
+  // --- TAB STATE ---
+  const [activeTab, setActiveTab] = useState<'Uniform' | 'Stationery'>('Uniform');
+
+  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -49,7 +51,6 @@ const InventoryManager: React.FC = () => {
 
   useEffect(() => { void fetchItems(); }, [fetchItems]);
 
-  // FIX: Use explicit type for 'data'
   const handleCreate = async (data: InventoryFormData) => {
     setIsCreating(true);
     try {
@@ -92,65 +93,93 @@ const InventoryManager: React.FC = () => {
     }
   };
 
+  // Filter based on Search AND Active Tab
   const filteredItems = items.filter(i => 
-    i.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.category.toLowerCase().includes(searchTerm.toLowerCase())
+    i.category === activeTab && 
+    i.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="class-page">
+    <div className="inventory-page">
+      
+      {/* Header */}
       <div className="page-header">
-        <div className="header-content">
-            <h2><FaBoxOpen /> Manage Inventory</h2>
-            <p>Track stocks of Uniforms and Stationery.</p>
+         <h2><FaBoxOpen /> Inventory Manager</h2>
+      </div>
+
+      {/* Top Bar (Tabs & Search) */}
+      <div className="top-bar">
+        <div className="tabs">
+            <button 
+                className={`tab-btn ${activeTab === 'Uniform' ? 'active' : ''}`}
+                onClick={() => setActiveTab('Uniform')}
+            >
+                Uniform
+            </button>
+            <button 
+                className={`tab-btn ${activeTab === 'Stationery' ? 'active' : ''}`}
+                onClick={() => setActiveTab('Stationery')}
+            >
+                Stationery
+            </button>
         </div>
-        <div className="header-actions" style={{display:'flex', gap:'1rem'}}>
-            <input 
-                placeholder="Search Items..." 
-                value={searchTerm} 
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{padding:'0.6rem', borderRadius:'6px', border:'1px solid var(--border-light-color)', background:'var(--bg-secondary-color)', color:'var(--font-color)'}}
-            />
-            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)} style={{padding:'0.6rem 1.2rem', background:'var(--btn-primary-bg)', color:'white', border:'none', borderRadius:'6px', cursor:'pointer', fontWeight:600}}>
-                <FaPlus /> Add Item
+
+        <div className="actions">
+            <div className="search-box">
+                <FaSearch />
+                <input 
+                    placeholder="Search..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <button className="btn-add" onClick={() => setIsCreateModalOpen(true)}>
+                <FaPlus /> Add {activeTab}
             </button>
         </div>
       </div>
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      <div className="class-grid">
-        {isLoading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
+      {/* Data Table Container */}
+      <div className="data-grid-container">
         
-        {filteredItems.map(item => (
-            <div key={item.id} className="class-card">
-                <div className="card-left">
-                    <h3>{item.name}</h3>
-                    <div style={{display:'flex', gap:'10px', marginTop:'5px', alignItems:'center'}}>
-                        {/* Dynamic Icon based on Category */}
-                        {item.category === 'Uniform' 
-                            ? <FaTshirt style={{color:'#0969da'}} /> 
-                            : <FaPen style={{color:'#d29922'}} />
-                        }
-                        <span className="section-badge">{item.category}</span>
+        {/* Table Header */}
+        <div className="grid-header">
+            <span>Item Name</span>
+            <span>Quantity</span>
+            <span>Price (₹)</span>
+            <span>Actions</span>
+        </div>
+
+        <div className="grid-body">
+            {/* Loader removed here */}
+
+            {!isLoading && filteredItems.map(item => (
+                <div key={item.id} className="grid-row">
+                    <span className="item-name">{item.name}</span>
+                    <span className="item-qty">{item.quantity} Units</span>
+                    <span className="item-price">₹{item.price.toFixed(2)}</span>
+                    <div className="actions">
+                        <button onClick={() => setDeleteModal({show: true, id: item.id, name: item.name})}>
+                            <FaTrash /> Delete
+                        </button>
                     </div>
-                    <p style={{fontSize:'0.9rem', color:'var(--font-color)', marginTop:'8px', fontWeight:600}}>
-                        ${item.price.toFixed(2)}
-                    </p>
                 </div>
-                <div className="card-right">
-                    <div className="student-count" style={{color: item.quantity < 10 ? '#cf222e' : 'var(--font-color)'}}>
-                        Qty: {item.quantity}
-                    </div>
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: item.id, name: item.name})} style={{background:'none', border:'none', cursor:'pointer', color:'var(--font-color-danger)'}}>
-                        <FaTrash />
-                    </button>
+            ))}
+            
+            {/* Empty State */}
+            {!isLoading && filteredItems.length === 0 && (
+                <div className="empty-state">
+                    <FaFileAlt className="icon" />
+                    <p>Data not found!</p>
                 </div>
-            </div>
-        ))}
+            )}
+        </div>
       </div>
 
-      <CreateInventoryModal
+      {/* Modals */}
+      <CreateInventoryModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
         onSave={handleCreate} 
