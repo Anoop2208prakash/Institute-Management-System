@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaShoppingCart, FaCheck, FaTruck, FaSearch, FaUser, FaBox } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './OrderList.scss';
 
@@ -19,32 +18,36 @@ interface Order {
 
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
   });
 
-  const showAlert = (type: AlertColor, msg: string) => {
+  // 1. FIX: Memoize showAlert to prevent infinite loops in dependencies
+  const showAlert = useCallback((type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
-  };
+  }, []);
 
+  // 2. FIX: Add showAlert to dependencies
   const fetchOrders = useCallback(async () => {
-    setIsLoading(true);
     try {
       const res = await fetch('http://localhost:5000/api/orders');
       if (res.ok) setOrders(await res.json());
     } catch (e) {
-      console.error(e); // FIX: Log error
+      console.error(e);
       showAlert('error', 'Failed to load orders');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    } 
+  }, [showAlert]);
 
-  useEffect(() => { void fetchOrders(); }, [fetchOrders]);
+  // 3. FIX: Safe Async Call inside useEffect
+  useEffect(() => { 
+    const loadData = async () => {
+        await fetchOrders();
+    };
+    loadData();
+  }, [fetchOrders]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
@@ -54,13 +57,13 @@ const OrderList: React.FC = () => {
             body: JSON.stringify({ status: newStatus })
         });
         if(res.ok) {
-            void fetchOrders();
+            fetchOrders(); // Refresh list
             showAlert('success', `Order marked as ${newStatus}`);
         } else {
             showAlert('error', 'Update failed');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log error
+        console.error(e);
         showAlert('error', 'Network error'); 
     }
   };
@@ -101,7 +104,6 @@ const OrderList: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="orders-grid">
-        {isLoading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
         
         {filteredOrders.map(order => (
             <div key={order.id} className="order-card">
