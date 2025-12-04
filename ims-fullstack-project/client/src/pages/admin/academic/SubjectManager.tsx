@@ -1,11 +1,11 @@
 // client/src/pages/admin/academic/SubjectManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaBook, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaBook, FaPlus, FaTrash, FaSearch, FaChalkboardTeacher, FaLayerGroup, FaCalendarAlt } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
-import './ClassManager.scss'; // Reusing ClassManager styles for consistency
+import './SubjectManager.scss'; // <--- Updated Import
 import { CreateSubjectModal, type SubjectFormData } from './CreateSubjectModal';
 
 interface Subject {
@@ -14,6 +14,7 @@ interface Subject {
   code: string;
   className: string;
   teacherName: string;
+  semesterName?: string; // Add this if your API returns it (updated controller does)
 }
 
 const SubjectManager: React.FC = () => {
@@ -21,7 +22,6 @@ const SubjectManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -42,7 +42,7 @@ const SubjectManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/subjects');
       if (res.ok) setSubjects(await res.json());
     } catch (e) {
-      console.error(e); // FIX: Log the error
+      console.error(e);
       showAlert('error', 'Failed to load subjects');
     } finally {
       setIsLoading(false);
@@ -67,7 +67,7 @@ const SubjectManager: React.FC = () => {
             showAlert('error', 'Failed to add subject');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -86,14 +86,13 @@ const SubjectManager: React.FC = () => {
             showAlert('error', 'Failed to delete subject');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  // Filter
   const filteredSubjects = subjects.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,20 +100,23 @@ const SubjectManager: React.FC = () => {
   );
 
   return (
-    <div className="class-page">
+    <div className="subject-page"> 
+      
       <div className="page-header">
         <div className="header-content">
             <h2><FaBook /> Manage Subjects</h2>
-            <p>Assign subjects to classes and teachers.</p>
+            <p>Assign subjects to programs, semesters, and teachers.</p>
         </div>
-        <div className="header-actions" style={{display:'flex', gap:'1rem'}}>
-            <input 
-                placeholder="Search Subjects..." 
-                value={searchTerm} 
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{padding:'0.6rem', borderRadius:'6px', border:'1px solid var(--border-light-color)', background:'var(--bg-secondary-color)', color:'var(--font-color)'}}
-            />
-            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)} style={{padding:'0.6rem 1.2rem', background:'var(--btn-primary-bg)', color:'white', border:'none', borderRadius:'6px', cursor:'pointer', fontWeight:600}}>
+        <div className="header-actions">
+            <div className="search-box">
+                <FaSearch />
+                <input 
+                    placeholder="Search Subjects..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                 <FaPlus /> Add Subject
             </button>
         </div>
@@ -122,28 +124,59 @@ const SubjectManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      <div className="class-grid">
-        {isLoading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
+      {/* --- NEW HORIZONTAL LIST VIEW --- */}
+      <div className="subject-list">
+        {isLoading && <div style={{gridColumn:'1/-1', padding:'2rem', textAlign:'center'}}><LinearLoader /></div>}
         
-        {filteredSubjects.map(sub => (
-            <div key={sub.id} className="class-card">
-                <div className="card-left">
-                    <h3>{sub.name}</h3>
-                    <div style={{display:'flex', gap:'10px', marginTop:'5px'}}>
-                        <span className="section-badge">{sub.code}</span>
-                        <span className="section-badge" style={{background:'rgba(210, 153, 34, 0.15)', color:'#d29922', borderColor:'rgba(210, 153, 34, 0.3)'}}>{sub.className}</span>
+        {!isLoading && filteredSubjects.map(sub => (
+            <div key={sub.id} className="subject-row">
+                {/* Left: Info */}
+                <div className="row-left">
+                    <div className="icon-box">
+                        <FaBook />
                     </div>
-                    <p style={{fontSize:'0.85rem', color:'var(--text-muted-color)', marginTop:'8px'}}>
-                        Teacher: {sub.teacherName}
-                    </p>
+                    <div className="info">
+                        <h3>
+                            {sub.name} 
+                            <span className="code-badge">{sub.code}</span>
+                        </h3>
+                        <div className="details">
+                            <span>
+                                <FaLayerGroup style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                <strong>{sub.className}</strong>
+                            </span>
+                            
+                            {sub.semesterName && (
+                                <>
+                                    <span className="separator">|</span>
+                                    <span>
+                                        <FaCalendarAlt style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                        {sub.semesterName}
+                                    </span>
+                                </>
+                            )}
+
+                            <span className="separator">|</span>
+                            <span>
+                                <FaChalkboardTeacher style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                <strong>{sub.teacherName}</strong>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="card-right">
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})} style={{background:'none', border:'none', cursor:'pointer', color:'var(--font-color-danger)'}}>
-                        <FaTrash />
+
+                {/* Right: Actions */}
+                <div className="row-right">
+                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})}>
+                        <FaTrash /> Delete
                     </button>
                 </div>
             </div>
         ))}
+
+        {!isLoading && filteredSubjects.length === 0 && (
+            <div className="empty-state">No subjects found.</div>
+        )}
       </div>
 
       <CreateSubjectModal

@@ -1,11 +1,11 @@
 // client/src/pages/admin/academic/ExamManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaClipboardList, FaPlus, FaTrash, FaCalendarDay } from 'react-icons/fa';
+import { FaClipboardList, FaPlus, FaTrash, FaSearch, FaCalendarDay } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
-import './ClassManager.scss'; // Reuse styles
+import './ExamManager.scss'; // <--- Updated styles import
 import { CreateExamModal, type ExamFormData } from './CreateExamModal';
 
 interface Exam {
@@ -15,7 +15,6 @@ interface Exam {
   className: string;
   subjectName: string;
   semesterName: string;
-  status: string;
 }
 
 const ExamManager: React.FC = () => {
@@ -41,7 +40,7 @@ const ExamManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/exams');
       if (res.ok) setExams(await res.json());
     } catch (e) {
-      console.error(e); // Log error to fix unused variable warning
+      console.error(e);
       showAlert('error', 'Failed to load exams');
     } finally {
       setIsLoading(false);
@@ -66,7 +65,7 @@ const ExamManager: React.FC = () => {
             showAlert('error', 'Failed to schedule exam');
         }
     } catch(e) { 
-        console.error(e); // Log error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -85,7 +84,7 @@ const ExamManager: React.FC = () => {
             showAlert('error', 'Failed to delete exam');
         }
     } catch(e) { 
-        console.error(e); // Log error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
@@ -99,20 +98,22 @@ const ExamManager: React.FC = () => {
   );
 
   return (
-    <div className="class-page">
+    <div className="exam-page">
       <div className="page-header">
         <div className="header-content">
             <h2><FaClipboardList /> Manage Exams</h2>
             <p>Schedule exams, link subjects to semesters, and manage timelines.</p>
         </div>
-        <div className="header-actions" style={{display:'flex', gap:'1rem'}}>
-            <input 
-                placeholder="Search Exams..." 
-                value={searchTerm} 
-                onChange={e => setSearchTerm(e.target.value)}
-                style={{padding:'0.6rem', borderRadius:'6px', border:'1px solid var(--border-light-color)', background:'var(--bg-secondary-color)', color:'var(--font-color)'}}
-            />
-            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)} style={{padding:'0.6rem 1.2rem', background:'var(--btn-primary-bg)', color:'white', border:'none', borderRadius:'6px', cursor:'pointer', fontWeight:600}}>
+        <div className="header-actions">
+            <div className="search-box">
+                <FaSearch />
+                <input 
+                    placeholder="Search Exams..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                 <FaPlus /> Schedule Exam
             </button>
         </div>
@@ -120,29 +121,44 @@ const ExamManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      <div className="class-grid">
-        {isLoading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
+      {/* --- HORIZONTAL LIST --- */}
+      <div className="exam-list">
+        {isLoading && <div style={{gridColumn:'1/-1', padding:'2rem', textAlign:'center'}}><LinearLoader /></div>}
         
-        {filteredExams.map(ex => (
-            <div key={ex.id} className="class-card">
-                <div className="card-left">
-                    <h3>{ex.name}</h3>
-                    <div style={{display:'flex', gap:'10px', marginTop:'5px', flexWrap:'wrap'}}>
-                        <span className="section-badge" style={{background:'rgba(130, 80, 223, 0.1)', color:'#8250df', borderColor:'rgba(130, 80, 223, 0.3)'}}>{ex.semesterName}</span>
-                        <span className="section-badge">{ex.className}</span>
+        {!isLoading && filteredExams.map(ex => (
+            <div key={ex.id} className="exam-row">
+                {/* Left: Info */}
+                <div className="row-left">
+                    <div className="icon-box">
+                        <FaClipboardList />
                     </div>
-                    <div style={{marginTop:'10px', fontSize:'0.9rem', color:'var(--text-muted-color)', display:'flex', alignItems:'center', gap:'8px'}}>
-                        <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
+                    <div className="info">
+                        <h3>{ex.name}</h3>
+                        <div className="meta-badges">
+                            <span>{ex.className}</span>
+                            <span>{ex.semesterName}</span>
+                            <span>{ex.subjectName}</span>
+                        </div>
                     </div>
-                    <p style={{fontSize:'0.9rem', marginTop:'5px', color:'var(--font-color)', fontWeight:500}}>{ex.subjectName}</p>
                 </div>
-                <div className="card-right">
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: ex.id, name: ex.name})} style={{background:'none', border:'none', cursor:'pointer', color:'var(--font-color-danger)'}}>
-                        <FaTrash />
+
+                {/* Center: Date */}
+                <div className="row-center">
+                    <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
+                </div>
+
+                {/* Right: Actions */}
+                <div className="row-right">
+                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: ex.id, name: ex.name})}>
+                        <FaTrash /> Delete
                     </button>
                 </div>
             </div>
         ))}
+
+        {!isLoading && filteredExams.length === 0 && (
+            <div className="empty-state">No exams scheduled.</div>
+        )}
       </div>
 
       <CreateExamModal

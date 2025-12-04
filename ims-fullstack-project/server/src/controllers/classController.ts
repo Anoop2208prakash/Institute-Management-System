@@ -7,7 +7,7 @@ export const getClasses = async (req: Request, res: Response) => {
   try {
     const classes = await prisma.class.findMany({
       include: {
-        _count: { select: { students: true } } // Count students in each class
+        _count: { select: { students: true } } 
       },
       orderBy: { name: 'asc' }
     });
@@ -17,26 +17,31 @@ export const getClasses = async (req: Request, res: Response) => {
   }
 };
 
-// CREATE Class
+// CREATE Class (Program)
 export const createClass = async (req: Request, res: Response) => {
   try {
-    const { name, section } = req.body;
+    const { name, description } = req.body;
     
-    // Check duplicate
-    const existing = await prisma.class.findFirst({
-        where: { name, section }
+    // Check duplicate by Name
+    // If you see an error here, run 'npx prisma generate'
+    const existing = await prisma.class.findUnique({
+        where: { name }
     });
 
     if (existing) {
-        res.status(400).json({ message: "Class with this section already exists" });
+        res.status(400).json({ message: "A Program with this name already exists" });
         return;
     }
 
     const newClass = await prisma.class.create({
-      data: { name, section }
+      data: { 
+        name, 
+        description 
+      }
     });
     res.status(201).json(newClass);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to create class' });
   }
 };

@@ -18,12 +18,9 @@ model Role {
   name        String   @unique
   displayName String   
   description String?  
-  
   users       User[]   
-  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   @@map("roles")
 }
 
@@ -65,13 +62,9 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String   
-  
-  // CENTRALIZED AVATAR
   avatar    String?  
-  
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id])
-  
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -79,9 +72,7 @@ model User {
   studentProfile Student?
   teacherProfile Teacher?
   adminProfile   Admin?
-  
-  // Relations for new modules
-  announcements  Announcement[] // User can author announcements
+  announcements  Announcement[] 
 
   @@index([roleId])
   @@map("users")
@@ -96,9 +87,7 @@ model Admin {
   userId    String   @unique
   fullName  String
   phone     String?
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@map("admins")
 }
 
@@ -111,13 +100,10 @@ model Teacher {
   qualification String?
   bloodGroup    String?  
   joiningDate   DateTime @default(now())
-  
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   subjects      Subject[]
   classes       Class[]  @relation("ClassTeacher") 
   attendance    Attendance[]
-
   @@map("teachers")
 }
 
@@ -131,17 +117,13 @@ model Student {
   address     String?
   phone       String?  
   bloodGroup  String?  
-  
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
-  
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
   loans       Loan[]   
-
   @@index([classId])
   @@map("students")
 }
@@ -151,21 +133,17 @@ model Student {
 // --------------------------------------
 
 model Class {
-  id        String   @id @default(uuid())
-  name      String   
-  section   String   
-  
-  teacherId String?  
-  teacher   Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
-  
-  students  Student[]
-  subjects  Subject[]
-  exams     Exam[]    // <--- Added relation for exams
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([name, section]) 
+  id          String   @id @default(uuid())
+  name        String   @unique 
+  description String?  
+  teacherId   String?  
+  teacher     Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
+  students    Student[]
+  subjects    Subject[]
+  exams       Exam[]
+  semesters   Semester[] 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   @@map("classes")
 }
 
@@ -173,53 +151,50 @@ model Subject {
   id        String   @id @default(uuid())
   name      String   
   code      String   
-  
   classId   String
   class     Class    @relation(fields: [classId], references: [id])
-  
   teacherId String?
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   
+  // --- UPDATED RELATION ---
+  semesterId String?
+  semester   Semester? @relation(fields: [semesterId], references: [id])
+  
   results   Result[]
-  exams     Exam[]   // <--- Added relation for exams
-
+  exams     Exam[]   
   @@map("subjects")
 }
 
-// --- NEW: SEMESTER & EXAM ---
-
 model Semester {
-  id        String   @id @default(uuid())
-  name      String   // e.g. "Spring 2025"
-  startDate DateTime
-  endDate   DateTime
-  status    String   @default("UPCOMING") 
+  id        String    @id @default(uuid())
+  name      String   
+  startDate DateTime? 
+  endDate   DateTime? 
+  status    String    @default("UPCOMING") 
+  classId   String
+  class     Class     @relation(fields: [classId], references: [id])
   
+  // --- UPDATED RELATION ---
+  subjects  Subject[] // Link back to subjects
   exams     Exam[]
   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   @@map("semesters")
 }
 
 model Exam {
   id         String   @id @default(uuid())
-  name       String   // e.g. "Mid-Term Physics"
+  name       String   
   date       DateTime
-  
   semesterId String
   semester   Semester @relation(fields: [semesterId], references: [id])
-  
   classId    String
   class      Class    @relation(fields: [classId], references: [id])
-  
   subjectId  String
   subject    Subject  @relation(fields: [subjectId], references: [id])
-
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
   @@map("exams")
 }
 
@@ -231,13 +206,10 @@ model Attendance {
   id        String           @id @default(uuid())
   date      DateTime         @default(now())
   status    AttendanceStatus
-  
   studentId String
   student   Student          @relation(fields: [studentId], references: [id])
-  
   markedBy  String
   teacher   Teacher          @relation(fields: [markedBy], references: [id])
-
   @@unique([date, studentId]) 
   @@map("attendance")
 }
@@ -247,13 +219,10 @@ model Result {
   examName      String   
   marksObtained Float
   totalMarks    Float
-  
   studentId     String
   student       Student  @relation(fields: [studentId], references: [id])
-  
   subjectId     String
   subject       Subject  @relation(fields: [subjectId], references: [id])
-
   @@map("results")
 }
 
@@ -268,10 +237,8 @@ model FeeRecord {
   dueDate   DateTime
   paidDate  DateTime?
   status    PaymentStatus @default(PENDING)
-  
   studentId String
   student   Student       @relation(fields: [studentId], references: [id])
-
   @@map("fee_records")
 }
 
@@ -287,34 +254,27 @@ model Book {
   category  String   
   quantity  Int      @default(1)
   available Int      @default(1)
-  
   loans     Loan[]
-  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@map("books")
 }
 
 model Loan {
   id         String    @id @default(uuid())
-  
   bookId     String
   book       Book      @relation(fields: [bookId], references: [id])
-  
   studentId  String
   student    Student   @relation(fields: [studentId], references: [id])
-  
   issueDate  DateTime  @default(now())
   dueDate    DateTime
   returnDate DateTime?
   status     LoanStatus @default(ISSUED)
-
   @@map("loans")
 }
 
 // --------------------------------------
-// 9. INVENTORY & ORDERS (New)
+// 9. INVENTORY & ORDERS
 // --------------------------------------
 
 model InventoryItem {
@@ -323,40 +283,32 @@ model InventoryItem {
   category  String   
   quantity  Int      @default(0)
   price     Float    @default(0.0)
-  
   orders    Order[]
-
   @@map("inventory_items")
 }
 
 model Order {
   id        String        @id @default(uuid())
-  
   itemId    String
   item      InventoryItem @relation(fields: [itemId], references: [id])
-  
   quantity  Int
   status    String        @default("PENDING") 
   orderBy   String        
-  
   date      DateTime      @default(now())
-
   @@map("orders")
 }
 
 // --------------------------------------
-// 10. COMMUNICATION (New)
+// 10. COMMUNICATION
 // --------------------------------------
 
 model Announcement {
   id        String   @id @default(uuid())
   title     String
   content   String   @db.Text
-  target    String   // "ALL", "STUDENT", "TEACHER", "ADMIN"
+  target    String   
   date      DateTime @default(now())
-  
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
-
   @@map("announcements")
 }

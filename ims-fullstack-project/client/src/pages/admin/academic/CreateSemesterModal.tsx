@@ -1,13 +1,18 @@
 // client/src/components/admin/CreateSemesterModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
-import './CreateRoleModal.scss'; // Reusing generic modal styles
+import './CreateRoleModal.scss'; 
 
+// Simplified Interface
 interface SemesterFormData {
   name: string;
-  startDate: string;
-  endDate: string;
-  status: string;
+  classId: string; 
+}
+
+interface ProgramOption {
+  id: string;
+  name: string;
+  description?: string;
 }
 
 interface CreateSemesterModalProps {
@@ -21,15 +26,28 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
   isOpen, onClose, onSave, isLoading
 }) => {
   const [formData, setFormData] = useState<SemesterFormData>({ 
-    name: '', startDate: '', endDate: '', status: 'UPCOMING' 
+    name: '', classId: '' 
   });
+  
+  const [programs, setPrograms] = useState<ProgramOption[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+        fetch('http://localhost:5000/api/classes')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setPrograms(data);
+            })
+            .catch(err => console.error("Failed to load programs", err));
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave(formData);
-    setFormData({ name: '', startDate: '', endDate: '', status: 'UPCOMING' });
+    setFormData({ name: '', classId: '' });
   };
 
   return (
@@ -42,54 +60,46 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            
+            {/* Program Selector */}
+            <div className="form-group">
+                <label>Program / Class <span className="required">*</span></label>
+                <select 
+                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                    value={formData.classId}
+                    onChange={e => setFormData({...formData, classId: e.target.value})}
+                    required
+                    autoFocus
+                >
+                    <option value="">Select Program...</option>
+                    {programs.map((prog) => (
+                        <option key={prog.id} value={prog.id}>
+                            {prog.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Semester Name */}
             <div className="form-group">
                 <label>Semester Name <span className="required">*</span></label>
                 <input 
-                    placeholder="e.g. Spring 2025" 
+                    placeholder="e.g. Semester 1" 
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
-                    required autoFocus 
+                    required 
                 />
             </div>
             
-            <div className="form-row" style={{display:'flex', gap:'1rem'}}>
-                <div className="form-group" style={{flex:1}}>
-                    <label>Start Date</label>
-                    <input 
-                        type="date" 
-                        value={formData.startDate} 
-                        onChange={e => setFormData({...formData, startDate: e.target.value})} 
-                        required 
-                    />
-                </div>
-                <div className="form-group" style={{flex:1}}>
-                    <label>End Date</label>
-                    <input 
-                        type="date" 
-                        value={formData.endDate} 
-                        onChange={e => setFormData({...formData, endDate: e.target.value})} 
-                        required 
-                    />
-                </div>
-            </div>
+            {/* Dates removed as requested */}
 
-            <div className="form-group">
-                <label>Status</label>
-                <select 
-                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
-                    value={formData.status}
-                    onChange={e => setFormData({...formData, status: e.target.value})}
-                >
-                    <option value="UPCOMING">Upcoming</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="COMPLETED">Completed</option>
-                </select>
-            </div>
           </div>
 
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-save" disabled={isLoading}>{isLoading ? 'Creating...' : 'Create Semester'}</button>
+            <button type="submit" className="btn-save" disabled={isLoading}>
+                {isLoading ? 'Creating...' : 'Create Semester'}
+            </button>
           </div>
         </form>
       </div>

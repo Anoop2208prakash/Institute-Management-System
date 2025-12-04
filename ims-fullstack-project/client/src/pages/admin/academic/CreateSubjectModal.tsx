@@ -3,15 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { FaTimes, FaBook } from 'react-icons/fa';
 import './CreateRoleModal.scss'; // Reusing styles
 
-// 1. Define Form Data Interface
+// 1. Define Interfaces
 export interface SubjectFormData {
   name: string;
   code: string;
   classId: string;
   teacherId: string;
+  semesterId: string; 
 }
 
-// 2. Define Data Interfaces for Dropdowns (The Fix)
 interface ClassOption {
   id: string;
   name: string;
@@ -24,6 +24,20 @@ interface TeacherOption {
   role: string;
 }
 
+interface SemesterOption {
+  id: string;
+  name: string;
+  classId?: string; 
+  programName?: string;
+}
+
+// Helper interface for raw API response
+interface RawStaff {
+    id: string;
+    name: string;
+    role: string;
+}
+
 interface CreateSubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,28 +48,34 @@ interface CreateSubjectModalProps {
 export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
   isOpen, onClose, onSave, isLoading
 }) => {
-  const [formData, setFormData] = useState<SubjectFormData>({ name: '', code: '', classId: '', teacherId: '' });
+  const [formData, setFormData] = useState<SubjectFormData>({ 
+    name: '', code: '', classId: '', teacherId: '', semesterId: '' 
+  });
   
-  // 3. Use Specific Interfaces instead of 'any[]'
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [teachers, setTeachers] = useState<TeacherOption[]>([]);
+  const [semesters, setSemesters] = useState<SemesterOption[]>([]);
 
-  // Fetch Classes & Teachers
+  // Fetch Data
   useEffect(() => {
     if (isOpen) {
         Promise.all([
             fetch('http://localhost:5000/api/classes').then(res => res.json()),
-            fetch('http://localhost:5000/api/staff').then(res => res.json())
-        ]).then(([classesData, staffData]) => {
-            // Type Assertion for incoming API data
-            if (Array.isArray(classesData)) {
-                setClasses(classesData as ClassOption[]);
-            }
+            fetch('http://localhost:5000/api/staff').then(res => res.json()),
+            fetch('http://localhost:5000/api/semesters').then(res => res.json()) 
+        ]).then(([classesData, staffData, semesterData]) => {
+            if (Array.isArray(classesData)) setClasses(classesData);
+            if (Array.isArray(semesterData)) setSemesters(semesterData);
             
             if (Array.isArray(staffData)) {
-                // Filter only teachers
-                const allStaff = staffData as TeacherOption[];
-                const teacherList = allStaff.filter(s => s.role === 'Teacher');
+                // Explicitly type the filter and map
+                const teacherList = (staffData as RawStaff[])
+                    .filter(s => s.role === 'Teacher')
+                    .map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        role: t.role
+                    }));
                 setTeachers(teacherList);
             }
         }).catch(err => console.error(err));
@@ -67,9 +87,9 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave(formData);
-    setFormData({ name: '', code: '', classId: '', teacherId: '' }); // Reset
+    setFormData({ name: '', code: '', classId: '', teacherId: '', semesterId: '' }); 
   };
-
+  
   return (
     <div className="modal-overlay">
       <div className="modal-container">
@@ -111,7 +131,24 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
                 >
                     <option value="">Select Class...</option>
                     {classes.map(cls => (
-                        <option key={cls.id} value={cls.id}>{cls.name} ({cls.section})</option>
+                        <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            {/* --- NEW SEMESTER DROPDOWN --- */}
+            <div className="form-group">
+                <label>Semester (Optional)</label>
+                <select 
+                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                    value={formData.semesterId}
+                    onChange={e => setFormData({...formData, semesterId: e.target.value})}
+                >
+                    <option value="">All Semesters</option>
+                    {semesters.map(sem => (
+                        <option key={sem.id} value={sem.id}>
+                            {sem.name} {sem.programName ? `(${sem.programName})` : ''}
+                        </option>
                     ))}
                 </select>
             </div>

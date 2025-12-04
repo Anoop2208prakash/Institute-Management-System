@@ -1,14 +1,8 @@
 // client/src/components/admin/CreateExamModal.tsx
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaClipboardList } from 'react-icons/fa';
-import './CreateRoleModal.scss'; // Reusing styles
+import './CreateRoleModal.scss'; 
 
-// Interfaces for Dropdown Data
-interface ClassOpt { id: string; name: string; section: string; }
-interface SubjectOpt { id: string; name: string; code: string; }
-interface SemesterOpt { id: string; name: string; status: string; }
-
-// Form Data Interface
 export interface ExamFormData {
   name: string;
   date: string;
@@ -16,6 +10,11 @@ export interface ExamFormData {
   subjectId: string;
   semesterId: string;
 }
+
+interface ClassOpt { id: string; name: string; section: string; }
+// Updated Interface with semesterId
+interface SubjectOpt { id: string; name: string; code: string; classId: string; semesterId?: string; }
+interface SemesterOpt { id: string; name: string; status: string; classId: string; }
 
 interface CreateExamModalProps {
   isOpen: boolean;
@@ -32,23 +31,48 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
   });
 
   const [classes, setClasses] = useState<ClassOpt[]>([]);
-  const [subjects, setSubjects] = useState<SubjectOpt[]>([]);
-  const [semesters, setSemesters] = useState<SemesterOpt[]>([]);
+  const [allSubjects, setAllSubjects] = useState<SubjectOpt[]>([]);
+  const [allSemesters, setAllSemesters] = useState<SemesterOpt[]>([]);
 
-  // Fetch Dependencies
+  const [filteredSubjects, setFilteredSubjects] = useState<SubjectOpt[]>([]);
+  const [filteredSemesters, setFilteredSemesters] = useState<SemesterOpt[]>([]);
+
+  // Fetch Data
   useEffect(() => {
     if (isOpen) {
         Promise.all([
             fetch('http://localhost:5000/api/classes').then(r => r.json()),
             fetch('http://localhost:5000/api/subjects').then(r => r.json()),
             fetch('http://localhost:5000/api/semesters').then(r => r.json())
-        ]).then(([clsData, subData, semData]) => {
-            if(Array.isArray(clsData)) setClasses(clsData);
-            if(Array.isArray(subData)) setSubjects(subData);
-            if(Array.isArray(semData)) setSemesters(semData);
+        ]).then(([cls, sub, sem]) => {
+            if(Array.isArray(cls)) setClasses(cls as ClassOpt[]);
+            if(Array.isArray(sub)) setAllSubjects(sub as SubjectOpt[]);
+            if(Array.isArray(sem)) setAllSemesters(sem as SemesterOpt[]);
         }).catch(console.error);
     }
   }, [isOpen]);
+
+  // Filter Logic
+  useEffect(() => {
+      if (formData.classId) {
+          // 1. Filter Semesters by Class
+          const validSemesters = allSemesters.filter(s => s.classId === formData.classId);
+          setFilteredSemesters(validSemesters);
+
+          // 2. Filter Subjects
+          let validSubjects = allSubjects.filter(s => s.classId === formData.classId);
+          
+          // 3. If Semester is selected, filter subjects belonging to that semester
+          if (formData.semesterId) {
+              validSubjects = validSubjects.filter(s => s.semesterId === formData.semesterId);
+          }
+          
+          setFilteredSubjects(validSubjects);
+      } else {
+          setFilteredSubjects([]);
+          setFilteredSemesters([]);
+      }
+  }, [formData.classId, formData.semesterId, allSubjects, allSemesters]); // Dependent on semesterId too
 
   if (!isOpen) return null;
 
@@ -68,13 +92,28 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            
+            <div className="form-group">
+                <label>Class / Program <span className="required">*</span></label>
+                <select 
+                    style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
+                    value={formData.classId}
+                    onChange={e => setFormData({...formData, classId: e.target.value, subjectId: '', semesterId: ''})}
+                    required
+                    autoFocus
+                >
+                    <option value="">Select Class first...</option>
+                    {classes.map(c => <option key={c.id} value={c.id}>{c.name} {c.section ? `- ${c.section}` : ''}</option>)}
+                </select>
+            </div>
+
             <div className="form-group">
                 <label>Exam Name <span className="required">*</span></label>
                 <input 
                     placeholder="e.g. Final Mathematics" 
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
-                    required autoFocus 
+                    required 
                 />
             </div>
             
@@ -94,38 +133,32 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
                     <select 
                         style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
                         value={formData.semesterId}
-                        onChange={e => setFormData({...formData, semesterId: e.target.value})}
+                        onChange={e => setFormData({...formData, semesterId: e.target.value, subjectId: ''})} // Clear subject on semester change
                         required
+                        disabled={!formData.classId}
                     >
-                        <option value="">Select Semester...</option>
-                        {semesters.map(s => <option key={s.id} value={s.id}>{s.name} ({s.status})</option>)}
+                        <option value="">Select...</option>
+                        {filteredSemesters.map(s => (
+                            <option key={s.id} value={s.id}>{s.name} ({s.status})</option>
+                        ))}
                     </select>
                 </div>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Class</label>
+                    <label>Subject</label>
                     <select 
                         style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
-                        value={formData.classId}
-                        onChange={e => setFormData({...formData, classId: e.target.value})}
+                        value={formData.subjectId}
+                        onChange={e => setFormData({...formData, subjectId: e.target.value})}
                         required
+                        disabled={!formData.classId}
                     >
-                        <option value="">Select Class...</option>
-                        {classes.map(c => <option key={c.id} value={c.id}>{c.name} - {c.section}</option>)}
+                        <option value="">Select...</option>
+                        {filteredSubjects.length === 0 && formData.semesterId && <option disabled>No subjects in this semester</option>}
+                        {filteredSubjects.map(s => (
+                            <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                        ))}
                     </select>
                 </div>
-            </div>
-
-            <div className="form-group">
-                <label>Subject</label>
-                <select 
-                    style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
-                    value={formData.subjectId}
-                    onChange={e => setFormData({...formData, subjectId: e.target.value})}
-                    required
-                >
-                    <option value="">Select Subject...</option>
-                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
-                </select>
             </div>
           </div>
 

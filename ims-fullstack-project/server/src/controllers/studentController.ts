@@ -13,59 +13,49 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
       gender, address, bloodGroup, admissionNo, classId 
     } = req.body;
     
-    // Get profile image path
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
 
-    // Basic Validation
     if (!email || !password || !fullName || !admissionNo) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
 
-    // Check duplicates
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: "Email already exists" });
       return;
     }
 
-    // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Get Student Role ID
     const studentRole = await prisma.role.findUnique({ where: { name: 'student' } });
     if (!studentRole) {
         res.status(500).json({ message: "System Error: Student role not defined" });
         return;
     }
 
-    // Transaction: Create User + Student Profile
     const result = await prisma.$transaction(async (tx) => {
-      
-      // 1. Create User Login
       const newUser = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
           roleId: studentRole.id,
-          avatar: profileImage, // Saved in User table
+          avatar: profileImage,
           isActive: true,
         },
       });
 
-      // 2. Handle Class Assignment
       let finalClassId = classId;
       
-      // Fallback: If no class selected, find or create a default one (Safety net)
+      // Fallback logic (updated to match new Class schema without section)
       if (!finalClassId) {
         let defaultClass = await tx.class.findFirst();
         if (!defaultClass) {
-            defaultClass = await tx.class.create({ data: { name: 'Grade 1', section: 'A' } });
+            defaultClass = await tx.class.create({ data: { name: 'Grade 1' } });
         }
         finalClassId = defaultClass.id;
       }
 
-      // 3. Create Student Profile
       await tx.student.create({
         data: {
           userId: newUser.id,
@@ -98,18 +88,19 @@ export const getStudents = async (req: Request, res: Response) => {
   try {
     const students = await prisma.student.findMany({
       include: {
-        user: true,   // To get Avatar and Email
-        class: true,  // To get Class Name
+        user: true,
+        class: true, 
       },
       orderBy: { admissionNo: 'asc' }
     });
 
     const formatted = students.map(s => ({
-      id: s.userId, // Use User ID for actions (delete/edit)
+      id: s.userId,
       admissionNo: s.admissionNo,
       name: s.fullName,
       email: s.user.email,
-      class: s.class ? `${s.class.name} (${s.class.section})` : 'Unassigned',
+      // FIX: Removed s.class.section because it no longer exists in schema
+      class: s.class ? s.class.name : 'Unassigned', 
       phone: s.phone,
       avatar: s.user.avatar,
       gender: s.gender
@@ -117,6 +108,7 @@ export const getStudents = async (req: Request, res: Response) => {
 
     res.json(formatted);
   } catch (error) {
+    console.error("Get Students Error:", error); // Log error for debugging
     res.status(500).json({ message: 'Failed to fetch students' });
   }
 };
@@ -126,9 +118,8 @@ export const getStudents = async (req: Request, res: Response) => {
 // ------------------------------------------
 export const deleteStudent = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params; // This is the User ID
+    const { id } = req.params;
 
-    // Prisma Cascade Delete: Deleting User removes Student Profile automatically
     await prisma.user.delete({
       where: { id }
     });
