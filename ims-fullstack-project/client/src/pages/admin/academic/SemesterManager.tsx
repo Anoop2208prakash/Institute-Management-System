@@ -1,28 +1,26 @@
 // client/src/pages/admin/academic/SemesterManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaCalendarAlt, FaPlus, FaTrash, FaSearch } from 'react-icons/fa';
+import { FaCalendarAlt, FaPlus, FaTrash, FaSearch, FaClock } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './SemesterManager.scss'; 
 import { CreateSemesterModal } from './CreateSemesterModal';
 
-// Updated Interface (Dates optional)
 interface Semester {
   id: string;
   name: string;
-  startDate?: string;
-  endDate?: string;
+  startDate?: string; // Optional now
+  endDate?: string;   // Optional now
   status: string;
-  programName?: string; 
+  programName?: string;
 }
 
-// Updated Form Interface
+// 1. Updated Interface (Matches the Modal)
 interface SemesterFormData {
   name: string;
   classId: string;
-  // dates removed
+  // Dates removed to match the simplified Modal
 }
 
 const SemesterManager: React.FC = () => {
@@ -30,6 +28,7 @@ const SemesterManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState(''); 
   
+  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   
@@ -51,7 +50,7 @@ const SemesterManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/semesters');
       if (res.ok) setSemesters(await res.json());
     } catch (e) {
-      console.error(e);
+      console.error(e); 
       showAlert('error', 'Failed to load semesters');
     } finally {
       setIsLoading(false);
@@ -60,11 +59,10 @@ const SemesterManager: React.FC = () => {
 
   useEffect(() => { void fetchSemesters(); }, [fetchSemesters]);
 
+  // 2. Updated Create Logic (No Dates)
   const handleCreate = async (data: SemesterFormData) => {
     setIsCreating(true);
     try {
-        // Inject dates as null/dummy if needed, or update backend to ignore
-        // Here we just send name/classId as defined in the new interface
         const res = await fetch('http://localhost:5000/api/semesters', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -78,7 +76,7 @@ const SemesterManager: React.FC = () => {
             showAlert('error', 'Failed to create semester');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); 
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -97,17 +95,27 @@ const SemesterManager: React.FC = () => {
             showAlert('error', 'Failed to delete semester');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); 
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  // Filter Logic (Removed status search)
+  const formatDate = (d?: string) => d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+
+  const getStatusColor = (status: string) => {
+      switch(status) {
+          case 'ACTIVE': return { bg: 'rgba(26, 127, 55, 0.15)', text: '#1a7f37' }; // Green
+          case 'COMPLETED': return { bg: 'var(--bg-secondary-color)', text: 'var(--text-muted-color)' }; // Gray
+          default: return { bg: 'rgba(9, 105, 218, 0.15)', text: 'var(--primary-color)' }; // Blue
+      }
+  };
+
+  // Filter Logic
   const filteredSemesters = semesters.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.programName && s.programName.toLowerCase().includes(searchTerm.toLowerCase()))
+    s.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -134,30 +142,42 @@ const SemesterManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
+      {/* --- HORIZONTAL LIST VIEW --- */}
       <div className="semester-list">
-        {isLoading && <div style={{textAlign:'center', padding:'2rem'}}><LinearLoader /></div>}
+        {/* Loader Removed */}
         
-        {!isLoading && filteredSemesters.map(sem => (
-            <div key={sem.id} className="semester-row">
-                {/* Left: Info */}
-                <div className="row-left">
-                    <div className="icon-box">
-                        <FaCalendarAlt />
-                    </div>
-                    <div className="info">
-                        <h3>{sem.name}</h3>
-                        <span className="program">{sem.programName || 'General Program'}</span>
-                    </div>
-                </div>
+        {!isLoading && filteredSemesters.map(sem => {
+            const statusStyle = getStatusColor(sem.status);
 
-                {/* Right: Actions (Status Removed) */}
-                <div className="row-right">
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
-                        <FaTrash /> Delete
-                    </button>
+            return (
+                <div key={sem.id} className={`semester-row ${sem.status.toLowerCase()}`}>
+                    {/* Left: Info */}
+                    <div className="row-left">
+                        <div className="icon-box">
+                            <FaCalendarAlt />
+                        </div>
+                        <div className="info">
+                            <h3>{sem.name}</h3>
+                            <span className="program">{sem.programName || 'General Program'}</span>
+                            <div className="dates">
+                                <FaClock style={{fontSize:'0.8rem', color:'var(--primary-color)'}}/> 
+                                {formatDate(sem.startDate)} — {formatDate(sem.endDate)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Status & Actions */}
+                    <div className="row-right">
+                        <span className={`status-badge ${sem.status.toLowerCase()}`} style={{color: statusStyle.text, backgroundColor: statusStyle.bg, borderColor: 'transparent'}}>
+                            {sem.status}
+                        </span>
+                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
+                            <FaTrash /> Delete
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ))}
+            );
+        })}
 
         {!isLoading && filteredSemesters.length === 0 && (
             <div className="empty-state">No semesters found.</div>

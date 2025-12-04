@@ -4,7 +4,6 @@ import { FaBullhorn, FaPlus, FaTrash, FaUserCircle, FaSearch, FaClock } from 're
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './AnnouncementManager.scss'; 
 
@@ -19,11 +18,11 @@ interface Announcement {
 }
 
 const AnnouncementManager: React.FC = () => {
-  // ... (Keep all state, fetch, create, delete logic exactly as before) ...
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, title: string}>({ show: false, id: '', title: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -97,6 +96,7 @@ const AnnouncementManager: React.FC = () => {
     }
   };
 
+  // Filter
   const filteredList = announcements.filter(a => 
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.content.toLowerCase().includes(searchTerm.toLowerCase())
@@ -107,7 +107,6 @@ const AnnouncementManager: React.FC = () => {
       if (target === 'STUDENT') color = '#1a7f37';
       if (target === 'TEACHER') color = '#8250df';
       if (target === 'ADMIN') color = '#cf222e';
-      
       return (
         <span className="target-badge" style={{
             color: color, 
@@ -145,9 +144,9 @@ const AnnouncementManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="feed-grid">
-        {isLoading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
+        {/* Loader Removed */}
         
-        {filteredList.map(item => (
+        {!isLoading && filteredList.map(item => (
             <div key={item.id} className="feed-card">
                 <div className="card-header">
                     <div className="author-section">
@@ -192,7 +191,11 @@ const AnnouncementManager: React.FC = () => {
             </div>
         ))}
 
-        {!isLoading && filteredList.length === 0 && <div className="empty-state"><p>No announcements found.</p></div>}
+        {!isLoading && filteredList.length === 0 && (
+            <div className="empty-state">
+                <p>No announcements found.</p>
+            </div>
+        )}
       </div>
 
       <CreateAnnouncementModal 

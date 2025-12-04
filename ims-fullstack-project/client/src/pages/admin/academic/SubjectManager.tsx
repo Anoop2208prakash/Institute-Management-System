@@ -3,9 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch, FaChalkboardTeacher, FaLayerGroup, FaCalendarAlt } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
-import './SubjectManager.scss'; // <--- Updated Import
+import './SubjectManager.scss';
 import { CreateSubjectModal, type SubjectFormData } from './CreateSubjectModal';
 
 interface Subject {
@@ -14,7 +13,7 @@ interface Subject {
   code: string;
   className: string;
   teacherName: string;
-  semesterName?: string; // Add this if your API returns it (updated controller does)
+  semesterName?: string; 
 }
 
 const SubjectManager: React.FC = () => {
@@ -22,6 +21,7 @@ const SubjectManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -124,9 +124,9 @@ const SubjectManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* --- NEW HORIZONTAL LIST VIEW --- */}
+      {/* --- HORIZONTAL LIST VIEW --- */}
       <div className="subject-list">
-        {isLoading && <div style={{gridColumn:'1/-1', padding:'2rem', textAlign:'center'}}><LinearLoader /></div>}
+        {/* Loader Removed */}
         
         {!isLoading && filteredSubjects.map(sub => (
             <div key={sub.id} className="subject-row">

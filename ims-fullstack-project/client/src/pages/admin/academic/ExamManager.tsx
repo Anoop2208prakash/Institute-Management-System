@@ -3,9 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaPlus, FaTrash, FaSearch, FaCalendarDay } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
-import './ExamManager.scss'; // <--- Updated styles import
+import './ExamManager.scss'; 
 import { CreateExamModal, type ExamFormData } from './CreateExamModal';
 
 interface Exam {
@@ -121,13 +120,11 @@ const ExamManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* --- HORIZONTAL LIST --- */}
       <div className="exam-list">
-        {isLoading && <div style={{gridColumn:'1/-1', padding:'2rem', textAlign:'center'}}><LinearLoader /></div>}
+        {/* Loader Removed */}
         
         {!isLoading && filteredExams.map(ex => (
             <div key={ex.id} className="exam-row">
-                {/* Left: Info */}
                 <div className="row-left">
                     <div className="icon-box">
                         <FaClipboardList />
@@ -142,12 +139,10 @@ const ExamManager: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Center: Date */}
                 <div className="row-center">
                     <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
                 </div>
 
-                {/* Right: Actions */}
                 <div className="row-right">
                     <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: ex.id, name: ex.name})}>
                         <FaTrash /> Delete
