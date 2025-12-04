@@ -4,11 +4,11 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    max-width: 800px; // Narower width for "Feed" look
+    max-width: 900px; // Slightly wider for better card layout
     margin: 0 auto;
     width: 100%;
 
-    // Reuse Header Styles from RoleManagement
+    // --- Header ---
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -55,6 +55,7 @@
                     background: transparent;
                     outline: none;
                     color: var(--font-color);
+                    width: 180px;
                 }
             }
 
@@ -62,7 +63,7 @@
                 background: var(--btn-primary-bg);
                 color: white;
                 border: none;
-                padding: 0 1.2rem;
+                padding: 0.7rem 1.2rem;
                 border-radius: 8px;
                 font-weight: 600;
                 cursor: pointer;
@@ -77,6 +78,7 @@
         }
     }
 
+    // --- Feed Grid ---
     .feed-grid {
         display: flex;
         flex-direction: column;
@@ -91,72 +93,116 @@
             border: 1px dashed var(--card-border-color);
         }
 
+        // --- The Card Design (Matches Image) ---
         .feed-card {
             background: var(--card-bg-default);
             border: 1px solid var(--card-border-color);
             border-radius: 12px;
-            padding: 1.5rem;
             box-shadow: var(--box-shadow-1);
+            transition: box-shadow 0.2s;
+
+            &:hover {
+                box-shadow: var(--box-shadow-2);
+            }
 
             .card-header {
+                padding: 1.2rem 1.5rem;
                 display: flex;
                 justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 1rem;
-                padding-bottom: 1rem;
-                border-bottom: 1px solid var(--border-light-color);
+                align-items: center;
 
-                .author-info {
+                .author-section {
                     display: flex;
-                    gap: 0.8rem;
+                    gap: 1rem;
                     align-items: center;
 
-                    .avatar-icon {
-                        font-size: 2.5rem;
+                    .author-avatar {
+                        width: 45px;
+                        height: 45px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 1px solid var(--border-light-color);
+                    }
+
+                    .author-placeholder {
+                        font-size: 2.8rem;
                         color: var(--border-light-color);
+                        line-height: 0;
                     }
 
-                    .author-name {
-                        font-weight: 700;
-                        color: var(--heading-color);
-                        display: block;
-                    }
-
-                    .meta {
-                        font-size: 0.8rem;
-                        color: var(--text-muted-color);
+                    .author-details {
                         display: flex;
-                        align-items: center;
-                        gap: 5px;
-                        margin-top: 2px;
+                        flex-direction: column;
+
+                        .author-name {
+                            font-weight: 700;
+                            color: var(--heading-color);
+                            font-size: 1rem;
+                        }
+
+                        .post-date {
+                            font-size: 0.8rem;
+                            color: var(--text-muted-color);
+                            display: flex;
+                            align-items: center;
+                        }
                     }
                 }
 
-                .delete-icon {
-                    background: none;
-                    border: none;
-                    color: var(--text-muted-color);
-                    cursor: pointer;
-                    padding: 5px;
+                .header-right {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
 
-                    &:hover {
-                        color: var(--font-color-danger);
+                    .target-badge {
+                        font-size: 0.75rem;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        padding: 4px 10px;
+                        border-radius: 20px;
+                    }
+
+                    .delete-icon {
+                        background: none;
+                        border: none;
+                        color: var(--text-muted-color);
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                        padding: 6px;
+                        border-radius: 50%;
+                        transition: all 0.2s;
+
+                        &:hover {
+                            color: var(--font-color-danger);
+                            background-color: rgba(207, 34, 46, 0.1);
+                        }
                     }
                 }
             }
 
+            .divider {
+                height: 1px;
+                background-color: var(--border-light-color);
+                width: 100%;
+                opacity: 0.5;
+            }
+
             .card-body {
+                padding: 1.2rem 1.5rem;
+
                 h3 {
                     margin: 0 0 0.5rem 0;
+                    font-size: 1.1rem;
+                    font-weight: 700;
                     color: var(--heading-color);
-                    font-size: 1.2rem;
                 }
 
                 p {
                     margin: 0;
                     color: var(--font-color);
                     line-height: 1.6;
-                    white-space: pre-wrap;
+                    font-size: 0.95rem;
+                    white-space: pre-wrap; // Preserve line breaks
                 }
             }
         }

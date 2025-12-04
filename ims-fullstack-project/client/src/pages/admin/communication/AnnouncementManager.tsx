@@ -1,12 +1,12 @@
 // client/src/pages/admin/communication/AnnouncementManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaBullhorn, FaPlus, FaTrash, FaUserCircle, FaClock, FaSearch } from 'react-icons/fa';
+import { FaBullhorn, FaPlus, FaTrash, FaUserCircle, FaSearch, FaClock } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
+import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
 import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './AnnouncementManager.scss'; 
-import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
 
 interface Announcement {
   id: string;
@@ -15,14 +15,15 @@ interface Announcement {
   target: string;
   date: string;
   authorName: string;
+  authorAvatar: string | null;
 }
 
 const AnnouncementManager: React.FC = () => {
+  // ... (Keep all state, fetch, create, delete logic exactly as before) ...
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, title: string}>({ show: false, id: '', title: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -41,7 +42,7 @@ const AnnouncementManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/announcements');
       if (res.ok) setAnnouncements(await res.json());
     } catch (e) {
-      console.error(e); // FIX: Log error
+      console.error(e);
       showAlert('error', 'Failed to load announcements');
     } finally {
       setIsLoading(false);
@@ -70,7 +71,7 @@ const AnnouncementManager: React.FC = () => {
             showAlert('error', 'Failed to post announcement');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -89,14 +90,13 @@ const AnnouncementManager: React.FC = () => {
             showAlert('error', 'Failed to delete announcement');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  // Filter
   const filteredList = announcements.filter(a => 
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.content.toLowerCase().includes(searchTerm.toLowerCase())
@@ -107,18 +107,21 @@ const AnnouncementManager: React.FC = () => {
       if (target === 'STUDENT') color = '#1a7f37';
       if (target === 'TEACHER') color = '#8250df';
       if (target === 'ADMIN') color = '#cf222e';
+      
       return (
-        <span style={{
-            fontSize:'0.75rem', fontWeight:700, padding:'2px 8px', borderRadius:'12px',
-            backgroundColor: `${color}20`, color: color, border: `1px solid ${color}40`
+        <span className="target-badge" style={{
+            color: color, 
+            backgroundColor: `${color}15`, 
+            border: `1px solid ${color}40`
         }}>
-            {target}
+            {target === 'ALL' ? 'All' : target}
         </span>
       );
   };
 
   return (
     <div className="announcement-page">
+      
       <div className="page-header">
         <div className="header-content">
             <h2><FaBullhorn /> Announcements</h2>
@@ -147,23 +150,41 @@ const AnnouncementManager: React.FC = () => {
         {filteredList.map(item => (
             <div key={item.id} className="feed-card">
                 <div className="card-header">
-                    <div className="author-info">
-                        <FaUserCircle className="avatar-icon" />
-                        <div>
+                    <div className="author-section">
+                         {/* Profile Image */}
+                         {item.authorAvatar ? (
+                             <img 
+                                src={`http://localhost:5000${item.authorAvatar}`} 
+                                alt="Author" 
+                                className="author-avatar"
+                             />
+                        ) : (
+                             <div className="author-placeholder"><FaUserCircle /></div>
+                        )}
+
+                        <div className="author-details">
                             <span className="author-name">{item.authorName}</span>
-                            <div className="meta">
-                                <FaClock /> {new Date(item.date).toLocaleString()}
-                            </div>
+                            <span className="post-date">
+                                <FaClock style={{fontSize:'0.7rem', marginRight:'4px'}} />
+                                {new Date(item.date).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
                         </div>
                     </div>
-                    <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
+
+                    <div className="header-right">
                         {getTargetBadge(item.target)}
-                        <button className="delete-icon" onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}>
+                        <button 
+                            className="delete-icon" 
+                            onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}
+                            title="Delete Post"
+                        >
                             <FaTrash />
                         </button>
                     </div>
                 </div>
                 
+                <div className="divider"></div>
+
                 <div className="card-body">
                     <h3>{item.title}</h3>
                     <p>{item.content}</p>
@@ -174,7 +195,7 @@ const AnnouncementManager: React.FC = () => {
         {!isLoading && filteredList.length === 0 && <div className="empty-state"><p>No announcements found.</p></div>}
       </div>
 
-      <CreateAnnouncementModal
+      <CreateAnnouncementModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
         onSave={handleCreate} 

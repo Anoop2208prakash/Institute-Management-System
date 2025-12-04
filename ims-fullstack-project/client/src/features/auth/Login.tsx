@@ -3,16 +3,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
+import { useAuth } from '../../context/AuthContext'; // <--- 1. Import Auth Context
 import './Login.scss';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth(); // <--- 2. Destructure login function
   
-  // Form State
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
 
-  // Alert State
   const [alertInfo, setAlertInfo] = useState<{
     show: boolean; 
     type: AlertColor; 
@@ -30,7 +30,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setAlertInfo(prev => ({ ...prev, show: false })); // Hide previous alerts
+    setAlertInfo(prev => ({ ...prev, show: false }));
 
     try {
       const response = await fetch('http://localhost:5000/api/auth/login', {
@@ -42,17 +42,13 @@ const Login: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // CRITICAL: Save the token!
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // 3. Use Context Login (Updates State + LocalStorage automatically)
+        login(data.token, data.user);
         
-        // Show success briefly
         setAlertInfo({ show: true, type: 'success', msg: 'Login successful! Redirecting...' });
         
-        // Redirect
         setTimeout(() => navigate('/dashboard'), 500); 
       } else {
-        // Show Error Alert
         setAlertInfo({ 
             show: true, 
             type: 'error', 
@@ -60,7 +56,6 @@ const Login: React.FC = () => {
         });
       }
     } catch (err) {
-      // FIX: Log the error to console so it is "used"
       console.error("Login Error:", err);
       
       setAlertInfo({ 
@@ -75,7 +70,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-container">
-      {/* 1. Feedback Alert Component */}
       <FeedbackAlert 
         isOpen={alertInfo.show} 
         type={alertInfo.type} 

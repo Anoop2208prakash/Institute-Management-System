@@ -1,7 +1,7 @@
 // client/src/components/admin/CreateInventoryModal.tsx
 import React, { useState } from 'react';
 import { FaTimes, FaBoxOpen } from 'react-icons/fa';
-import '../academic/ClassManager.scss'; // Reusing styles for consistency
+import '../academic/ClassManager.scss';
 
 // 1. Define Inventory Data Interface
 export interface InventoryFormData {
@@ -61,7 +61,6 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
                         color: 'var(--font-color)'
                     }}
                     value={formData.category}
-                    // Fix: Explicitly cast to specific string union type
                     onChange={e => setFormData({...formData, category: e.target.value as 'Uniform' | 'Stationery'})}
                     required
                 >
@@ -93,7 +92,8 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
                     />
                 </div>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Price (Each)</label>
+                    {/* UPDATED LABEL HERE */}
+                    <label>Price (₹)</label>
                     <input 
                         type="number" 
                         min="0"

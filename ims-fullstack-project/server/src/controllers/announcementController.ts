@@ -7,27 +7,36 @@ import { AuthRequest } from '../middlewares/auth';
 export const getAnnouncements = async (req: Request, res: Response) => {
   try {
     const announcements = await prisma.announcement.findMany({
-      include: { author: { include: { adminProfile: true, teacherProfile: true } } },
+      include: { 
+        author: { 
+          // We need to fetch the profile to get the Name
+          include: { adminProfile: true, teacherProfile: true, studentProfile: true } 
+        } 
+      },
       orderBy: { date: 'desc' }
     });
 
-    // Format data to show author name
+    // Format data to show author name AND avatar
     const formatted = announcements.map(a => ({
         id: a.id,
         title: a.title,
         content: a.content,
         target: a.target,
         date: a.date,
-        authorName: a.author.adminProfile?.fullName || a.author.teacherProfile?.fullName || 'Unknown'
+        // Logic to find the name
+        authorName: a.author.adminProfile?.fullName || a.author.teacherProfile?.fullName || a.author.studentProfile?.fullName || 'Unknown',
+        // Logic to find the avatar (It is now on the User model directly)
+        authorAvatar: a.author.avatar 
     }));
 
     res.json(formatted);
   } catch (error) {
+    console.error("Fetch Announcements Error:", error);
     res.status(500).json({ error: 'Failed to fetch announcements' });
   }
 };
 
-// CREATE Announcement
+// ... (createAnnouncement and deleteAnnouncement remain the same)
 export const createAnnouncement = async (req: AuthRequest, res: Response) => {
   try {
     const { title, content, target } = req.body;
@@ -49,7 +58,6 @@ export const createAnnouncement = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// DELETE Announcement
 export const deleteAnnouncement = async (req: Request, res: Response) => {
   try {
     await prisma.announcement.delete({ where: { id: req.params.id } });
