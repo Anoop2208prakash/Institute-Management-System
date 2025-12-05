@@ -1,16 +1,20 @@
 // client/src/pages/admin/academic/ClassManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaLayerGroup, FaPlus, FaTrash, FaUsers, FaSearch, FaGraduationCap } from 'react-icons/fa';
+import { FaLayerGroup, FaPlus, FaTrash, FaUsers, FaSearch, FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
 import './ClassManager.scss';
 import { CreateClassModal, type ClassFormData } from './CreateClassModal';
+import { AssignClassTeacherModal } from './AssignClassTeacherModal';
 
+// Updated Interface
 interface ClassData {
   id: string;
   name: string;
   description: string | null; 
+  teacherId?: string | null; 
+  teacher?: { fullName: string }; // To display current teacher
   _count?: {
     students: number;
   };
@@ -24,9 +28,11 @@ const ClassManager: React.FC = () => {
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
-  
+  const [assignModal, setAssignModal] = useState<{show: boolean, data: any}>({ show: false, data: {} }); // <--- New state
+
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false); // <--- New state
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
@@ -46,7 +52,7 @@ const ClassManager: React.FC = () => {
         if (Array.isArray(data)) setClasses(data);
       }
     } catch (e) {
-      console.error(e); // FIX: Log the error
+      console.error(e);
       showAlert('error', 'Failed to load classes');
     } finally {
       setIsLoading(false);
@@ -72,7 +78,7 @@ const ClassManager: React.FC = () => {
             showAlert('error', err.message || 'Failed to create class');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -92,14 +98,37 @@ const ClassManager: React.FC = () => {
             showAlert('error', err.error || 'Cannot delete class with existing students.');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  // Filter
+  // NEW: Handle Teacher Assignment
+  const handleAssignTeacher = async (classId: string, teacherUserId: string) => {
+    setIsAssigning(true);
+    try {
+        const res = await fetch(`http://localhost:5000/api/classes/${classId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ teacherId: teacherUserId })
+        });
+        if(res.ok) {
+            void fetchClasses();
+            setAssignModal({ show: false, data: {} });
+            showAlert('success', 'Class teacher assigned');
+        } else {
+            showAlert('error', 'Failed to assign teacher');
+        }
+    } catch(e) { 
+        console.error(e);
+        showAlert('error', 'Network error'); 
+    } finally { 
+        setIsAssigning(false); 
+    }
+  };
+
   const filteredClasses = classes.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -129,8 +158,6 @@ const ClassManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="class-grid">
-        {/* Loader Removed Here */}
-        
         {filteredClasses.map(cls => (
             <div key={cls.id} className="class-card">
                 <div className="card-top">
@@ -144,13 +171,23 @@ const ClassManager: React.FC = () => {
                 
                 <div className="card-content">
                     <h3>{cls.name}</h3>
-                    {/* Description instead of Section */}
                     <p style={{fontSize:'0.9rem', color:'var(--text-muted-color)', marginTop:'5px', lineHeight: '1.4'}}>
                         {cls.description || "No description provided."}
                     </p>
+
+                    {/* Show Current Teacher */}
+                    <div style={{marginTop:'15px', fontSize:'0.85rem', display:'flex', alignItems:'center', gap:'6px', color: cls.teacher ? 'var(--primary-color)' : 'var(--text-muted-color)', fontWeight:500}}>
+                        <FaChalkboardTeacher /> 
+                        {cls.teacher ? cls.teacher.fullName : 'No Class Teacher Assigned'}
+                    </div>
                 </div>
 
                 <div className="card-actions">
+                    {/* Assign Button */}
+                    <button className="delete-btn" style={{color:'var(--font-color)', marginRight:'10px'}} onClick={() => setAssignModal({show:true, data: cls})}>
+                        Assign Teacher
+                    </button>
+
                     <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: cls.id, name: cls.name})}>
                         <FaTrash /> Delete Class
                     </button>
@@ -170,6 +207,14 @@ const ClassManager: React.FC = () => {
         onClose={() => setIsCreateModalOpen(false)} 
         onSave={handleCreate} 
         isLoading={isCreating} 
+      />
+
+      <AssignClassTeacherModal
+        isOpen={assignModal.show}
+        onClose={() => setAssignModal({show: false, data: {}})}
+        classData={assignModal.data}
+        onSave={handleAssignTeacher}
+        isLoading={isAssigning}
       />
 
       <DeleteModal 

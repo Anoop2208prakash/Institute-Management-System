@@ -142,6 +142,7 @@ model Class {
   subjects    Subject[]
   exams       Exam[]
   semesters   Semester[] 
+  attendance  Attendance[] 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@map("classes")
@@ -155,13 +156,13 @@ model Subject {
   class     Class    @relation(fields: [classId], references: [id])
   teacherId String?
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
-  
-  // --- UPDATED RELATION ---
   semesterId String?
   semester   Semester? @relation(fields: [semesterId], references: [id])
   
-  results   Result[]
-  exams     Exam[]   
+  // FIX: Removed 'results Result[]' because Results are now linked to Exams
+  exams      Exam[]   
+  attendance Attendance[] // Kept for subject-wise attendance
+
   @@map("subjects")
 }
 
@@ -173,11 +174,8 @@ model Semester {
   status    String    @default("UPCOMING") 
   classId   String
   class     Class     @relation(fields: [classId], references: [id])
-  
-  // --- UPDATED RELATION ---
-  subjects  Subject[] // Link back to subjects
+  subjects  Subject[]
   exams     Exam[]
-  
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   @@map("semesters")
@@ -193,6 +191,9 @@ model Exam {
   class      Class    @relation(fields: [classId], references: [id])
   subjectId  String
   subject    Subject  @relation(fields: [subjectId], references: [id])
+  
+  results    Result[] 
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   @@map("exams")
@@ -208,21 +209,29 @@ model Attendance {
   status    AttendanceStatus
   studentId String
   student   Student          @relation(fields: [studentId], references: [id])
-  markedBy  String
+  classId   String
+  class     Class            @relation(fields: [classId], references: [id])
+  subjectId String?          
+  subject   Subject?         @relation(fields: [subjectId], references: [id])
+  markedBy  String           
   teacher   Teacher          @relation(fields: [markedBy], references: [id])
-  @@unique([date, studentId]) 
+  
+  // Composite unique key
+  @@unique([date, studentId, subjectId]) 
   @@map("attendance")
 }
 
 model Result {
   id            String   @id @default(uuid())
-  examName      String   
   marksObtained Float
-  totalMarks    Float
+  totalMarks    Float    @default(100)
   studentId     String
   student       Student  @relation(fields: [studentId], references: [id])
-  subjectId     String
-  subject       Subject  @relation(fields: [subjectId], references: [id])
+  
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id])
+
+  @@unique([examId, studentId])
   @@map("results")
 }
 

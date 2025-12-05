@@ -1,0 +1,159 @@
+.attendance-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .filters-card {
+        background: var(--card-bg-default);
+        border: 1px solid var(--card-border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 200px;
+
+            label {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: var(--text-muted-color);
+            }
+
+            select,
+            input {
+                padding: 0.7rem;
+                border: 1px solid var(--form-input-border-color);
+                border-radius: 6px;
+                background: var(--bg-secondary-color);
+                color: var(--font-color);
+            }
+        }
+
+        .btn-fetch {
+            background: var(--btn-primary-bg);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            height: 42px;
+
+            &:hover {
+                background: var(--btn-primary-hover-bg);
+            }
+        }
+    }
+
+    .sheet-container {
+        background: var(--card-bg-default);
+        border: 1px solid var(--card-border-color);
+        border-radius: 12px;
+        overflow: hidden;
+
+        .sheet-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-light-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            h3 {
+                margin: 0;
+                color: var(--heading-color);
+            }
+
+            .btn-save {
+                background: #1a7f37;
+                color: white;
+                border: none;
+                padding: 0.6rem 1.5rem;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+
+                &:hover {
+                    background: #136c2e;
+                }
+            }
+        }
+
+        .student-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-light-color);
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background: var(--bg-secondary-color);
+            }
+
+            .info {
+                flex: 1;
+
+                .name {
+                    font-weight: 600;
+                    color: var(--heading-color);
+                    display: block;
+                }
+
+                .roll {
+                    font-size: 0.85rem;
+                    color: var(--text-muted-color);
+                }
+            }
+
+            .actions {
+                display: flex;
+                gap: 0.5rem;
+
+                button {
+                    padding: 0.4rem 1rem;
+                    border: 1px solid var(--border-light-color);
+                    background: transparent;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                    color: var(--text-muted-color);
+
+                    &.present.active {
+                        background: #1a7f37;
+                        color: white;
+                        border-color: #1a7f37;
+                    }
+
+                    &.absent.active {
+                        background: #cf222e;
+                        color: white;
+                        border-color: #cf222e;
+                    }
+
+                    &.late.active {
+                        background: #9a6700;
+                        color: white;
+                        border-color: #9a6700;
+                    }
+
+                    &:hover:not(.active) {
+                        background: var(--border-light-color);
+                    }
+                }
+            }
+        }
+    }
+}

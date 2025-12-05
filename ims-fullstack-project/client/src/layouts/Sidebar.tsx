@@ -5,7 +5,10 @@ import {
   FaHome, FaUserCircle, FaIdCard, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
-  FaChevronLeft, FaChevronRight, FaIdBadge
+  FaChevronLeft, FaChevronRight, FaIdBadge,
+  FaCheckSquare,
+  FaPenNib,
+  FaBookReader
 } from 'react-icons/fa';
 
 interface SidebarProps {
@@ -46,6 +49,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     // --- LIBRARIAN ---
     { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
     { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
+
+    // --- TEACHER MODULES ---
+    { path: '/my-class', label: 'My Class', icon: <FaUsers />, roles: ['teacher', 'super_admin'] },
+    { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
+    { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
+    { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },
+    { path: '/my-loans', label: 'My Loans', icon: <FaBookReader />, roles: ['teacher', 'student'] },
   ];
 
   // Filter Logic
