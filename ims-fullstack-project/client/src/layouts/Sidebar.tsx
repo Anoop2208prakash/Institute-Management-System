@@ -5,10 +5,7 @@ import {
   FaHome, FaUserCircle, FaIdCard, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
-  FaChevronLeft, FaChevronRight, FaIdBadge,
-  FaCheckSquare,
-  FaPenNib,
-  FaBookReader
+  FaChevronLeft, FaChevronRight, FaIdBadge, FaCheckSquare, FaPenNib 
 } from 'react-icons/fa';
 
 interface SidebarProps {
@@ -24,41 +21,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
     { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
     { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
-
-    // --- ADMIN MODULES ---
-    // Students & Staff
-    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admin', 'super_admin'] },
-    { path: '/staff', label: 'Manage Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
-    
-    // Academic Management
-    { path: '/programs', label: 'Manage Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
-    { path: '/semesters', label: 'Manage Semester', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
-    { path: '/subjects', label: 'Manage Subject', icon: <FaBook />, roles: ['admin', 'super_admin'] },
-    { path: '/exams', label: 'Manage Exam', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
-
-    // Inventory
-    { path: '/inventory', label: 'Manage Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
-    { path: '/orders', label: 'View Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
-
-    // Communication
-    { path: '/announcements', label: 'Announcement', icon: <FaBullhorn />, roles: ['admin', 'super_admin', 'teacher'] },
-
-    // --- SUPER ADMIN ONLY ---
-    { path: '/roles', label: 'Manage Roles', icon: <FaIdBadge />, roles: ['super_admin'] },
-    
-    // --- LIBRARIAN ---
-    { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
-    { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
+    { path: '/announcements', label: 'Announcements', icon: <FaBullhorn />, roles: ['all'] },
 
     // --- TEACHER MODULES ---
     { path: '/my-class', label: 'My Class', icon: <FaUsers />, roles: ['teacher', 'super_admin'] },
     { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
     { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
     { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },
-    { path: '/my-loans', label: 'My Loans', icon: <FaBookReader />, roles: ['teacher', 'student'] },
+    // REMOVED: My Loans
+
+    // --- ADMIN MODULES ---
+    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admin', 'super_admin'] },
+    { path: '/staff', label: 'Manage Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
+    { path: '/programs', label: 'Manage Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
+    { path: '/semesters', label: 'Manage Semester', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
+    { path: '/subjects', label: 'Manage Subject', icon: <FaBook />, roles: ['admin', 'super_admin'] },
+    { path: '/exams', label: 'Manage Exam', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
+    { path: '/inventory', label: 'Manage Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
+    { path: '/orders', label: 'View Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
+
+    // --- LIBRARIAN ---
+    { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
+    { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
+    
+    // --- SUPER ADMIN ---
+    { path: '/roles', label: 'Manage Roles', icon: <FaIdBadge />, roles: ['super_admin'] },
   ];
 
-  // Filter Logic
   const filteredMenu = menuItems.filter(item => 
     item.roles.includes('all') || item.roles.includes(role)
   );
@@ -68,11 +57,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
       <div className="sidebar-toggle" onClick={toggle}>
         {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
       </div>
-
       <div className="sidebar-logo">
          {isOpen ? <h2>IMS Pro</h2> : <h2>IP</h2>}
       </div>
-
       <nav>
           {filteredMenu.map((item) => (
               <NavLink 
