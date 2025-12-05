@@ -18,6 +18,9 @@ import examRoutes from './routes/examRoutes';
 import inventoryRoutes from './routes/inventoryRoutes';
 import orderRoutes from './routes/orderRoutes';
 import announcementRoutes from './routes/announcementRoutes';
+import teacherRoutes from './routes/teacherRoutes';
+import attendanceRoutes from './routes/attendanceRoutes';
+import markRoutes from './routes/markRoutes';
 
 dotenv.config();
 
@@ -35,7 +38,6 @@ app.use(cors({
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Register Routes
-// The error happens if any of these variables (roleRoutes, etc.) are undefined
 app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/staff', staffRoutes);
@@ -49,6 +51,9 @@ app.use('/api/exams', examRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/teacher', teacherRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/marks', markRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
