@@ -28,6 +28,13 @@ import EnterMarks from './pages/teacher/EnterMarks';
 import AttendanceManager from './pages/teacher/AttendanceManager';
 import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
 import AdmissionList from './pages/admin/admission/AdmissionList';
+import StationeryStore from './pages/student/StationeryStore';
+import AdmitCardPage from './pages/student/AdmitCardPage';
+import MySubjects from './pages/student/MySubjects';
+import MyAttendance from './pages/student/MyAttendance';
+import MyResults from './pages/student/MyResults';
+import MyInvoices from './pages/student/MyInvoices';
+import MyOrders from './pages/student/MyOrders';
 
 export const router = createBrowserRouter([
   {
@@ -95,6 +102,14 @@ export const router = createBrowserRouter([
       { path: '/attendance', element: <AttendanceManager /> },
       { path: '/enter-marks', element: <EnterMarks /> },
       
+      // --- STUDENT ROUTES ---
+      { path: '/stationery', element: <StationeryStore /> },
+      { path: '/admit-card', element: <AdmitCardPage /> },
+      { path: '/my-subjects', element: <MySubjects /> },
+      { path: '/my-attendance', element: <MyAttendance /> },
+      { path: '/my-results', element: <MyResults /> },
+      { path: '/my-invoices', element: <MyInvoices /> },
+      { path: '/my-orders', element: <MyOrders /> },
       // REMOVED: My Loans
     ]
   },

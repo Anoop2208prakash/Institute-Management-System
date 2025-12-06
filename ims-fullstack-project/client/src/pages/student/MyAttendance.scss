@@ -1,0 +1,187 @@
+// client/src/pages/student/MyAttendance.scss
+
+.student-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+
+    // --- Header ---
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+
+        .header-content {
+            h2 {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.75rem;
+                color: var(--heading-color);
+                margin: 0 0 0.5rem 0;
+
+                svg {
+                    color: var(--primary-color);
+                }
+            }
+
+            p {
+                margin: 0;
+                color: var(--text-muted-color);
+                font-size: 0.95rem;
+            }
+        }
+    }
+
+    // --- Stats Row ---
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+
+        .stat-card {
+            background: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: var(--box-shadow-1);
+            transition: transform 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+            }
+
+            .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+
+                &.blue {
+                    background: rgba(9, 105, 218, 0.1);
+                    color: var(--primary-color);
+                }
+
+                &.green {
+                    background: rgba(26, 127, 55, 0.1);
+                    color: #1a7f37;
+                }
+            }
+
+            div {
+                h3 {
+                    margin: 0;
+                    font-size: 1.8rem;
+                    color: var(--heading-color);
+                }
+
+                p {
+                    margin: 0;
+                    color: var(--text-muted-color);
+                    font-size: 0.9rem;
+                }
+            }
+        }
+    }
+
+    // --- Attendance History List ---
+    .list-container {
+        background: var(--card-bg-default);
+        border: 1px solid var(--card-border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--box-shadow-1);
+
+        .section-title {
+            margin: 0 0 1.5rem 0;
+            color: var(--heading-color);
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-light-color);
+            padding-bottom: 1rem;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid var(--border-light-color);
+            transition: background-color 0.1s;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background-color: var(--bg-secondary-color);
+                border-radius: 6px;
+            }
+
+            .item-left {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+
+                svg {
+                    font-size: 1.4rem;
+                }
+
+                .details {
+                    display: flex;
+                    flex-direction: column;
+
+                    .date {
+                        font-weight: 600;
+                        color: var(--font-color);
+                    }
+
+                    .sub-text {
+                        font-size: 0.85rem;
+                        color: var(--text-muted-color);
+                    }
+                }
+            }
+
+            .status-pill {
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 4px 12px;
+                border-radius: 20px;
+                text-transform: uppercase;
+
+                &.present {
+                    background: rgba(26, 127, 55, 0.15);
+                    color: #1a7f37;
+                }
+
+                &.absent {
+                    background: rgba(207, 34, 46, 0.15);
+                    color: #cf222e;
+                }
+
+                &.late {
+                    background: rgba(210, 153, 34, 0.15);
+                    color: #d29922;
+                }
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted-color);
+            font-style: italic;
+        }
+    }
+}

@@ -1,0 +1,348 @@
+// client/src/pages/student/AdmitCardPage.scss
+
+.admit-card-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    min-height: 100vh;
+
+    // --- The Card (Screen View) ---
+    .admit-card {
+        background-color: var(--card-bg-default);
+        width: 100%;
+        max-width: 800px; // Standard A4 width ratio
+        border-radius: 12px;
+        box-shadow: var(--box-shadow-2);
+        border: 1px solid var(--card-border-color);
+        overflow: hidden;
+        position: relative;
+        color: var(--font-color);
+
+        // Decorative Top Bar
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary-color), #8250df);
+        }
+
+        // 1. Header Section
+        .header {
+            padding: 2rem 2.5rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-light-color);
+
+            .institute-info {
+                h1 {
+                    font-size: 1.8rem;
+                    font-weight: 800;
+                    color: var(--heading-color);
+                    margin: 0;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                p {
+                    margin: 4px 0 0;
+                    color: var(--text-muted-color);
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                }
+            }
+
+            .card-title {
+                text-align: right;
+
+                h2 {
+                    font-size: 1.4rem;
+                    background-color: var(--bg-secondary-color);
+                    color: var(--primary-color);
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    margin: 0;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    border: 1px solid var(--border-light-color);
+                }
+
+                span {
+                    display: block;
+                    margin-top: 5px;
+                    font-size: 0.8rem;
+                    color: var(--text-muted-color);
+                    font-weight: 600;
+                }
+            }
+        }
+
+        // 2. Student Details
+        .student-section {
+            padding: 2rem 2.5rem;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+
+            .photo-box {
+                width: 130px;
+                height: 150px;
+                border: 1px solid var(--card-border-color);
+                background-color: var(--bg-secondary-color);
+                border-radius: 8px;
+                padding: 4px;
+                flex-shrink: 0;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 4px;
+                }
+
+                .placeholder {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: var(--text-muted-color);
+                    font-size: 3rem;
+                }
+            }
+
+            .info-grid {
+                flex: 1;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.2rem;
+
+                .info-group {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+
+                    label {
+                        font-size: 0.75rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        color: var(--text-muted-color);
+                        font-weight: 600;
+                    }
+
+                    span {
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        color: var(--heading-color);
+                        border-bottom: 1px dashed var(--border-light-color);
+                        padding-bottom: 2px;
+                    }
+                }
+            }
+        }
+
+        // 3. Exam Table
+        .exam-section {
+            padding: 0 2.5rem 2rem;
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid var(--border-light-color);
+
+                thead {
+                    background-color: var(--bg-secondary-color);
+
+                    th {
+                        padding: 12px 16px;
+                        text-align: left;
+                        font-size: 0.85rem;
+                        font-weight: 700;
+                        color: var(--text-muted-color);
+                        text-transform: uppercase;
+                        border-bottom: 1px solid var(--border-light-color);
+                    }
+                }
+
+                tbody {
+                    tr {
+                        border-bottom: 1px solid var(--border-light-color);
+
+                        &:last-child {
+                            border-bottom: none;
+                        }
+
+                        td {
+                            padding: 12px 16px;
+                            font-size: 0.95rem;
+                            color: var(--font-color);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Footer / Instructions
+        .card-footer {
+            background-color: var(--bg-secondary-color);
+            padding: 1.5rem 2.5rem;
+            border-top: 1px solid var(--border-light-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+
+            .instructions {
+                max-width: 60%;
+
+                h4 {
+                    margin: 0 0 5px;
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                    color: var(--heading-color);
+                }
+
+                ul {
+                    margin: 0;
+                    padding-left: 15px;
+
+                    li {
+                        font-size: 0.75rem;
+                        color: var(--text-muted-color);
+                        line-height: 1.4;
+                    }
+                }
+            }
+
+            .signature {
+                text-align: center;
+                width: 150px;
+
+                .line {
+                    border-bottom: 1px solid var(--font-color);
+                    margin-bottom: 5px;
+                    height: 30px; // Space for signature
+                }
+
+                span {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    color: var(--heading-color);
+                }
+            }
+        }
+    }
+
+    // --- Actions ---
+    .action-bar {
+        display: flex;
+        gap: 1rem;
+
+        button {
+            background-color: var(--btn-primary-bg);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+                background-color: var(--btn-primary-hover-bg);
+            }
+        }
+    }
+}
+
+// ==========================================
+// PRINT STYLES (A4 Optimization)
+// ==========================================
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .admit-card-page {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background: white; // Save ink
+
+        .admit-card,
+        .admit-card * {
+            visibility: visible;
+        }
+
+        .action-bar {
+            display: none !important;
+        }
+
+        .admit-card {
+            width: 100%;
+            max-width: 100%;
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+
+            // Force Black text for clarity
+            color: #000 !important;
+
+            .header h1,
+            .header p,
+            .student-section label,
+            .student-section span {
+                color: #000 !important;
+            }
+
+            // Clean borders for print
+            border-bottom: 1px solid #000;
+
+            .exam-section table {
+                border: 1px solid #000;
+
+                thead th {
+                    background-color: #f0f0f0 !important;
+                    color: #000 !important;
+                    border-bottom: 1px solid #000;
+                }
+
+                tbody td {
+                    color: #000 !important;
+                    border-bottom: 1px solid #ccc;
+                }
+            }
+
+            .card-title h2 {
+                border: 2px solid #000;
+                color: #000 !important;
+                background: none !important;
+            }
+
+            .student-section .photo-box {
+                border: 1px solid #000;
+            }
+        }
+    }
+}

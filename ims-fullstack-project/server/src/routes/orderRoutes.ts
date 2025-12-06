@@ -1,11 +1,12 @@
-// server/src/routes/orderRoutes.ts
 import { Router } from 'express';
-import { getOrders, updateOrderStatus, createOrder } from '../controllers/orderController';
+import { getOrders, createOrder, updateOrderStatus, getMyOrders } from '../controllers/orderController';
+import { authenticate } from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/', getOrders);
-router.post('/', createOrder); // Admin manual creation
+router.get('/', getOrders); // Admin view all
+router.post('/', authenticate, createOrder); // Anyone can order
+router.get('/my-orders', authenticate, getMyOrders); // View own orders
 router.put('/:id/status', updateOrderStatus);
 
 export default router;
