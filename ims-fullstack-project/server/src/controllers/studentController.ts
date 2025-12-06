@@ -153,20 +153,31 @@ export const getMySubjects = async (req: AuthRequest, res: Response) => {
   } catch (e) { res.status(500).json({ error: "Failed to fetch subjects" }); }
 };
 
-// 5. My Attendance
+// 5. My Attendance (Updated with Filtering)
 export const getMyAttendance = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
+        // Get query parameter 'subjectId'
+        const { subjectId } = req.query;
+
         const student = await prisma.student.findUnique({ where: { userId } });
         if (!student) return res.status(404).json({ message: "Student profile not found" });
 
+        // Build filter: Always filter by studentId
+        const whereClause: any = { studentId: student.id };
+        
+        // If subjectId is provided in query, add it to filter
+        if (subjectId) {
+            whereClause.subjectId = String(subjectId);
+        }
+
         const attendance = await prisma.attendance.findMany({
-            where: { studentId: student.id },
+            where: whereClause,
             orderBy: { date: 'desc' },
             include: { subject: true } 
         });
 
-        // Calculate Stats
+        // Calculate Stats based on the filtered results
         const total = attendance.length;
         const present = attendance.filter(a => a.status === 'PRESENT').length;
         const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
@@ -224,18 +235,16 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
         
-        // FIX: Include 'user' relation to get avatar
         const student = await prisma.student.findUnique({ 
             where: { userId },
             include: { 
                 class: true,
-                user: true // <--- CRITICAL for Avatar
+                user: true // CRITICAL for Avatar
             }
         });
         
         if (!student) return res.status(404).json({ message: "Student not found" });
 
-        // Find upcoming exams for this student's class
         const exams = await prisma.exam.findMany({
             where: { 
                 classId: student.classId,
@@ -251,7 +260,7 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
                 admissionNo: student.admissionNo,
                 class: student.class.name,
                 section: student.class.description,
-                avatar: student.user.avatar // <--- Map avatar to response
+                avatar: student.user.avatar 
             },
             exams: exams.map(e => ({
                 id: e.id,
