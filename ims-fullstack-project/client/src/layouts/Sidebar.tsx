@@ -49,6 +49,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     
     // --- SUPER ADMIN ---
     { path: '/roles', label: 'Manage Roles', icon: <FaIdBadge />, roles: ['super_admin'] },
+
+    // --- STUDENT MODULES ---
+    { path: '/my-subjects', label: 'My Subjects', icon: <FaBook />, roles: ['student'] },
+    { path: '/my-attendance', label: 'My Attendance', icon: <FaCheckSquare />, roles: ['student'] },
+    { path: '/my-results', label: 'My Results', icon: <FaPenNib />, roles: ['student'] },
+    { path: '/my-invoices', label: 'My Invoices', icon: <FaClipboardList />, roles: ['student'] },
+    { path: '/admit-card', label: 'Admit Card', icon: <FaIdCard />, roles: ['student'] },
+    { path: '/stationery', label: 'Stationery Store', icon: <FaBoxOpen />, roles: ['student', 'teacher'] },
+    { path: '/my-orders', label: 'My Orders', icon: <FaShoppingCart />, roles: ['student', 'teacher'] },
+    // { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['student', 'teacher'] },
   ];
 
   const filteredMenu = menuItems.filter(item => 
