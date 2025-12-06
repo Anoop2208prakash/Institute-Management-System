@@ -1,14 +1,13 @@
 // client/src/pages/admin/NewAdmissionPage.tsx
-import React, { useState, useEffect, type ChangeEvent, type FormEvent } from 'react'; // <--- FIXED HERE
+import React, { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './NewAdmissionPage.module.scss';
-// Ensure you have a logo image or remove this import if unused
 // import logo from '../../../assets/image/logo.png'; 
 
 interface ClassOption {
   id: string;
   name: string;
-  section: string;
+  description?: string; 
 }
 
 const NewAdmissionPage: React.FC = () => {
@@ -22,7 +21,7 @@ const NewAdmissionPage: React.FC = () => {
     dateOfBirth: '',
     gender: 'MALE',
     
-    // Address (Combined string for backend)
+    // Address
     presentAddressDetails: '',
     presentAddressDivision: '',
     presentAddressDistrict: '',
@@ -33,7 +32,7 @@ const NewAdmissionPage: React.FC = () => {
     nationality: 'Indian',
     phoneNumber: '',
     email: '',
-    nidNumber: '',
+    admissionNo: '', // <--- Renamed & Auto-generated
     bloodGroup: '',
     occupation: '',
     maritalStatus: 'SINGLE',
@@ -47,19 +46,29 @@ const NewAdmissionPage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassOption[]>([]);
 
-  // Fetch Classes for Dropdown
+  // 1. Generate Random ID (< 8 digits) on Mount
+  useEffect(() => {
+    const generateId = () => {
+      // Generates a number between 100000 and 9999999 (7 digits max)
+      const randomId = Math.floor(100000 + Math.random() * 9000000).toString();
+      setFormData(prev => ({ ...prev, admissionNo: randomId }));
+    };
+    generateId();
+  }, []);
+
+  // 2. Fetch Classes
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        // Mock Data for UI demonstration. 
-        // In real app: const res = await fetch('http://localhost:5000/api/classes'); setClasses(await res.json());
-        setClasses([
-            { id: '1', name: 'Grade 10', section: 'A' },
-            { id: '2', name: 'Grade 11', section: 'Science' },
-            { id: '3', name: 'Grade 12', section: 'Commerce' }
-        ]);
+        const res = await fetch('http://localhost:5000/api/classes');
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                setClasses(data);
+            }
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Failed to load classes", err);
       }
     };
     fetchClasses();
@@ -91,7 +100,7 @@ const NewAdmissionPage: React.FC = () => {
         // Append Image
         submissionData.append('profileImage', imageFile);
 
-        // Map Form Fields to Backend Schema
+        // Map Form Fields
         submissionData.append('fullName', formData.fullName);
         submissionData.append('email', formData.email);
         submissionData.append('password', formData.password);
@@ -99,12 +108,15 @@ const NewAdmissionPage: React.FC = () => {
         submissionData.append('dob', formData.dateOfBirth);
         submissionData.append('gender', formData.gender);
         submissionData.append('bloodGroup', formData.bloodGroup);
-        submissionData.append('admissionNo', formData.nidNumber || Date.now().toString()); 
         
-        // Combine Address fields
+        // Send the Auto-Generated ID directly
+        submissionData.append('admissionNo', formData.admissionNo); 
+        
+        submissionData.append('classId', formData.classId); 
+        
+        // Combine Address
         const fullAddress = `${formData.presentAddressDetails}, ${formData.presentAddressDistrict}`;
         submissionData.append('address', fullAddress);
-        // Note: classId needs to be handled in backend (currently using default class in controller)
 
         // Send to Backend
         const res = await fetch('http://localhost:5000/api/students/register', {
@@ -113,7 +125,7 @@ const NewAdmissionPage: React.FC = () => {
         });
 
         if (res.ok) {
-            alert(`Student "${formData.fullName}" admitted successfully!`);
+            alert(`Student "${formData.fullName}" admitted successfully with ID: ${formData.admissionNo}`);
             navigate('/view-admission');
         } else {
             const error = await res.json();
@@ -193,8 +205,33 @@ const NewAdmissionPage: React.FC = () => {
             <div className={styles.formGroup}><label>Email Address</label><input type="email" name="email" onChange={handleChange} required /></div>
           </div>
           <div className={styles.formRow}>
-            <div className={styles.formGroup}><label>Admission/NID No</label><input type="text" name="nidNumber" onChange={handleChange} required placeholder="Unique ID"/></div>
-            <div className={styles.formGroup}><label>Blood Group</label><input type="text" name="bloodGroup" onChange={handleChange} /></div>
+            
+            {/* --- UPDATED FIELD: Auto-Generated ID No --- */}
+            <div className={styles.formGroup}>
+                <label>ID No. (Auto)</label>
+                <input 
+                    type="text" 
+                    name="admissionNo" 
+                    value={formData.admissionNo}
+                    readOnly // Prevent manual editing
+                    style={{backgroundColor: 'var(--bg-secondary-color)', cursor: 'not-allowed', fontWeight: 'bold', color: 'var(--primary-color)'}}
+                />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Blood Group</label>
+              <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange}>
+                <option value="">Select...</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
           </div>
           
           <div className={styles.formRow}>
@@ -202,7 +239,11 @@ const NewAdmissionPage: React.FC = () => {
               <label>Select Class/Program</label>
               <select name="classId" value={formData.classId} onChange={handleChange} required>
                 <option value="" disabled>-- Select Class --</option>
-                {classes.map(cls => <option key={cls.id} value={cls.id}>{cls.name} ({cls.section})</option>)}
+                {classes.map(cls => (
+                    <option key={cls.id} value={cls.id}>
+                        {cls.name} {cls.description ? `(${cls.description})` : ''}
+                    </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>

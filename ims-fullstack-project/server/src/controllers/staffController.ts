@@ -52,12 +52,13 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
           },
         });
       } else {
-         // Default to Admin profile for non-teachers (Super Admin, Finance, etc.)
+         // Default to Admin profile for non-teachers (Super Admin, Finance, Librarian, etc.)
          await tx.admin.create({
             data: {
                 userId: newUser.id,
                 fullName,
                 phone,
+                bloodGroup,
             }
          });
       }
@@ -119,9 +120,6 @@ export const getAllStaff = async (req: Request, res: Response) => {
 export const deleteStaff = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    // Optional: Add a check to prevent deleting yourself
-    // if (req.user?.id === id) return res.status(403).json({ message: "Cannot delete yourself" });
 
     // Prisma cascade delete handles profiles automatically
     await prisma.user.delete({

@@ -1,11 +1,10 @@
 // client/src/pages/admin/AdmissionList.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { FaUserGraduate, FaSearch, FaPhone, FaEnvelope, FaIdBadge, FaTrash } from 'react-icons/fa';
-import FeedbackAlert from '../../../components/common/FeedbackAlert'; // <--- Import Alert
-import { DeleteModal } from '../../../components/common/DeleteModal'; // <--- Import Modal
-import LinearLoader from '../../../components/common/LinearLoader';
+import FeedbackAlert from '../../../components/common/FeedbackAlert';
+import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
-import '../StaffList.scss'; // Reusing the grid styles
+import './AdmissionList.scss'; // Reusing styles for consistency
 
 // 1. Interface Matches Backend Response
 interface Student {
@@ -96,7 +95,7 @@ const AdmissionList: React.FC = () => {
   );
 
   return (
-    <div className="staff-page"> {/* Reusing Staff Page Layout */}
+    <div className="admission-page"> {/* Updated Class Name for SCSS */}
       
       <div className="page-header">
         <div className="header-content">
@@ -124,18 +123,18 @@ const AdmissionList: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       {/* Grid */}
-      <div className="staff-grid">
-        {loading && <div style={{gridColumn:'1/-1'}}><LinearLoader /></div>}
+      <div className="student-grid">
+        {/* Loader Removed */}
         
         {!loading && filteredStudents.map(s => (
-            <div key={s.id} className="staff-card">
+            <div key={s.id} className="student-card">
                 <div className="card-header">
                     <img 
                         src={s.avatar ? `http://localhost:5000${s.avatar}` : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
                         className="avatar" 
                         alt={s.name} 
                     />
-                    <span className="role-tag" style={{backgroundColor: '#6f42c1'}}>
+                    <span className="class-badge" style={{backgroundColor: '#6f42c1'}}>
                         {s.class}
                     </span>
                 </div>
@@ -154,14 +153,13 @@ const AdmissionList: React.FC = () => {
                 </div>
 
                 <div className="card-footer">
-                    <span className="date" style={{textTransform:'capitalize'}}>{s.gender.toLowerCase()}</span>
+                    <span className="gender-badge">{s.gender}</span>
                     
                     {/* Delete Button */}
                     <button 
                         className="btn-delete" 
                         onClick={() => openDeleteModal(s.id, s.name)}
                         title="Remove Student"
-                        style={{background:'none', border:'none', color:'var(--font-color-danger)', cursor:'pointer', fontSize:'1rem'}}
                     >
                         <FaTrash />
                     </button>

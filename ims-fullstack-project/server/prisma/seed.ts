@@ -10,6 +10,7 @@ async function main() {
     { name: 'super_admin',   displayName: 'Super Admin' },
     { name: 'admin',         displayName: 'Admin' },
     { name: 'teacher',       displayName: 'Teacher' },
+    { name: 'student',       displayName: 'Student' }, // <--- ADDED THIS
     { name: 'administrator', displayName: 'Administrator' },
     { name: 'librarian',     displayName: 'Librarian' },
     { name: 'finance',       displayName: 'Finance Manager' },
@@ -17,9 +18,9 @@ async function main() {
 
   for (const role of roles) {
     const upsertedRole = await prisma.role.upsert({
-      where: { name: role.name }, // Look for this name
-      update: {},                 // If found, do nothing
-      create: {                   // If not found, create it
+      where: { name: role.name },
+      update: {}, // If exists, do nothing
+      create: {
         name: role.name,
         displayName: role.displayName,
       },

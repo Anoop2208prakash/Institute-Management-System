@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  FaHome, FaUserCircle, FaIdCard, FaUsers, 
+  FaHome, FaUserCircle, FaIdCard, FaUsers, FaUserPlus, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
   FaChevronLeft, FaChevronRight, FaIdBadge, FaCheckSquare, FaPenNib 
@@ -28,10 +28,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
     { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
     { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },
-    // REMOVED: My Loans
 
-    // --- ADMIN MODULES ---
-    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admin', 'super_admin'] },
+    // --- ADMISSION MODULES (Updated) ---
+    // Only 'admission' and 'super_admin' can see these
+    { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin'] },
+    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin'] },
+    
+    // --- ADMIN MODULES (General Management) ---
     { path: '/staff', label: 'Manage Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
     { path: '/programs', label: 'Manage Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
     { path: '/semesters', label: 'Manage Semester', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },

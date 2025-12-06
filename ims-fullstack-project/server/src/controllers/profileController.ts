@@ -29,7 +29,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
       email: user.email,
       role: user.role.name,
       roleDisplay: user.role.displayName,
-      avatar: user.avatar, // Fetched directly from User table
+      avatar: user.avatar, 
       name: '',
       sID: '',
       details: {}
@@ -58,6 +58,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
         profileData.sID = "ADM-" + user.adminProfile.id.substring(0, 5);
         profileData.details = {
             phone: user.adminProfile.phone,
+            bloodGroup: user.adminProfile.bloodGroup, // <--- Now available for Admins too
         };
     }
 
@@ -80,12 +81,11 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
     // Extract fields from FormData
     const { fullName, phone, password, bloodGroup } = req.body;
     
-    // Check if a new file was uploaded
     const avatarPath = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
 
     // 1. Prepare User Table Updates (Auth & Identity)
     const userUpdates: any = {};
-    if (avatarPath) userUpdates.avatar = avatarPath; // Update centralized avatar
+    if (avatarPath) userUpdates.avatar = avatarPath;
     if (password && password.trim() !== "") {
       userUpdates.password = await bcrypt.hash(password, 10);
     }
@@ -96,10 +96,10 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
     if (phone) profileUpdates.phone = phone;
     if (bloodGroup) profileUpdates.bloodGroup = bloodGroup;
 
-    // 3. Execute Transaction (Update both tables safely)
+    // 3. Execute Transaction
     await prisma.$transaction(async (tx) => {
       
-      // A. Update User Logic (if fields exist)
+      // A. Update User Logic
       if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
           where: { id: userId },
@@ -108,7 +108,6 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
       }
 
       // B. Update Specific Profile Logic
-      // We need to check the role again to know WHICH table to update
       const user = await tx.user.findUnique({
         where: { id: userId },
         include: { role: true }
@@ -127,10 +126,8 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
           data: profileUpdates,
         });
       } else {
-        // For Admins/Super Admins
-        // Remove fields that don't exist on Admin table (like bloodGroup)
-        delete profileUpdates.bloodGroup; 
-        
+        // Admin, Super Admin, Librarian, Finance etc.
+        // FIX: We now allow bloodGroup update for admins as well
         await tx.admin.update({
           where: { userId },
           data: profileUpdates,

@@ -87,6 +87,8 @@ model Admin {
   userId    String   @unique
   fullName  String
   phone     String?
+  bloodGroup String? // <--- ADDED THIS FIELD
+  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("admins")
 }
@@ -101,9 +103,12 @@ model Teacher {
   bloodGroup    String?  
   joiningDate   DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   subjects      Subject[]
   classes       Class[]  @relation("ClassTeacher") 
   attendance    Attendance[]
+  loans         Loan[] 
+  
   @@map("teachers")
 }
 
@@ -120,10 +125,12 @@ model Student {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
+  
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
   loans       Loan[]   
+  
   @@index([classId])
   @@map("students")
 }
@@ -138,11 +145,13 @@ model Class {
   description String?  
   teacherId   String?  
   teacher     Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
+  
   students    Student[]
   subjects    Subject[]
   exams       Exam[]
   semesters   Semester[] 
   attendance  Attendance[] 
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@map("classes")
@@ -159,10 +168,8 @@ model Subject {
   semesterId String?
   semester   Semester? @relation(fields: [semesterId], references: [id])
   
-  // FIX: Removed 'results Result[]' because Results are now linked to Exams
   exams      Exam[]   
-  attendance Attendance[] // Kept for subject-wise attendance
-
+  attendance Attendance[]
   @@map("subjects")
 }
 
@@ -174,8 +181,10 @@ model Semester {
   status    String    @default("UPCOMING") 
   classId   String
   class     Class     @relation(fields: [classId], references: [id])
+  
   subjects  Subject[]
   exams     Exam[]
+  
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   @@map("semesters")
@@ -216,7 +225,6 @@ model Attendance {
   markedBy  String           
   teacher   Teacher          @relation(fields: [markedBy], references: [id])
   
-  // Composite unique key
   @@unique([date, studentId, subjectId]) 
   @@map("attendance")
 }
@@ -273,8 +281,13 @@ model Loan {
   id         String    @id @default(uuid())
   bookId     String
   book       Book      @relation(fields: [bookId], references: [id])
-  studentId  String
-  student    Student   @relation(fields: [studentId], references: [id])
+  
+  studentId  String?   
+  student    Student?  @relation(fields: [studentId], references: [id])
+  
+  teacherId  String?
+  teacher    Teacher?  @relation(fields: [teacherId], references: [id])
+  
   issueDate  DateTime  @default(now())
   dueDate    DateTime
   returnDate DateTime?
