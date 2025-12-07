@@ -5,6 +5,7 @@ import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
 import { type AlertColor } from '@mui/material/Alert';
+import { useAuth } from '../../../context/AuthContext';
 import './AnnouncementManager.scss'; 
 
 interface Announcement {
@@ -18,17 +19,30 @@ interface Announcement {
 }
 
 const AnnouncementManager: React.FC = () => {
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, title: string}>({ show: false, id: '', title: '' });
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
+
+  // --- FIX: Safer Role Check (Avoids 'any' error) ---
+  const getRoleName = () => {
+    if (!user || !user.role) return '';
+    // If role is an object (populated relation), get name; else assume string
+    if (typeof user.role === 'object' && 'name' in user.role) {
+        return (user.role as { name: string }).name;
+    }
+    return String(user.role);
+  };
+
+  const userRole = getRoleName().toLowerCase();
+  const canPost = userRole !== 'student';
 
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
@@ -41,7 +55,7 @@ const AnnouncementManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/announcements');
       if (res.ok) setAnnouncements(await res.json());
     } catch (e) {
-      console.error(e);
+      console.error(e); // FIX: Log the error
       showAlert('error', 'Failed to load announcements');
     } finally {
       setIsLoading(false);
@@ -67,10 +81,11 @@ const AnnouncementManager: React.FC = () => {
             setIsCreateModalOpen(false);
             showAlert('success', 'Announcement posted successfully');
         } else {
-            showAlert('error', 'Failed to post announcement');
+            const err = await res.json();
+            showAlert('error', err.message || 'Failed to post');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); // FIX: Log the error
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -80,7 +95,11 @@ const AnnouncementManager: React.FC = () => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-        const res = await fetch(`http://localhost:5000/api/announcements/${deleteModal.id}`, { method: 'DELETE' });
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:5000/api/announcements/${deleteModal.id}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
         if(res.ok) {
             void fetchAnnouncements();
             setDeleteModal({ show: false, id: '', title: '' });
@@ -89,14 +108,13 @@ const AnnouncementManager: React.FC = () => {
             showAlert('error', 'Failed to delete announcement');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); // FIX: Log the error
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  // Filter
   const filteredList = announcements.filter(a => 
     a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.content.toLowerCase().includes(searchTerm.toLowerCase())
@@ -107,6 +125,7 @@ const AnnouncementManager: React.FC = () => {
       if (target === 'STUDENT') color = '#1a7f37';
       if (target === 'TEACHER') color = '#8250df';
       if (target === 'ADMIN') color = '#cf222e';
+      
       return (
         <span className="target-badge" style={{
             color: color, 
@@ -135,9 +154,13 @@ const AnnouncementManager: React.FC = () => {
                     onChange={e => setSearchTerm(e.target.value)}
                 />
             </div>
-            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
-                <FaPlus /> Post New
-            </button>
+            
+            {/* HIDE BUTTON FOR STUDENTS */}
+            {canPost && (
+                <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
+                    <FaPlus /> Post New
+                </button>
+            )}
         </div>
       </div>
 
@@ -150,7 +173,6 @@ const AnnouncementManager: React.FC = () => {
             <div key={item.id} className="feed-card">
                 <div className="card-header">
                     <div className="author-section">
-                         {/* Profile Image */}
                          {item.authorAvatar ? (
                              <img 
                                 src={`http://localhost:5000${item.authorAvatar}`} 
@@ -172,13 +194,17 @@ const AnnouncementManager: React.FC = () => {
 
                     <div className="header-right">
                         {getTargetBadge(item.target)}
-                        <button 
-                            className="delete-icon" 
-                            onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}
-                            title="Delete Post"
-                        >
-                            <FaTrash />
-                        </button>
+                        
+                        {/* HIDE DELETE FOR STUDENTS */}
+                        {canPost && (
+                            <button 
+                                className="delete-icon" 
+                                onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}
+                                title="Delete Post"
+                            >
+                                <FaTrash />
+                            </button>
+                        )}
                     </div>
                 </div>
                 

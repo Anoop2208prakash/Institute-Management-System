@@ -51,13 +51,13 @@
                     width: 140px;
                     height: 140px;
                     border-radius: 50%;
-                    border: 5px solid var(--card-bg-default); // White border effect
+                    border: 5px solid var(--card-bg-default);
                     overflow: hidden;
                     margin-top: -80px; // Pull up
                     margin-bottom: 1rem;
                     background-color: var(--bg-secondary-color);
                     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                    position: relative; // Needed for overlay
+                    position: relative;
 
                     img {
                         width: 100%;
@@ -65,7 +65,6 @@
                         object-fit: cover;
                     }
 
-                    // --- Edit Overlay (Camera Icon) ---
                     .edit-overlay {
                         position: absolute;
                         bottom: 0;
@@ -223,6 +222,7 @@
     }
 }
 
+// --- Cropper Modal ---
 .cropper-modal {
     position: fixed;
     top: 0;

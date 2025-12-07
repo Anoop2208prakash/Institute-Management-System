@@ -1,8 +1,8 @@
 // client/src/pages/student/MyResults.tsx
 import React, { useState, useEffect } from 'react';
 import { FaPenNib, FaTrophy, FaTimesCircle } from 'react-icons/fa';
-import LinearLoader from '../../components/common/LinearLoader';
-import './MyResults.scss'; // Using shared styles
+// Removed LinearLoader import
+import './MyResults.scss'; 
 
 interface Result {
   id: string;
@@ -49,9 +49,10 @@ const MyResults: React.FC = () => {
         </div>
       </div>
 
-      {loading ? <LinearLoader /> : (
-        <div className="list-container">
-            {results.length > 0 ? results.map(result => (
+      <div className="list-container">
+            {/* Loader Removed */}
+            
+            {!loading && results.length > 0 ? results.map(result => (
                 <div key={result.id} className="list-item">
                     <div className="item-left">
                         {result.grade === 'PASS' ? (
@@ -75,10 +76,9 @@ const MyResults: React.FC = () => {
                     </div>
                 </div>
             )) : (
-                <div className="empty-state">No results declared yet.</div>
+                !loading && <div className="empty-state">No results declared yet.</div>
             )}
         </div>
-      )}
     </div>
   );
 };

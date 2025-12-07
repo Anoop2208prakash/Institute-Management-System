@@ -1,36 +1,49 @@
 // client/src/pages/admin/inventory/OrderList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaShoppingCart, FaCheck, FaTruck, FaSearch, FaUser, FaBox } from 'react-icons/fa';
+import { FaShoppingCart, FaCheck, FaTruck, FaSearch, FaBox, FaClipboardList, FaChevronRight } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
 import './OrderList.scss';
+import { ViewOrderModal } from '../../student/ViewOrderModal';
 
-interface Order {
-  id: string;
-  itemName: string;
+// --- Shared Interfaces (Ideally move to a types file) ---
+export interface OrderItem {
+  name: string;
   category: string;
-  quantity: number;
-  totalPrice: number;
+  qty: number;
+  price: number;
+}
+
+export interface AdminOrder {
+  id: string;
   orderedBy: string;
   status: string;
   date: string;
+  totalPrice: number;
+  itemSummary: string;
+  itemCount: number;
+  items: OrderItem[];
 }
 
 const OrderList: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
+  // Modal State
+  // We use 'any' here because the ViewOrderModal might expect a slightly different shape
+  // but the core fields (id, items, totalPrice, etc.) overlap.
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
   });
 
-  // 1. FIX: Memoize showAlert to prevent infinite loops in dependencies
-  const showAlert = useCallback((type: AlertColor, msg: string) => {
+  const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
-  }, []);
+  };
 
-  // 2. FIX: Add showAlert to dependencies
   const fetchOrders = useCallback(async () => {
     try {
       const res = await fetch('http://localhost:5000/api/orders');
@@ -39,17 +52,14 @@ const OrderList: React.FC = () => {
       console.error(e);
       showAlert('error', 'Failed to load orders');
     } 
-  }, [showAlert]);
+  }, []);
 
-  // 3. FIX: Safe Async Call inside useEffect
   useEffect(() => { 
-    const loadData = async () => {
-        await fetchOrders();
-    };
-    loadData();
+    void fetchOrders();
   }, [fetchOrders]);
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
+  const handleStatusChange = async (e: React.MouseEvent, id: string, newStatus: string) => {
+    e.stopPropagation(); // Prevent opening modal
     try {
         const res = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
             method: 'PUT',
@@ -57,7 +67,7 @@ const OrderList: React.FC = () => {
             body: JSON.stringify({ status: newStatus })
         });
         if(res.ok) {
-            fetchOrders(); // Refresh list
+            fetchOrders(); 
             showAlert('success', `Order marked as ${newStatus}`);
         } else {
             showAlert('error', 'Update failed');
@@ -68,9 +78,17 @@ const OrderList: React.FC = () => {
     }
   };
 
+  // Open Details Modal
+  const openDetails = (order: AdminOrder) => {
+      // We pass the order directly. The Modal will read 'items', 'totalPrice', etc.
+      // 'orderedBy' will be ignored by the student modal but that's fine.
+      setSelectedOrder(order); 
+      setIsModalOpen(true);
+  };
+
   const filteredOrders = orders.filter(o => 
-    o.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    o.orderedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    o.orderedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.itemSummary.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusBadge = (status: string) => {
@@ -93,7 +111,7 @@ const OrderList: React.FC = () => {
             <div className="search-box">
                 <FaSearch />
                 <input 
-                    placeholder="Search Order or User..." 
+                    placeholder="Search User or Items..." 
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -106,47 +124,65 @@ const OrderList: React.FC = () => {
       <div className="orders-grid">
         
         {filteredOrders.map(order => (
-            <div key={order.id} className="order-card">
+            <div 
+                key={order.id} 
+                className="order-card"
+                onClick={() => openDetails(order)}
+                style={{cursor: 'pointer'}}
+            >
                 <div className="card-top">
                     <div className="item-info">
-                        <h3>{order.itemName}</h3>
-                        <span className="category-tag">{order.category}</span>
+                        <h3>{order.orderedBy}</h3>
+                        <span className="category-tag">{new Date(order.date).toLocaleDateString()}</span>
                     </div>
                     {getStatusBadge(order.status)}
                 </div>
 
                 <div className="card-details">
                     <div className="detail-row">
+                        <FaClipboardList className="icon" /> 
+                        <span style={{overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'200px'}}>
+                            {order.itemSummary}
+                        </span>
+                    </div>
+                    <div className="detail-row">
                         <FaBox className="icon" /> 
-                        <span>Quantity: <strong>{order.quantity}</strong></span>
+                        <span>Total Items: <strong>{order.itemCount}</strong></span>
                     </div>
                     <div className="detail-row">
-                        <FaUser className="icon" /> 
-                        <span>User: {order.orderedBy}</span>
-                    </div>
-                    <div className="detail-row">
-                        <span>Total: <strong>${order.totalPrice.toFixed(2)}</strong></span>
+                        <span>Value: <strong>₹{order.totalPrice.toFixed(2)}</strong></span>
                     </div>
                 </div>
 
                 <div className="card-actions">
                     {order.status === 'PENDING' && (
-                        <button className="btn-approve" onClick={() => handleStatusChange(order.id, 'APPROVED')}>
+                        <button className="btn-approve" onClick={(e) => handleStatusChange(e, order.id, 'APPROVED')}>
                             <FaCheck /> Approve
                         </button>
                     )}
                     {order.status === 'APPROVED' && (
-                        <button className="btn-deliver" onClick={() => handleStatusChange(order.id, 'DELIVERED')}>
+                        <button className="btn-deliver" onClick={(e) => handleStatusChange(e, order.id, 'DELIVERED')}>
                             <FaTruck /> Deliver
                         </button>
                     )}
                     {order.status === 'DELIVERED' && (
-                        <span className="completed-text">Order Completed</span>
+                        <span className="completed-text">Completed <FaCheck /></span>
                     )}
+                    
+                    <FaChevronRight style={{marginLeft:'auto', color:'var(--text-muted-color)'}} />
                 </div>
             </div>
         ))}
+
+        {filteredOrders.length === 0 && <div className="empty-state">No orders found.</div>}
       </div>
+
+      {/* Reuse Student Modal (It handles 'items' and 'totalPrice' correctly now) */}
+      <ViewOrderModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        order={selectedOrder} 
+      />
     </div>
   );
 };

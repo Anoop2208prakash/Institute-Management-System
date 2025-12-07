@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaShoppingCart, FaBox, FaTag, FaLayerGroup, FaSearch, FaMinus, FaPlus, FaCheckCircle } from 'react-icons/fa';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
-import { ConfirmationModal } from '../../components/common/ConfirmationModal'; // <--- Import Modal
+import { ConfirmationModal } from '../../components/common/ConfirmationModal';
 import { type AlertColor } from '@mui/material/Alert';
 import './StationeryStore.scss';
 
@@ -10,7 +10,7 @@ interface Item { id: string; name: string; category: string; price: number; quan
 
 const StationeryStore: React.FC = () => {
     const [items, setItems] = useState<Item[]>([]);
-    const [isLoading, setIsLoading] = useState(false); // Used for button loading state now
+    const [isLoading, setIsLoading] = useState(false);
     
     // Filter State
     const [filterCategory, setFilterCategory] = useState<'All' | 'Uniform' | 'Stationery'>('All');
@@ -73,7 +73,7 @@ const StationeryStore: React.FC = () => {
         setIsConfirmOpen(true);
     };
 
-    // 2. Perform Checkout (Called by Modal)
+    // 2. Perform Checkout (Updated for Bulk Order)
     const handleConfirmCheckout = async () => {
         setIsLoading(true);
         try {
@@ -82,23 +82,30 @@ const StationeryStore: React.FC = () => {
             if(!userStr) return;
             const userId = JSON.parse(userStr).id;
 
-            // Execute orders in parallel
-            const promises = Object.entries(cart).map(([itemId, quantity]) => 
-                fetch('http://localhost:5000/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ itemId, quantity, userId })
-                })
-            );
+            // Prepare Cart Payload
+            const cartPayload = Object.entries(cart).map(([itemId, quantity]) => ({
+                itemId,
+                quantity
+            }));
 
-            await Promise.all(promises);
+            // Send Single Request with 'cart' array
+            const res = await fetch('http://localhost:5000/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ userId, cart: cartPayload }) 
+            });
 
-            setAlertInfo({show:true, type:'success', msg:'Order Placed Successfully!'});
-            setCart({}); // Clear cart
-            setIsConfirmOpen(false); // Close Modal
-            
-            // Refresh Inventory
-            fetch('http://localhost:5000/api/inventory').then(r=>r.json()).then(setItems);
+            if(res.ok) {
+                setAlertInfo({show:true, type:'success', msg:'Order Placed Successfully!'});
+                setCart({}); // Clear cart
+                setIsConfirmOpen(false); // Close Modal
+                
+                // Refresh Inventory
+                fetch('http://localhost:5000/api/inventory').then(r=>r.json()).then(setItems);
+            } else {
+                const err = await res.json();
+                setAlertInfo({show:true, type:'error', msg: err.message || 'Failed to place order'});
+            }
 
         } catch(e) { 
             console.error(e);
@@ -142,10 +149,10 @@ const StationeryStore: React.FC = () => {
             
             {/* Store Grid */}
             <div className="store-grid">
-                    {filteredItems.length > 0 ? filteredItems.map(item => {
-                        const inCartQty = cart[item.id] || 0;
+                 {filteredItems.length > 0 ? filteredItems.map(item => {
+                     const inCartQty = cart[item.id] || 0;
 
-                        return (
+                     return (
                         <div key={item.id} className="store-card">
                             
                             <div className="card-header">
@@ -185,8 +192,8 @@ const StationeryStore: React.FC = () => {
                             </div>
 
                         </div>
-                        );
-                    }) : (
+                     );
+                 }) : (
                     <div className="empty-state">No items available.</div>
                 )}
             </div>

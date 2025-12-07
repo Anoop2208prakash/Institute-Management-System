@@ -1,7 +1,7 @@
 // client/src/pages/ProfilePage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaEdit, FaEnvelope, FaPhone, FaIdCard, FaCalendarAlt, FaTint, FaSave, FaTimes, FaCamera, FaLock, FaCheck } from 'react-icons/fa';
-import Cropper from 'react-easy-crop';
+import Cropper from 'react-easy-crop'; // Ensure 'react-easy-crop' is installed
 import { getCroppedImg } from '../utils/canvasUtils';
 import './ProfilePage.scss';
 
@@ -22,7 +22,7 @@ interface ProfileData {
   }
 }
 
-// Fix for "Unexpected any": Define the shape of the crop object
+// Fix for "Unexpected any": Define the shape of the crop object from 'react-easy-crop'
 interface PixelCrop {
   x: number;
   y: number;
@@ -50,7 +50,7 @@ const ProfilePage: React.FC = () => {
   // Cropper Controls
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(null); // Typed State
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
@@ -99,8 +99,8 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 2. CAPTURE CROP AREA (Fixed Type Error)
-  const onCropComplete = useCallback((croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
+  // 2. CAPTURE CROP AREA
+  const onCropComplete = useCallback((_croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -133,7 +133,7 @@ const ProfilePage: React.FC = () => {
       data.append('phone', formData.phone);
       data.append('bloodGroup', formData.bloodGroup);
       if (formData.password) data.append('password', formData.password);
-      if (newAvatar) data.append('avatar', newAvatar);
+      if (newAvatar) data.append('profileImage', newAvatar); // Note: Backend likely expects 'profileImage'
 
       const res = await fetch('http://localhost:5000/api/profile/me', {
         method: 'PUT',
@@ -302,9 +302,13 @@ const ProfilePage: React.FC = () => {
                       <select name="bloodGroup" className="edit-input" value={formData.bloodGroup} onChange={handleChange}>
                         <option value="">Select...</option>
                         <option value="A+">A+</option>
+                        <option value="A-">A-</option>
                         <option value="B+">B+</option>
+                        <option value="B-">B-</option>
                         <option value="O+">O+</option>
+                        <option value="O-">O-</option>
                         <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
                       </select>
                     ) : (
                       <span>{profile.details.bloodGroup || 'N/A'}</span>
