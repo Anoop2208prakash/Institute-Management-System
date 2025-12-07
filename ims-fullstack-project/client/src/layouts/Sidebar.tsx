@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     { path: '/announcements', label: 'Announcements', icon: <FaBullhorn />, roles: ['all'] },
 
     // --- TEACHER MODULES ---
-    { path: '/my-class', label: 'My Class', icon: <FaUsers />, roles: ['teacher', 'super_admin'] },
+    { path: '/teacher-subjects', label: 'My Subjects', icon: <FaChalkboardTeacher />, roles: ['teacher', 'super_admin'] },
     { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
     { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
     { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },

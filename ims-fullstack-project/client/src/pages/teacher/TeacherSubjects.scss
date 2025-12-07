@@ -1,0 +1,189 @@
+// client/src/pages/teacher/TeacherSubjects.scss
+
+.teacher-subjects-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+
+    .page-header {
+        display: flex; // Align title and search
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        .header-content {
+            h2 {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.75rem;
+                color: var(--heading-color);
+                margin: 0;
+
+                svg {
+                    color: var(--primary-color);
+                }
+            }
+        }
+
+        // --- Added Search Box Style ---
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--card-bg-default);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--card-border-color);
+            box-shadow: var(--box-shadow-1);
+            color: var(--text-muted-color);
+            transition: border-color 0.2s;
+
+            &:focus-within {
+                border-color: var(--primary-color);
+                color: var(--primary-color);
+            }
+
+            input {
+                border: none;
+                background: transparent;
+                outline: none;
+                color: var(--font-color);
+                font-size: 0.9rem;
+                width: 200px;
+
+                &::placeholder {
+                    color: var(--text-muted-color);
+                }
+            }
+        }
+    }
+
+    // ... (Rest of your existing SCSS: .subjects-grid, .subject-card, .student-list-modal) ...
+    // Keep the rest of the file exactly as it was or copy from previous response if missing.
+
+    .subjects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+
+        .subject-card {
+            background: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--box-shadow-2);
+                border-color: var(--primary-color);
+            }
+
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+
+                .icon-box {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 10px;
+                    background: var(--bg-secondary-color);
+                    color: var(--primary-color);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.4rem;
+                }
+
+                .student-count {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    background: var(--bg-secondary-color);
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    color: var(--text-muted-color);
+                    border: 1px solid var(--border-light-color);
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                }
+            }
+
+            .card-body {
+                h3 {
+                    margin: 0 0 0.25rem 0;
+                    color: var(--heading-color);
+                }
+
+                .class-name {
+                    font-size: 1rem;
+                    color: var(--text-muted-color);
+                    font-weight: 500;
+                }
+
+                .code {
+                    font-size: 0.85rem;
+                    color: var(--primary-color);
+                    margin-top: 0.5rem;
+                    display: block;
+                    font-family: monospace;
+                }
+            }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background: var(--card-bg-default);
+            border: 1px dashed var(--card-border-color);
+            border-radius: 12px;
+            color: var(--text-muted-color);
+        }
+    }
+}
+
+.student-list-modal {
+    .student-row {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem 1.5rem;
+        border-bottom: 1px solid var(--border-light-color);
+        gap: 1rem;
+
+        img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-light-color);
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+
+            .name {
+                font-weight: 600;
+                color: var(--heading-color);
+                font-size: 0.95rem;
+            }
+
+            .adm {
+                font-size: 0.8rem;
+                color: var(--text-muted-color);
+                font-family: monospace;
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 // client/src/pages/teacher/MyClass.tsx
 import React, { useState, useEffect } from 'react';
-import { FaUsers, FaPhone } from 'react-icons/fa';
+import { FaUsers, FaPhone, FaChalkboardTeacher } from 'react-icons/fa';
 import './MyClass.scss'; 
 
 interface Student {
@@ -12,31 +12,33 @@ interface Student {
 }
 
 interface ClassData {
+    id: string;
     className: string;
     description: string;
+    roleType: string; // "Class Teacher" or "Subject: Math"
     students: Student[];
 }
 
 const MyClass: React.FC = () => {
-  const [classData, setClassData] = useState<ClassData | null>(null);
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchClass = async () => {
+    const fetchClasses = async () => {
         try {
             const token = localStorage.getItem('token');
-            // Note: Ensure your backend server is running on port 5000
             const res = await fetch('http://localhost:5000/api/teacher/my-class', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
             if(res.ok) {
                 const data = await res.json();
-                // If the backend returns null (no class assigned), we handle it gracefully
-                if (data) {
-                    setClassData(data);
+                if (Array.isArray(data) && data.length > 0) {
+                    setClasses(data);
+                    setSelectedClassId(data[0].id); // Select first class by default
                 } else {
-                    setClassData(null);
+                    setClasses([]);
                 }
             }
         } catch(e) { 
@@ -45,15 +47,18 @@ const MyClass: React.FC = () => {
             setLoading(false); 
         }
     };
-    fetchClass();
+    fetchClasses();
   }, []);
+
+  // Get currently selected class object
+  const currentClass = classes.find(c => c.id === selectedClassId);
 
   if (loading) return <div style={{padding:'2rem', textAlign:'center', color:'var(--text-muted-color)'}}>Loading Class Data...</div>;
   
-  if (!classData) return (
+  if (classes.length === 0) return (
     <div style={{padding:'3rem', textAlign:'center', color:'var(--text-muted-color)'}}>
-        <h2>No Class Assigned</h2>
-        <p>You have not been assigned as a class teacher yet.</p>
+        <h2>No Classes Assigned</h2>
+        <p>You have not been assigned to any classes or subjects yet.</p>
     </div>
   );
 
@@ -61,18 +66,44 @@ const MyClass: React.FC = () => {
     <div className="class-page">
         <div className="page-header">
             <div className="header-content">
-                <h2><FaUsers /> My Class: {classData.className}</h2>
-                <p className="description">{classData.description || 'Class Overview'}</p>
+                <h2><FaUsers /> My Class</h2>
+                
+                {/* --- CLASS SELECTOR --- */}
+                <div style={{marginTop:'0.5rem', display:'flex', alignItems:'center', gap:'10px'}}>
+                    <span style={{color:'var(--text-muted-color)', fontSize:'0.9rem'}}>Viewing:</span>
+                    <select 
+                        value={selectedClassId}
+                        onChange={(e) => setSelectedClassId(e.target.value)}
+                        style={{
+                            padding: '0.5rem', borderRadius: '6px', 
+                            border: '1px solid var(--card-border-color)', 
+                            background: 'var(--card-bg-default)', color: 'var(--font-color)',
+                            fontSize: '1rem', fontWeight: '600'
+                        }}
+                    >
+                        {classes.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.className} ({c.roleType})
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
+
             <div className="header-actions">
                 <span className="student-count-badge">
-                    Total Students: {classData.students.length}
+                    Total Students: {currentClass?.students.length || 0}
                 </span>
             </div>
         </div>
 
+        {/* Sub-Header Info */}
+        <div style={{marginBottom:'1.5rem', color:'var(--primary-color)', fontWeight:'500', display:'flex', alignItems:'center', gap:'0.5rem'}}>
+            <FaChalkboardTeacher /> Role: {currentClass?.roleType}
+        </div>
+
         <div className="student-grid">
-            {classData.students.map(s => (
+            {currentClass?.students.map(s => (
                 <div key={s.id} className="student-card">
                     <img 
                         src={s.avatar ? `http://localhost:5000${s.avatar}` : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
@@ -88,7 +119,7 @@ const MyClass: React.FC = () => {
                 </div>
             ))}
 
-            {classData.students.length === 0 && (
+            {currentClass?.students.length === 0 && (
                 <div className="empty-state">No students found in this class.</div>
             )}
         </div>

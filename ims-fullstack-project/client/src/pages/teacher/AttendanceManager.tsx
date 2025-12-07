@@ -1,10 +1,23 @@
 // client/src/pages/teacher/AttendanceManager.tsx
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom'; 
 import { FaCheckSquare, FaSave, FaSearch } from 'react-icons/fa';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import LinearLoader from '../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './AttendanceManager.scss';
+
+// 1. Define Interfaces
+interface ClassOption {
+  id: string;
+  name: string;
+}
+
+interface SubjectOption {
+  id: string;
+  name: string;
+  classId: string;
+}
 
 interface StudentRecord {
   studentId: string;
@@ -14,12 +27,16 @@ interface StudentRecord {
 }
 
 const AttendanceManager: React.FC = () => {
-  const [classes, setClasses] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
+  const location = useLocation();
+  const { prefillClassId, prefillSubjectId } = location.state || {};
+
+  // 2. Use Typed State (No more 'any[]')
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
   
   // Selection State
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedClass, setSelectedClass] = useState(prefillClassId || '');
+  const [selectedSubject, setSelectedSubject] = useState(prefillSubjectId || '');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Data State
@@ -30,43 +47,65 @@ const AttendanceManager: React.FC = () => {
     show: false, type: 'success', msg: '' 
   });
 
-  // 1. Fetch Teacher's Metadata on Mount
-  useEffect(() => {
-    const fetchMeta = async () => {
-        const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/attendance/meta', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if(res.ok) {
-            const data = await res.json();
-            setClasses(data.classes);
-            setSubjects(data.subjects);
-        }
-    };
-    fetchMeta();
-  }, []);
+  const showAlert = (type: AlertColor, msg: string) => {
+      setAlertInfo({ show: true, type, msg });
+      setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+  };
 
-  // 2. Fetch Student List & Existing Attendance
-  const fetchSheet = async () => {
-      if(!selectedClass) return;
+  // Helper to fetch sheet
+  const loadSheetData = async (classId: string, subjectId: string, date: string) => {
+      if(!classId) return;
       setIsLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const query = `classId=${selectedClass}&subjectId=${selectedSubject}&date=${selectedDate}`;
+        const query = `classId=${classId}&subjectId=${subjectId || ''}&date=${date}`;
         
         const res = await fetch(`http://localhost:5000/api/attendance/sheet?${query}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if(res.ok) {
-            setRecords(await res.json());
+            const data = await res.json();
+            setRecords(data);
         }
       } catch(e) {
           console.error(e);
-          setAlertInfo({show:true, type:'error', msg:'Failed to load sheet'});
+          showAlert('error', 'Failed to load sheet');
       } finally {
           setIsLoading(false);
       }
+  };
+
+  // 1. Fetch Metadata & Auto-Load Sheet
+  useEffect(() => {
+    const init = async () => {
+        const token = localStorage.getItem('token');
+        
+        // A. Fetch Classes & Subjects
+        try {
+            const res = await fetch('http://localhost:5000/api/attendance/meta', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(res.ok) {
+                const data = await res.json();
+                // 3. Ensure data matches interface
+                if (data.classes && Array.isArray(data.classes)) setClasses(data.classes);
+                if (data.subjects && Array.isArray(data.subjects)) setSubjects(data.subjects);
+            }
+        } catch(e) { console.error("Meta fetch error", e); }
+
+        // B. Auto-Fetch Sheet if prefilled
+        if (prefillClassId) {
+            loadSheetData(prefillClassId, prefillSubjectId, selectedDate);
+        }
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); 
+
+  // Wrapper for Button Click
+  const handleFetchClick = () => {
+      loadSheetData(selectedClass, selectedSubject, selectedDate);
   };
 
   // 3. Mark Status Locally
@@ -93,12 +132,12 @@ const AttendanceManager: React.FC = () => {
         });
 
         if(res.ok) {
-            setAlertInfo({show:true, type:'success', msg:'Attendance Saved!'});
+            showAlert('success', 'Attendance Saved!');
         } else {
-            setAlertInfo({show:true, type:'error', msg:'Save Failed'});
+            showAlert('error', 'Save Failed');
         }
       } catch(e) {
-          setAlertInfo({show:true, type:'error', msg:'Network Error'});
+          showAlert('error', 'Network Error');
       }
   };
 
@@ -117,7 +156,7 @@ const AttendanceManager: React.FC = () => {
       <div className="filters-card">
           <div className="form-group">
               <label>Select Class</label>
-              <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
+              <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }}>
                   <option value="">-- Choose Class --</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -133,7 +172,7 @@ const AttendanceManager: React.FC = () => {
               <label>Date</label>
               <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
           </div>
-          <button className="btn-fetch" onClick={fetchSheet} disabled={!selectedClass}>
+          <button className="btn-fetch" onClick={handleFetchClick} disabled={!selectedClass}>
               <FaSearch /> Load Sheet
           </button>
       </div>
