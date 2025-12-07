@@ -1,7 +1,7 @@
 // client/src/components/teacher/TeacherSubjectActionModal.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaTimes, FaCheckSquare, FaPenNib, FaArrowRight } from 'react-icons/fa';
+import { FaTimes, FaCheckSquare, FaLaptopCode, FaArrowRight } from 'react-icons/fa';
 import '../admin/CreateRoleModal.scss'; // Reuse generic modal styles
 
 interface SubjectData {
@@ -23,7 +23,6 @@ export const TeacherSubjectActionModal: React.FC<Props> = ({ isOpen, onClose, su
   if (!isOpen || !subject) return null;
 
   const handleNavigate = (path: string) => {
-    // Navigate with state to potentially pre-fill the destination page
     navigate(path, { 
         state: { 
             prefillClassId: subject.classId, 
@@ -76,9 +75,9 @@ export const TeacherSubjectActionModal: React.FC<Props> = ({ isOpen, onClose, su
                     <FaArrowRight style={{color: 'var(--text-muted-color)'}} />
                 </div>
 
-                {/* Button 2: Test / Marks */}
+                {/* Button 2: Online Tests (UPDATED) */}
                 <div 
-                    onClick={() => handleNavigate('/enter-marks')}
+                    onClick={() => handleNavigate('/online-tests')} // <--- Changed Route
                     style={{
                         background: 'var(--card-bg-default)',
                         border: '1px solid var(--border-light-color)',
@@ -91,19 +90,19 @@ export const TeacherSubjectActionModal: React.FC<Props> = ({ isOpen, onClose, su
                         transition: 'all 0.2s',
                         boxShadow: 'var(--box-shadow-1)'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.borderColor = '#d29922'}
+                    onMouseOver={(e) => e.currentTarget.style.borderColor = '#8250df'}
                     onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--border-light-color)'}
                 >
                     <div style={{
                         width: '50px', height: '50px', borderRadius: '10px',
-                        background: 'rgba(210, 153, 34, 0.1)', color: '#d29922',
+                        background: 'rgba(130, 80, 223, 0.1)', color: '#8250df',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem'
                     }}>
-                        <FaPenNib />
+                        <FaLaptopCode /> {/* Changed Icon */}
                     </div>
                     <div style={{flex: 1}}>
-                        <h4 style={{margin: '0 0 5px 0', fontSize: '1.1rem', color: 'var(--heading-color)'}}>Test / Marks</h4>
-                        <p style={{margin: 0, fontSize: '0.9rem', color: 'var(--text-muted-color)'}}>Enter marks for exams.</p>
+                        <h4 style={{margin: '0 0 5px 0', fontSize: '1.1rem', color: 'var(--heading-color)'}}>Online Tests</h4>
+                        <p style={{margin: 0, fontSize: '0.9rem', color: 'var(--text-muted-color)'}}>Create and manage quizzes.</p>
                     </div>
                     <FaArrowRight style={{color: 'var(--text-muted-color)'}} />
                 </div>

@@ -1,8 +1,9 @@
 // client/src/pages/student/MyOrders.tsx
 import React, { useState, useEffect } from 'react';
-import { FaShoppingCart, FaBox, FaClock } from 'react-icons/fa';
-import LinearLoader from '../../components/common/LinearLoader';
+import { FaShoppingCart, FaBox, FaClock, FaChevronRight } from 'react-icons/fa';
+// Removed LinearLoader import
 import './MyOrders.scss';
+import { ViewOrderModal } from './ViewOrderModal';
 
 interface Order {
   id: string;
@@ -17,6 +18,10 @@ interface Order {
 const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal State
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -35,21 +40,32 @@ const MyOrders: React.FC = () => {
     fetchOrders();
   }, []);
 
+  const handleOrderClick = (order: Order) => {
+      setSelectedOrder(order);
+      setIsModalOpen(true);
+  };
+
   return (
     <div className="student-page">
       <div className="page-header">
         <div className="header-content">
             <h2><FaShoppingCart /> My Orders</h2>
-            <p>History of stationery purchases.</p>
+            <p>History of your purchases and requests.</p>
         </div>
       </div>
 
-      {loading ? <LinearLoader /> : (
-        <div className="list-container">
-            {orders.length > 0 ? orders.map(order => (
-                <div key={order.id} className="list-item">
+      <div className="list-container">
+            {/* Loader Removed - Using simple conditional rendering for empty state */}
+            
+            {!loading && orders.length > 0 ? orders.map(order => (
+                <div 
+                    key={order.id} 
+                    className="list-item" 
+                    onClick={() => handleOrderClick(order)} // <--- Click handler
+                    style={{cursor:'pointer'}} // Visual cue
+                >
                     <div className="item-left">
-                        <div style={{
+                        <div className="icon-box" style={{
                             width:'40px', height:'40px', borderRadius:'8px', 
                             background:'var(--bg-secondary-color)', color:'var(--primary-color)',
                             display:'flex', alignItems:'center', justifyContent:'center'
@@ -65,21 +81,30 @@ const MyOrders: React.FC = () => {
                         </div>
                     </div>
                     
-                    <div style={{textAlign:'right'}}>
-                        <span style={{display:'block', fontWeight:700}}>₹{order.totalPrice.toFixed(2)}</span>
-                        <span style={{
-                            fontSize:'0.75rem', fontWeight:700, 
-                            color: order.status === 'DELIVERED' ? '#1a7f37' : '#d29922'
-                        }}>
-                            {order.status}
-                        </span>
+                    <div style={{textAlign:'right', display:'flex', alignItems:'center', gap:'1rem'}}>
+                        <div style={{textAlign:'right'}}>
+                            <span style={{display:'block', fontWeight:700}}>₹{order.totalPrice.toFixed(2)}</span>
+                            <span style={{
+                                fontSize:'0.75rem', fontWeight:700, 
+                                color: order.status === 'DELIVERED' ? '#1a7f37' : '#d29922'
+                            }}>
+                                {order.status}
+                            </span>
+                        </div>
+                        <FaChevronRight style={{color:'var(--text-muted-color)', fontSize:'0.8rem'}} />
                     </div>
                 </div>
             )) : (
-                <div className="empty-state">No orders placed yet.</div>
+                !loading && <div className="empty-state">No orders placed yet.</div>
             )}
-        </div>
-      )}
+      </div>
+
+      {/* Details Modal */}
+      <ViewOrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        order={selectedOrder}
+      />
     </div>
   );
 };

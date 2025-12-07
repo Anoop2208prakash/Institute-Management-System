@@ -1,0 +1,260 @@
+// client/src/pages/teacher/OnlineTestManager.tsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom'; 
+import { FaLaptopCode, FaPlus, FaTrash, FaQuestionCircle, FaClock, FaListOl, FaFilter } from 'react-icons/fa';
+import FeedbackAlert from '../../components/common/FeedbackAlert';
+import { DeleteModal } from '../../components/common/DeleteModal';
+import { type AlertColor } from '@mui/material/Alert';
+import './OnlineTestManager.scss'; 
+import { AddQuestionsStepper, type QuestionPayload } from './AddQuestionsStepper';
+import { CreateTestModal } from './CreateTestModal';
+
+interface OnlineTest {
+    id: string;
+    title: string;
+    description: string;
+    date: string;
+    duration: number;
+    className: string;
+    subjectName: string;
+    classId: string;
+    subjectId: string;
+    questionCount: number;
+    submissionCount: number;
+}
+
+interface TestFormData {
+    title: string;
+    description: string;
+    date: string;
+    duration: number;
+    classId: string;
+    subjectId: string;
+}
+
+interface ClassOption {
+    id: string;
+    name: string;
+}
+
+interface SubjectOption {
+    id: string;
+    name: string;
+    classId: string; 
+}
+
+const OnlineTestManager: React.FC = () => {
+  const location = useLocation();
+  const { prefillClassId, prefillSubjectId } = location.state || {};
+
+  const [tests, setTests] = useState<OnlineTest[]>([]);
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
+  
+  // Modal States
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
+  
+  // Delete Modal State
+  const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, title: string}>({ 
+    show: false, id: '', title: '' 
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
+
+  const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
+    show: false, type: 'success', msg: '' 
+  });
+
+  const showAlert = (type: AlertColor, msg: string) => {
+    setAlertInfo({ show: true, type, msg });
+    setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+  };
+
+  const fetchTests = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch('http://localhost:5000/api/online-exams', { 
+            headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        if(res.ok) setTests(await res.json());
+    } catch(e) { console.error(e); }
+  }, []);
+
+  useEffect(() => {
+    void fetchTests();
+    const token = localStorage.getItem('token');
+    fetch('http://localhost:5000/api/attendance/meta', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(data => { 
+            if(data) {
+                if(Array.isArray(data.classes)) setClasses(data.classes);
+                if(Array.isArray(data.subjects)) setSubjects(data.subjects);
+            }
+        })
+        .catch(console.error);
+  }, [fetchTests]);
+
+  const handleCreate = async (data: TestFormData) => {
+      const token = localStorage.getItem('token');
+      try {
+          const res = await fetch('http://localhost:5000/api/online-exams', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify(data)
+          });
+          if(res.ok) {
+              setIsCreateModalOpen(false);
+              fetchTests();
+              showAlert('success', 'Test Created Successfully!');
+          } else {
+              showAlert('error', 'Failed to create test');
+          }
+      } catch(e) {
+          console.error(e);
+          showAlert('error', 'Network error');
+      }
+  };
+
+  const handleAddBulkQuestions = async (payload: QuestionPayload[]) => {
+      const token = localStorage.getItem('token');
+      try {
+          const res = await fetch('http://localhost:5000/api/online-exams/questions/bulk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify(payload)
+          });
+          if(res.ok) {
+              fetchTests(); 
+              setIsQuestionModalOpen(false);
+              showAlert('success', 'Questions Added Successfully!');
+          } else {
+              showAlert('error', 'Failed to add questions');
+          }
+      } catch(e) {
+          showAlert('error', 'Network error');
+      }
+  };
+
+  // Triggered by Delete Button
+  const openDeleteModal = (id: string, title: string) => {
+      setDeleteModal({ show: true, id, title });
+  };
+
+  // Triggered by Modal Confirm
+  const confirmDelete = async () => {
+      setIsDeleting(true);
+      const token = localStorage.getItem('token');
+      try {
+          const res = await fetch(`http://localhost:5000/api/online-exams/${deleteModal.id}`, { 
+              method: 'DELETE', 
+              headers: { 'Authorization': `Bearer ${token}` } 
+          });
+          
+          if (res.ok) {
+            fetchTests();
+            setDeleteModal({ show: false, id: '', title: '' }); // Close Modal
+            showAlert('success', 'Test Deleted Successfully');
+          } else {
+            showAlert('error', 'Failed to delete test');
+          }
+      } catch(e) { 
+          console.error(e); 
+          showAlert('error', 'Network error');
+      } finally {
+          setIsDeleting(false);
+      }
+  };
+
+  const openAddQuestions = (id: string) => {
+      setSelectedTestId(id);
+      setIsQuestionModalOpen(true);
+  };
+
+  const filteredTests = tests.filter(t => {
+      if (prefillClassId && t.classId !== prefillClassId) return false;
+      if (prefillSubjectId && t.subjectId !== prefillSubjectId) return false;
+      return true;
+  });
+
+  return (
+    <div className="online-test-page"> {/* Updated Wrapper Class */}
+        <FeedbackAlert 
+            isOpen={alertInfo.show} 
+            type={alertInfo.type} 
+            message={alertInfo.msg} 
+            onClose={() => setAlertInfo({...alertInfo, show: false})} 
+        />
+        
+        <div className="page-header">
+            <h2><FaLaptopCode /> Online Tests</h2>
+            
+            <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
+                {prefillSubjectId && (
+                    <span style={{fontSize:'0.9rem', color:'var(--primary-color)', background:'var(--bg-secondary-color)', padding:'5px 10px', borderRadius:'12px', display:'flex', alignItems:'center', gap:'5px'}}>
+                        <FaFilter /> Filtered View
+                    </span>
+                )}
+                <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
+                    <FaPlus /> Create Test
+                </button>
+            </div>
+        </div>
+
+        <div className="tests-grid"> {/* Updated Grid Class */}
+            {filteredTests.length > 0 ? filteredTests.map(test => (
+                <div key={test.id} className="test-card"> {/* Updated Card Class */}
+                    <div className="card-header">
+                        <div className="icon-box"><FaQuestionCircle /></div>
+                        <span className="question-badge">{test.questionCount} Qs</span> {/* Updated Badge Class */}
+                    </div>
+                    <div className="card-body">
+                        <h3>{test.title}</h3>
+                        <span className="class-info">{test.className} - {test.subjectName}</span> {/* Updated Info Class */}
+                        <div className="meta-row"> {/* Updated Meta Class */}
+                            <span><FaClock /> {test.duration} mins</span>
+                            <span style={{marginLeft:'auto'}}>{new Date(test.date).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div className="card-footer"> {/* Updated Footer Class */}
+                         <button className="btn-add-qs" onClick={() => openAddQuestions(test.id)}>
+                            <FaListOl /> Add Qs
+                         </button>
+                         <button className="btn-delete" onClick={() => openDeleteModal(test.id, test.title)}>
+                            <FaTrash /> Delete
+                         </button>
+                    </div>
+                </div>
+            )) : (
+                <div className="empty-state">No tests found for this context.</div>
+            )}
+        </div>
+
+        <CreateTestModal
+            isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} 
+            onSave={handleCreate} classes={classes} subjects={subjects} 
+        />
+
+        <AddQuestionsStepper
+            isOpen={isQuestionModalOpen}
+            onClose={() => setIsQuestionModalOpen(false)}
+            examId={selectedTestId || ''}
+            onSave={handleAddBulkQuestions}
+        />
+
+        {/* --- DELETE MODAL --- */}
+        <DeleteModal 
+            isOpen={deleteModal.show}
+            onClose={() => setDeleteModal({ ...deleteModal, show: false })}
+            onConfirm={confirmDelete}
+            title="Delete Test"
+            message="Are you sure you want to delete the test"
+            itemName={deleteModal.title}
+            isLoading={isDeleting}
+        />
+    </div>
+  );
+};
+
+export default OnlineTestManager;

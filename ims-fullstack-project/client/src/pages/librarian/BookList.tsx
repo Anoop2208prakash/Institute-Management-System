@@ -1,13 +1,14 @@
 // client/src/pages/librarian/BookList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch } from 'react-icons/fa';
-import { DeleteModal } from '../../components/common/DeleteModal';
-import LinearLoader from '../../components/common/LinearLoader';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
+import { DeleteModal } from '../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
+import { useAuth } from '../../context/AuthContext'; // <--- Import Auth Context
 import './BookList.scss';
 import { CreateBookModal } from './CreateBookModal';
 
+// Interface for existing books from API
 interface Book {
   id: string;
   title: string;
@@ -18,6 +19,7 @@ interface Book {
   available: number;
 }
 
+// Interface for NEW book data (from form)
 interface NewBookData {
   title: string;
   author: string;
@@ -27,6 +29,7 @@ interface NewBookData {
 }
 
 const BookList: React.FC = () => {
+  const { user } = useAuth(); // <--- Get Current User
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +47,9 @@ const BookList: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Check Permissions (Librarian or Super Admin)
+  const canManage = user?.role === 'librarian' || user?.role === 'super_admin';
+
   // Helper
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
@@ -59,8 +65,8 @@ const BookList: React.FC = () => {
         const data = await res.json();
         if (Array.isArray(data)) setBooks(data);
       }
-    } catch (error) {
-      console.error("Fetch Books Error:", error);
+    } catch (e) {
+      console.error(e);
       showAlert('error', 'Failed to load books.');
     } finally {
       setIsLoading(false);
@@ -85,9 +91,8 @@ const BookList: React.FC = () => {
         } else {
             showAlert('error', 'Failed to add book. ISBN might be duplicate.');
         }
-    } catch(error) {
-        // FIX: Log the error to use the variable
-        console.error("Add Book Error:", error);
+    } catch(e) {
+        console.error(e);
         showAlert('error', 'Network error.');
     } finally {
         setIsCreating(false);
@@ -112,9 +117,8 @@ const BookList: React.FC = () => {
           } else {
               showAlert('error', 'Failed to delete book.');
           }
-      } catch(error) {
-          // FIX: Log the error here too
-          console.error("Delete Book Error:", error);
+      } catch(e) {
+          console.error(e);
           showAlert('error', 'Network error.');
       } finally {
           setIsDeleting(false);
@@ -134,17 +138,21 @@ const BookList: React.FC = () => {
       {/* Header */}
       <div className="page-header">
         <div className="header-content">
-            <h2><FaBook /> Library Books</h2>
-            <p>Manage inventory, track availability, and add new resources.</p>
+            <h2><FaBook /> Library Catalog</h2>
+            <p>Browse available resources and books.</p>
         </div>
         <div className="header-actions">
             <div className="search-box">
                 <FaSearch />
                 <input placeholder="Search Title, Author, ISBN..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
-            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
-                <FaPlus /> Add Book
-            </button>
+            
+            {/* ONLY SHOW ADD BUTTON IF PERMISSION EXISTS */}
+            {canManage && (
+                <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
+                    <FaPlus /> Add Book
+                </button>
+            )}
         </div>
       </div>
 
@@ -152,7 +160,7 @@ const BookList: React.FC = () => {
 
       {/* Grid */}
       <div className="roles-grid">
-        {isLoading && books.length === 0 && <div style={{padding:'2rem', gridColumn:'1/-1'}}><LinearLoader /></div>}
+        {/* Loader Removed */}
         
         {!isLoading && filteredBooks.map(book => (
             <div key={book.id} className="role-card">
@@ -167,34 +175,42 @@ const BookList: React.FC = () => {
                         </span>
                     </div>
                 </div>
-                <div className="card-actions">
-                    <button className="delete-btn" onClick={() => openDeleteModal(book.id, book.title)}>
-                        <FaTrash /> Delete Book
-                    </button>
-                </div>
+                
+                {/* ONLY SHOW DELETE IF PERMISSION EXISTS */}
+                {canManage && (
+                    <div className="card-actions">
+                        <button className="delete-btn" onClick={() => openDeleteModal(book.id, book.title)}>
+                            <FaTrash /> Delete Book
+                        </button>
+                    </div>
+                )}
             </div>
         ))}
 
         {!isLoading && filteredBooks.length === 0 && <div className="empty-state"><p>No books found.</p></div>}
       </div>
 
-      {/* Modals */}
-      <CreateBookModal
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
-        onSave={handleAddBook} 
-        isLoading={isCreating} 
-      />
+      {/* Modals (Only render if permission exists to save resources, though isCreateModalOpen controls visibility too) */}
+      {canManage && (
+        <>
+            <CreateBookModal
+                isOpen={isCreateModalOpen} 
+                onClose={() => setIsCreateModalOpen(false)} 
+                onSave={handleAddBook} 
+                isLoading={isCreating} 
+            />
 
-      <DeleteModal 
-        isOpen={isDeleteModalOpen} 
-        onClose={() => setIsDeleteModalOpen(false)} 
-        onConfirm={handleConfirmDelete} 
-        title="Delete Book" 
-        message="Are you sure you want to delete" 
-        itemName={bookToDelete?.title || ''} 
-        isLoading={isDeleting} 
-      />
+            <DeleteModal 
+                isOpen={isDeleteModalOpen} 
+                onClose={() => setIsDeleteModalOpen(false)} 
+                onConfirm={handleConfirmDelete} 
+                title="Delete Book" 
+                message="Are you sure you want to delete" 
+                itemName={bookToDelete?.title || ''} 
+                isLoading={isDeleting} 
+            />
+        </>
+      )}
     </div>
   );
 };

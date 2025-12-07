@@ -1,6 +1,6 @@
 // client/src/components/common/DeleteModal.tsx
 import React from 'react';
-import { FaTimes, FaExclamationTriangle } from 'react-icons/fa';
+import { FaExclamationTriangle } from 'react-icons/fa';
 import './DeleteModal.scss';
 
 interface DeleteModalProps {
@@ -9,7 +9,7 @@ interface DeleteModalProps {
   onConfirm: () => void;
   title: string;
   message: string;
-  itemName: string;
+  itemName?: string;
   isLoading?: boolean;
 }
 
@@ -25,36 +25,30 @@ export const DeleteModal: React.FC<DeleteModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
-        {/* Header */}
-        <div className="modal-header">
-          <div className="icon-wrapper danger">
-            <FaExclamationTriangle />
-          </div>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}>
-            <FaTimes />
-          </button>
+    <div className="delete-modal-overlay">
+      <div className="delete-modal-container">
+        
+        <div className="icon-wrapper">
+          <FaExclamationTriangle />
         </div>
 
-        {/* Body */}
-        <div className="modal-body">
-          <h2>{title}</h2>
+        <div className="content">
+          <h3>{title}</h3>
           <p>
-            {message} <strong>"{itemName}"</strong>?
+            {message} {itemName && <strong>"{itemName}"</strong>}? <br/>
+            This action cannot be undone.
           </p>
-          <p className="sub-text">This action cannot be undone.</p>
         </div>
 
-        {/* Footer (Buttons) */}
-        <div className="modal-footer">
+        <div className="actions">
           <button className="btn-cancel" onClick={onClose} disabled={isLoading}>
-            No, Keep it
+            Cancel
           </button>
-          <button className="btn-delete" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : 'Yes, Delete It!'}
+          <button className="btn-confirm" onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? 'Deleting...' : 'Yes, Delete'}
           </button>
         </div>
+
       </div>
     </div>
   );

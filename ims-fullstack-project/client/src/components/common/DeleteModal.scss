@@ -1,145 +1,129 @@
 // client/src/components/common/DeleteModal.scss
 
-// Overlay background
-.modal-overlay {
+.delete-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5); // Semi-transparent dark overlay
-    z-index: 1000; // Ensure it's on top of everything
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65); // Darker dim
+    backdrop-filter: blur(4px); // Premium blur effect
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.2s ease-out;
+    animation: fadeIn 0.2s ease-out forwards;
 }
 
-// The actual modal box
-.modal-container {
+.delete-modal-container {
     background-color: var(--card-bg-default);
-    width: 90%;
-    max-width: 450px;
-    border-radius: 16px;
-    box-shadow: var(--box-shadow-3);
-    overflow: hidden;
-    animation: slideIn 0.3s ease-out;
     border: 1px solid var(--card-border-color);
-}
+    width: 90%;
+    max-width: 420px; // Compact and focused
+    border-radius: 16px; // Softer corners
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
-// --- Header ---
-.modal-header {
-    padding: 1.5rem 1.5rem 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    // Decorative Top Line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: #cf222e; // Danger Red
+    }
 
+    // 1. Icon Wrapper
     .icon-wrapper {
-        width: 48px;
-        height: 48px;
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
+        background-color: rgba(207, 34, 46, 0.1);
+        color: #cf222e;
         display: flex;
-        align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-
-        &.danger {
-            background-color: #fee2e2; // Light red bg
-            color: #dc2626; // Red icon
-        }
+        align-items: center;
+        font-size: 1.8rem;
+        margin: 0 auto 1.5rem;
     }
 
-    .close-btn {
-        background: transparent;
-        border: none;
-        color: var(--text-muted-color);
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 4px;
-        transition: color 0.2s;
-
-        &:hover {
+    // 2. Content
+    .content {
+        h3 {
+            margin: 0 0 0.8rem;
+            font-size: 1.4rem;
             color: var(--heading-color);
+            font-weight: 700;
         }
 
-        &:disabled {
-            cursor: not-allowed;
-        }
-    }
-}
+        p {
+            margin: 0 0 2rem;
+            color: var(--text-muted-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
 
-// --- Body ---
-.modal-body {
-    padding: 1.5rem;
-    text-align: left;
-
-    h2 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.25rem;
-        color: var(--heading-color);
-        font-weight: 700;
-    }
-
-    p {
-        margin: 0 0 0.5rem 0;
-        font-size: 1rem;
-        color: var(--font-color);
-        line-height: 1.5;
-    }
-
-    .sub-text {
-        font-size: 0.9rem;
-        color: var(--text-muted-color);
-    }
-}
-
-// --- Footer ---
-.modal-footer {
-    padding: 1rem 1.5rem 1.5rem;
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    background-color: var(--bg-secondary-color);
-    border-top: 1px solid var(--border-light-color);
-
-    button {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.95rem;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: none;
-
-        &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            strong {
+                color: var(--font-color);
+                font-weight: 600;
+            }
         }
     }
 
-    .btn-cancel {
-        background-color: var(--card-bg-default);
-        color: var(--heading-color);
-        border: 1px solid var(--border-light-color);
+    // 3. Actions
+    .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
 
-        &:hover:not(:disabled) {
-            background-color: var(--bg-secondary-color);
-        }
-    }
+        button {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
 
-    .btn-delete {
-        background-color: #dc2626; // Brand Danger Red
-        color: #ffffff;
-        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+            &.btn-cancel {
+                background-color: transparent;
+                border-color: var(--border-light-color);
+                color: var(--font-color);
 
-        &:hover:not(:disabled) {
-            background-color: #b91c1c; // Darker red
-            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+                &:hover {
+                    background-color: var(--bg-secondary-color);
+                    border-color: var(--text-muted-color);
+                }
+            }
+
+            &.btn-confirm {
+                background-color: #cf222e;
+                color: white;
+                box-shadow: 0 4px 12px rgba(207, 34, 46, 0.3);
+
+                &:hover {
+                    background-color: #a40e26;
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 15px rgba(207, 34, 46, 0.4);
+                }
+
+                &:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+            }
         }
     }
 }
 
-// --- Animations ---
+// Animations
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -150,14 +134,14 @@
     }
 }
 
-@keyframes slideIn {
+@keyframes scaleUp {
     from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: scale(0.95) translateY(10px);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1) translateY(0);
     }
 }

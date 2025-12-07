@@ -35,6 +35,7 @@ import MyResults from './pages/student/MyResults';
 import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
 import TeacherSubjects from './pages/teacher/TeacherSubjects';
+import OnlineTestManager from './pages/teacher/OnlineTestManager';
 
 export const router = createBrowserRouter([
   {
@@ -101,6 +102,7 @@ export const router = createBrowserRouter([
       { path: '/teacher-subjects', element: <TeacherSubjects /> },
       { path: '/attendance', element: <AttendanceManager /> },
       { path: '/enter-marks', element: <EnterMarks /> },
+      { path: '/online-tests', element: <OnlineTestManager /> },
       
       // --- STUDENT ROUTES ---
       { path: '/stationery', element: <StationeryStore /> },

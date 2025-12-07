@@ -1,0 +1,194 @@
+// client/src/components/student/ViewOrderModal.scss
+
+.order-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65); // Dark dim
+    backdrop-filter: blur(5px); // Premium Blur
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.25s ease-out forwards;
+}
+
+.order-modal-container {
+    background-color: var(--card-bg-default);
+    border: 1px solid var(--card-border-color);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    // Smooth Pop-up Animation
+    animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    // Decorative Top Line
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), #8250df);
+    }
+
+    // --- Header ---
+    .modal-header {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-light-color);
+        background-color: var(--bg-secondary-color);
+
+        h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--heading-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            svg {
+                color: var(--primary-color);
+            }
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted-color);
+            font-size: 1.1rem;
+            padding: 5px;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            &:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+                color: var(--font-color-danger);
+                transform: rotate(90deg);
+            }
+        }
+    }
+
+    // --- Body ---
+    .modal-body {
+        padding: 2rem;
+        overflow-y: auto;
+        max-height: 80vh;
+
+        .order-id-badge {
+            background: var(--bg-secondary-color);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px dashed var(--card-border-color);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+
+            .icon {
+                font-size: 1.5rem;
+                color: var(--text-muted-color);
+                opacity: 0.5;
+            }
+
+            div {
+                display: flex;
+                flex-direction: column;
+
+                .label {
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    color: var(--text-muted-color);
+                    letter-spacing: 0.5px;
+                }
+
+                .value {
+                    font-family: 'Courier New', monospace;
+                    font-weight: 700;
+                    color: var(--heading-color);
+                    font-size: 1.1rem;
+                    letter-spacing: 1px;
+                }
+            }
+        }
+
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.95rem;
+
+                .label {
+                    color: var(--text-muted-color);
+                }
+
+                .value {
+                    font-weight: 600;
+                    color: var(--font-color);
+                }
+
+                &.total {
+                    border-top: 1px solid var(--border-light-color);
+                    padding-top: 1rem;
+                    margin-top: 0.5rem;
+
+                    .value {
+                        color: var(--primary-color);
+                        font-size: 1.3rem;
+                    }
+                }
+            }
+
+            .status-badge {
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                padding: 4px 12px;
+                border-radius: 20px;
+                letter-spacing: 0.5px;
+            }
+        }
+    }
+}
+
+// --- Keyframes ---
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}

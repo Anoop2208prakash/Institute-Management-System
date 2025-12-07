@@ -1,0 +1,195 @@
+// client/src/pages/teacher/OnlineTestManager.scss
+
+.online-test-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+
+    // --- Header ---
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.8rem;
+            color: var(--heading-color);
+            margin: 0;
+
+            svg {
+                color: var(--primary-color);
+            }
+        }
+
+        .btn-add-primary {
+            background: var(--btn-primary-bg);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: var(--box-shadow-1);
+
+            &:hover {
+                background: var(--btn-primary-hover-bg);
+                transform: translateY(-2px);
+            }
+        }
+    }
+
+    // --- Test Grid Layout ---
+    .tests-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+
+        .test-card {
+            background: var(--card-bg-default);
+            border: 1px solid var(--card-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--box-shadow-2);
+                border-color: var(--border-heading-color);
+            }
+
+            // 1. Card Header (Icon & Q Count)
+            .card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+
+                .icon-box {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 10px;
+                    background: rgba(130, 80, 223, 0.1); // Purple tint for Exams
+                    color: #8250df;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 1.4rem;
+                }
+
+                .question-badge {
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    background: var(--bg-secondary-color);
+                    padding: 4px 10px;
+                    border-radius: 20px;
+                    color: var(--text-muted-color);
+                    border: 1px solid var(--border-light-color);
+                }
+            }
+
+            // 2. Card Body (Title & Meta)
+            .card-body {
+                flex: 1;
+
+                h3 {
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.25rem;
+                    color: var(--heading-color);
+                    line-height: 1.4;
+                }
+
+                .class-info {
+                    font-size: 0.95rem;
+                    color: var(--text-muted-color);
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.8rem;
+                }
+
+                .meta-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    font-size: 0.85rem;
+                    color: var(--font-color);
+                    padding-top: 0.8rem;
+                    border-top: 1px dashed var(--border-light-color);
+
+                    span {
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+
+                        svg {
+                            color: var(--text-muted-color);
+                        }
+                    }
+                }
+            }
+
+            // 3. Card Footer (Actions)
+            .card-footer {
+                margin-top: 1.5rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-light-color);
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+
+                button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    transition: opacity 0.2s;
+
+                    &.btn-add-qs {
+                        color: var(--primary-color);
+
+                        &:hover {
+                            opacity: 0.8;
+                        }
+                    }
+
+                    &.btn-delete {
+                        color: var(--font-color-danger);
+
+                        &:hover {
+                            opacity: 0.8;
+                        }
+                    }
+                }
+            }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem;
+            background: var(--card-bg-default);
+            border: 1px dashed var(--card-border-color);
+            border-radius: 12px;
+            color: var(--text-muted-color);
+        }
+    }
+}
