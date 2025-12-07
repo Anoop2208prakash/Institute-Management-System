@@ -23,7 +23,6 @@ import BookList from './pages/librarian/BookList';
 import LoanManager from './pages/librarian/LoanManager';
 
 // Teacher Pages
-import MyClass from './pages/teacher/MyClass';
 import EnterMarks from './pages/teacher/EnterMarks';
 import AttendanceManager from './pages/teacher/AttendanceManager';
 import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
@@ -35,6 +34,7 @@ import MyAttendance from './pages/student/MyAttendance';
 import MyResults from './pages/student/MyResults';
 import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
+import TeacherSubjects from './pages/teacher/TeacherSubjects';
 
 export const router = createBrowserRouter([
   {
@@ -98,7 +98,7 @@ export const router = createBrowserRouter([
       { path: '/library-catalog', element: <BookList /> }, // Reuse BookList for catalog
 
       // --- TEACHER ROUTES ---
-      { path: '/my-class', element: <MyClass /> },
+      { path: '/teacher-subjects', element: <TeacherSubjects /> },
       { path: '/attendance', element: <AttendanceManager /> },
       { path: '/enter-marks', element: <EnterMarks /> },
       
