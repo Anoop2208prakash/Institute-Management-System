@@ -1,18 +1,26 @@
 // client/src/pages/student/MyOrders.tsx
 import React, { useState, useEffect } from 'react';
 import { FaShoppingCart, FaBox, FaClock, FaChevronRight } from 'react-icons/fa';
-// Removed LinearLoader import
+
 import './MyOrders.scss';
 import { ViewOrderModal } from './ViewOrderModal';
 
-interface Order {
-  id: string;
-  itemName: string;
+// 1. Updated Interface to match new API
+interface OrderItem {
+  name: string;
   category: string;
-  quantity: number;
+  qty: number;
+  price: number;
+}
+
+export interface Order {
+  id: string;
+  itemSummary: string; // "Pen (x2), Notebook (x1)"
+  itemCount: number;
   totalPrice: number;
   status: string;
   date: string;
+  items: OrderItem[]; // List of items for the modal
 }
 
 const MyOrders: React.FC = () => {
@@ -55,28 +63,30 @@ const MyOrders: React.FC = () => {
       </div>
 
       <div className="list-container">
-            {/* Loader Removed - Using simple conditional rendering for empty state */}
-            
             {!loading && orders.length > 0 ? orders.map(order => (
                 <div 
                     key={order.id} 
                     className="list-item" 
-                    onClick={() => handleOrderClick(order)} // <--- Click handler
-                    style={{cursor:'pointer'}} // Visual cue
+                    onClick={() => handleOrderClick(order)} 
+                    style={{cursor:'pointer'}}
                 >
                     <div className="item-left">
                         <div className="icon-box" style={{
                             width:'40px', height:'40px', borderRadius:'8px', 
                             background:'var(--bg-secondary-color)', color:'var(--primary-color)',
-                            display:'flex', alignItems:'center', justifyContent:'center'
+                            display:'flex', alignItems:'center', justifyContent:'center', flexShrink: 0
                         }}>
                             <FaBox />
                         </div>
                         <div className="details">
-                            <span className="date">{order.itemName} ({order.quantity})</span>
+                            {/* 2. Display Summary instead of single name */}
+                            <span className="date">{order.itemSummary}</span>
                             <span className="sub-text">
                                 <FaClock style={{fontSize:'0.7rem', marginRight:'4px'}}/> 
                                 {new Date(order.date).toLocaleDateString()}
+                                <span style={{marginLeft:'10px', fontSize:'0.8rem', color:'var(--text-muted-color)'}}>
+                                    ({order.itemCount} Items)
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -86,7 +96,8 @@ const MyOrders: React.FC = () => {
                             <span style={{display:'block', fontWeight:700}}>₹{order.totalPrice.toFixed(2)}</span>
                             <span style={{
                                 fontSize:'0.75rem', fontWeight:700, 
-                                color: order.status === 'DELIVERED' ? '#1a7f37' : '#d29922'
+                                color: order.status === 'DELIVERED' ? '#1a7f37' : '#d29922',
+                                textTransform: 'uppercase'
                             }}>
                                 {order.status}
                             </span>

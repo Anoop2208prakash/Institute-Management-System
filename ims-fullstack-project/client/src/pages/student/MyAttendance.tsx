@@ -1,8 +1,8 @@
 // client/src/pages/student/MyAttendance.tsx
 import React, { useState, useEffect } from 'react';
 import { FaCheckSquare, FaChartPie, FaTimesCircle, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
-import LinearLoader from '../../components/common/LinearLoader';
-import './MyAttendance.scss'; // Reuse styles
+// Removed LinearLoader import
+import './MyAttendance.scss';
 
 interface AttendanceRecord {
     id: string;
@@ -58,8 +58,7 @@ const MyAttendance: React.FC = () => {
         </div>
       </div>
 
-      {loading ? <LinearLoader /> : (
-        <>
+      <div className="content-wrapper">
             {/* Stats Cards */}
             <div className="stats-row">
                 <div className="stat-card">
@@ -81,7 +80,10 @@ const MyAttendance: React.FC = () => {
             {/* History List */}
             <div className="list-container">
                 <h3 className="section-title">Attendance History</h3>
-                {history.length > 0 ? history.map(record => (
+                
+                {/* Loader Removed */}
+                
+                {!loading && history.length > 0 ? history.map(record => (
                     <div key={record.id} className="list-item">
                         <div className="item-left">
                             {getStatusIcon(record.status)}
@@ -93,11 +95,10 @@ const MyAttendance: React.FC = () => {
                         <span className={`status-pill ${record.status.toLowerCase()}`}>{record.status}</span>
                     </div>
                 )) : (
-                    <div className="empty-state">No attendance records found.</div>
+                    !loading && <div className="empty-state">No attendance records found.</div>
                 )}
             </div>
-        </>
-      )}
+      </div>
     </div>
   );
 };

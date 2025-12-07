@@ -1,13 +1,14 @@
 // client/src/pages/student/MyInvoices.tsx
 import React, { useState, useEffect } from 'react';
 import { FaFileInvoiceDollar, FaCheckCircle, FaClock, FaExclamationTriangle } from 'react-icons/fa';
-import LinearLoader from '../../components/common/LinearLoader';
+// Removed LinearLoader
 import './MyInvoices.scss';
+import { InvoiceModal } from './InvoiceModal';
 
 interface Invoice {
   id: string;
   title: string;
-  amount: string; // Decimal comes as string often
+  amount: string;
   dueDate: string;
   paidDate: string | null;
   status: 'PAID' | 'PENDING' | 'OVERDUE' | 'PARTIAL';
@@ -16,6 +17,10 @@ interface Invoice {
 const MyInvoices: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal State
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -33,6 +38,11 @@ const MyInvoices: React.FC = () => {
     };
     fetchInvoices();
   }, []);
+
+  const openInvoice = (inv: Invoice) => {
+      setSelectedInvoice(inv);
+      setIsModalOpen(true);
+  };
 
   const getStatusBadge = (status: string) => {
       switch(status) {
@@ -52,39 +62,51 @@ const MyInvoices: React.FC = () => {
         </div>
       </div>
 
-      {loading ? <LinearLoader /> : (
-        <div className="list-container">
-            {invoices.length > 0 ? invoices.map(inv => {
-                const style = getStatusBadge(inv.status);
-                return (
-                    <div key={inv.id} className="list-item">
-                        <div className="item-left">
-                            <div style={{color: style.color, fontSize:'1.2rem'}}>{style.icon}</div>
-                            <div className="details">
-                                <span className="date">{inv.title}</span>
-                                <span className="sub-text">Due: {new Date(inv.dueDate).toLocaleDateString()}</span>
-                            </div>
-                        </div>
-                        
-                        <div style={{textAlign:'right'}}>
-                            <span style={{display:'block', fontWeight:700, fontSize:'1rem'}}>
-                                ₹{Number(inv.amount).toFixed(2)}
-                            </span>
-                            <span style={{
-                                fontSize:'0.75rem', fontWeight:700, 
-                                color: style.color, backgroundColor: style.bg,
-                                padding:'2px 8px', borderRadius:'12px'
-                            }}>
-                                {inv.status}
-                            </span>
-                        </div>
-                    </div>
-                );
-            }) : (
-                <div className="empty-state">No invoices found.</div>
-            )}
-        </div>
-      )}
+      <div className="list-container">
+          {/* Loader Removed */}
+          
+          {!loading && invoices.length > 0 ? invoices.map(inv => {
+              const style = getStatusBadge(inv.status);
+              return (
+                  <div 
+                      key={inv.id} 
+                      className="list-item"
+                      onClick={() => openInvoice(inv)} 
+                      style={{cursor: 'pointer'}} 
+                  >
+                      <div className="item-left">
+                          <div style={{color: style.color, fontSize:'1.2rem'}}>{style.icon}</div>
+                          <div className="details">
+                              <span className="date">{inv.title}</span>
+                              <span className="sub-text">Due: {new Date(inv.dueDate).toLocaleDateString()}</span>
+                          </div>
+                      </div>
+                      
+                      <div style={{textAlign:'right'}}>
+                          <span style={{display:'block', fontWeight:700, fontSize:'1rem'}}>
+                              ₹{Number(inv.amount).toFixed(2)}
+                          </span>
+                          <span style={{
+                              fontSize:'0.75rem', fontWeight:700, 
+                              color: style.color, backgroundColor: style.bg,
+                              padding:'2px 8px', borderRadius:'12px'
+                          }}>
+                              {inv.status}
+                          </span>
+                      </div>
+                  </div>
+              );
+          }) : (
+              !loading && <div className="empty-state">No invoices found.</div>
+          )}
+      </div>
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        invoice={selectedInvoice}
+      />
     </div>
   );
 };

@@ -102,13 +102,11 @@ model Teacher {
   bloodGroup    String?  
   joiningDate   DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   subjects      Subject[]
   classes       Class[]  @relation("ClassTeacher") 
   attendance    Attendance[]
   loans         Loan[] 
-  onlineExams   OnlineExam[] // Relation for exams created by teacher
-
+  onlineExams   OnlineExam[] 
   @@map("teachers")
 }
 
@@ -125,13 +123,11 @@ model Student {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
-  
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
   loans       Loan[]   
-  testSubmissions TestSubmission[] // Relation for test answers
-
+  testSubmissions TestSubmission[] 
   @@index([classId])
   @@map("students")
 }
@@ -146,14 +142,12 @@ model Class {
   description String?  
   teacherId   String?  
   teacher     Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
-  
   students    Student[]
   subjects    Subject[]
   exams       Exam[]
   semesters   Semester[] 
   attendance  Attendance[] 
-  onlineExams OnlineExam[] // Relation for online exams assigned
-
+  onlineExams OnlineExam[] 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@map("classes")
@@ -169,11 +163,9 @@ model Subject {
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   semesterId String?
   semester   Semester? @relation(fields: [semesterId], references: [id])
-  
   exams      Exam[]   
   attendance Attendance[]
-  onlineExams OnlineExam[] // Relation for online exams
-
+  onlineExams OnlineExam[]
   @@map("subjects")
 }
 
@@ -241,7 +233,7 @@ model Result {
 }
 
 // --------------------------------------
-// 7. FINANCE (Updated for Order Linking)
+// 7. FINANCE
 // --------------------------------------
 
 model FeeRecord {
@@ -254,7 +246,7 @@ model FeeRecord {
   studentId String
   student   Student       @relation(fields: [studentId], references: [id])
   
-  // FIX: Added link to Order
+  // Link to Order (One invoice per order)
   orderId   String?       @unique 
   order     Order?        @relation(fields: [orderId], references: [id])
 
@@ -295,7 +287,7 @@ model Loan {
 }
 
 // --------------------------------------
-// 9. INVENTORY & ORDERS (Updated for Fee Linking)
+// 9. INVENTORY & ORDERS (REFACTORED)
 // --------------------------------------
 
 model InventoryItem {
@@ -304,23 +296,42 @@ model InventoryItem {
   category  String   
   quantity  Int      @default(0)
   price     Float    @default(0.0)
-  orders    Order[]
+  
+  // Linked to Order Items, not Orders directly
+  orderItems OrderItem[] 
+
   @@map("inventory_items")
 }
 
 model Order {
   id        String        @id @default(uuid())
-  itemId    String
-  item      InventoryItem @relation(fields: [itemId], references: [id])
-  quantity  Int
-  status    String        @default("PENDING") 
-  orderBy   String        
-  date      DateTime      @default(now())
   
-  // FIX: Relation back to FeeRecord
-  feeRecord FeeRecord?
+  orderBy   String        // User ID
+  date      DateTime      @default(now())
+  status    String        @default("PENDING") 
+  total     Float         @default(0.0) // Total Cost
+  
+  // Relations
+  items     OrderItem[]   
+  feeRecord FeeRecord?    
 
   @@map("orders")
+}
+
+// NEW: Order Item (Supports multiple items per order)
+model OrderItem {
+  id        String        @id @default(uuid())
+  
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  itemId    String
+  item      InventoryItem @relation(fields: [itemId], references: [id])
+  
+  quantity  Int
+  price     Float         // Snapshot of price
+
+  @@map("order_items")
 }
 
 // --------------------------------------
@@ -364,8 +375,8 @@ model OnlineExam {
 model Question {
   id            String     @id @default(uuid())
   questionText  String     @db.Text
-  options       String     @db.Text // Stored as JSON string
-  correctOption Int        // Index (0, 1, 2, 3)
+  options       String     @db.Text 
+  correctOption Int        
   marks         Int        @default(1)
   examId        String
   exam          OnlineExam @relation(fields: [examId], references: [id], onDelete: Cascade)
@@ -379,7 +390,7 @@ model TestSubmission {
   examId      String
   exam        OnlineExam @relation(fields: [examId], references: [id])
   score       Float
-  answers     String     @db.Text // Stored as JSON
+  answers     String     @db.Text 
   submittedAt DateTime   @default(now())
   @@map("test_submissions")
 }

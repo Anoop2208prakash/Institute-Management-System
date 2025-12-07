@@ -1,113 +1,201 @@
 // client/src/pages/Dashboard.tsx
-import React from 'react';
-import { 
-  FaUserGraduate, 
-  FaChalkboardTeacher, 
-  FaMoneyBillWave, 
-  FaClipboardList, 
-  FaPlus,
-  FaCalendarAlt 
-} from 'react-icons/fa';
-import './Dashboard.scss';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  FaUsers, FaChalkboardTeacher, FaLayerGroup, FaUserShield, 
+  FaBook, FaCheckSquare, FaFileInvoiceDollar, FaBookReader, FaHandHolding,
+  FaCalendarAlt, FaBell, FaClipboardList, FaUserPlus
+} from 'react-icons/fa';
+import LinearLoader from '../components/common/LinearLoader';
+import { useAuth } from '../context/AuthContext';
+import './Dashboard.scss';
+
+// 1. FIX: Use Record<string, React.ReactElement> instead of 'any'
+const iconMap: Record<string, React.ReactElement> = {
+  'users': <FaUsers />,
+  'chalkboard-teacher': <FaChalkboardTeacher />,
+  'layer-group': <FaLayerGroup />,
+  'user-shield': <FaUserShield />,
+  'book': <FaBook />,
+  'check-square': <FaCheckSquare />,
+  'file-invoice-dollar': <FaFileInvoiceDollar />,
+  'book-reader': <FaBookReader />,
+  'hand-holding': <FaHandHolding />
+};
+
+interface StatCard {
+  label: string;
+  value: string | number;
+  icon: string;
+  color: string;
+}
+
+interface DashboardData {
+  type: string;
+  name?: string;
+  cards: StatCard[];
+}
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Data (In a real app, fetch this from API)
-  const stats = [
-    { label: 'Total Students', value: '1,250', icon: <FaUserGraduate />, color: 'blue' },
-    { label: 'Total Teachers', value: '85', icon: <FaChalkboardTeacher />, color: 'purple' },
-    { label: 'Revenue (YTD)', value: '$125k', icon: <FaMoneyBillWave />, color: 'green' },
-    { label: 'Attendance', value: '94%', icon: <FaClipboardList />, color: 'orange' },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch('http://localhost:5000/api/dashboard', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            // 2. FIX: Cast response to DashboardData to avoid 'any'
+            const jsonData = await res.json();
+            setData(jsonData as DashboardData);
+        }
+      } catch (e) {
+        console.error("Dashboard Error", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
-  const notices = [
-    { day: '29', month: 'Nov', title: 'Mid-Term Exams', desc: 'Schedule for Grade 10-12 released.' },
-    { day: '05', month: 'Dec', title: 'Staff Meeting', desc: 'Annual review meeting at 10:00 AM.' },
-    { day: '12', month: 'Dec', title: 'Winter Holiday', desc: 'School closed for winter break.' },
-  ];
+  if (loading) return <div style={{padding:'2rem'}}><LinearLoader /></div>;
+
+  // Define Quick Actions based on Role
+  const renderQuickActions = () => {
+      if (data?.type === 'ADMIN') {
+          return (
+              <>
+                  <button onClick={() => navigate('/new-admission')}>
+                      <FaUserPlus /> <span>New Admission</span>
+                  </button>
+                  <button onClick={() => navigate('/staff')}>
+                      <FaChalkboardTeacher /> <span>Manage Staff</span>
+                  </button>
+                  <button onClick={() => navigate('/programs')}>
+                      <FaLayerGroup /> <span>Programs</span>
+                  </button>
+                  <button onClick={() => navigate('/announcements')}>
+                      <FaBell /> <span>Post Notice</span>
+                  </button>
+              </>
+          );
+      }
+      if (data?.type === 'TEACHER') {
+        return (
+            <>
+                <button onClick={() => navigate('/attendance')}>
+                    <FaCheckSquare /> <span>Attendance</span>
+                </button>
+                <button onClick={() => navigate('/online-tests')}>
+                    <FaClipboardList /> <span>Online Tests</span>
+                </button>
+                <button onClick={() => navigate('/teacher-subjects')}>
+                    <FaBook /> <span>My Subjects</span>
+                </button>
+            </>
+        );
+      }
+      if (data?.type === 'STUDENT') {
+          return (
+            <>
+                <button onClick={() => navigate('/my-attendance')}>
+                    <FaCheckSquare /> <span>My Attendance</span>
+                </button>
+                <button onClick={() => navigate('/my-results')}>
+                    <FaClipboardList /> <span>Results</span>
+                </button>
+                <button onClick={() => navigate('/stationery')}>
+                    <FaBook /> <span>Stationery</span>
+                </button>
+            </>
+          );
+      }
+      return null;
+  };
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-page">
       
-      {/* 1. Header */}
-      <div className="page-header">
-        <div>
-            <h2>Dashboard</h2>
-            <p style={{ color: 'var(--text-muted-color)', marginTop: '0.25rem' }}>
-                Welcome back, Super Admin
-            </p>
+      {/* 1. Modern Welcome Banner */}
+      <div className="welcome-banner">
+        <div className="content">
+            <h1>Good Morning, {data?.name || user?.email.split('@')[0]}!</h1>
+            <p>Here's what's happening in your institute today.</p>
         </div>
         <div className="date-badge">
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' })}
+            <FaCalendarAlt />
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
         </div>
       </div>
 
-      {/* 2. Key Stats Grid */}
+      {/* 2. Stats Grid */}
       <div className="stats-grid">
-        {stats.map((stat, index) => (
-          <div key={index} className="stat-card">
-            <div className={`icon-box ${stat.color}`}>
-              {stat.icon}
+        {data?.cards.map((card, idx) => (
+          <div key={idx} className="stat-card">
+            <div 
+              className="icon-wrapper" 
+              style={{ backgroundColor: `${card.color}15`, color: card.color }}
+            >
+              {iconMap[card.icon] || <FaLayerGroup />}
             </div>
-            <div className="stat-info">
-              <h3>{stat.value}</h3>
-              <p>{stat.label}</p>
+            <div className="info">
+              <span className="label">{card.label}</span>
+              <span className="value">{card.value}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* 3. Content Split */}
-      <div className="content-grid">
-        
-        {/* Left: Quick Actions (or Charts in future) */}
-        <div className="section-card">
-          <div className="section-header">
-            <h4>Quick Actions</h4>
+      {/* 3. Main Content Split */}
+      <div className="dashboard-content">
+          
+          {/* Left: Quick Actions */}
+          <div className="main-column">
+              <div className="quick-actions">
+                  <h3>Quick Actions</h3>
+                  <div className="actions-grid">
+                      {renderQuickActions()}
+                  </div>
+              </div>
           </div>
-          <div className="action-grid">
-            <button className="action-btn" onClick={() => navigate('/staff-register')}>
-                <FaPlus />
-                <span>Add Staff</span>
-            </button>
-            <button className="action-btn">
-                <FaUserGraduate />
-                <span>Admit Student</span>
-            </button>
-            <button className="action-btn">
-                <FaMoneyBillWave />
-                <span>Collect Fee</span>
-            </button>
-            <button className="action-btn">
-                <FaCalendarAlt />
-                <span>Create Event</span>
-            </button>
-          </div>
-        </div>
 
-        {/* Right: Notice Board */}
-        <div className="section-card">
-          <div className="section-header">
-            <h4>Notice Board</h4>
-            <button>View All</button>
+          {/* Right: Activity Feed (Static Mockup for Now) */}
+          <div className="side-column">
+              <div className="activity-feed">
+                  <h3>Recent Activity</h3>
+                  <div className="feed-list">
+                      <div className="feed-item">
+                          <div className="feed-icon"><FaBell /></div>
+                          <div className="feed-content">
+                              <h4>System Update</h4>
+                              <p>The system was successfully updated to v2.0.</p>
+                              <span className="time">2 hours ago</span>
+                          </div>
+                      </div>
+                      <div className="feed-item">
+                          <div className="feed-icon" style={{color:'#1a7f37', background:'rgba(26,127,55,0.1)'}}><FaUsers /></div>
+                          <div className="feed-content">
+                              <h4>New Admissions</h4>
+                              <p>5 new students were admitted to Grade 10.</p>
+                              <span className="time">Yesterday</span>
+                          </div>
+                      </div>
+                      <div className="feed-item">
+                          <div className="feed-icon" style={{color:'#cf222e', background:'rgba(207,34,46,0.1)'}}><FaFileInvoiceDollar /></div>
+                          <div className="feed-content">
+                              <h4>Fee Collection</h4>
+                              <p>Monthly fee generation completed.</p>
+                              <span className="time">2 days ago</span>
+                          </div>
+                      </div>
+                  </div>
+              </div>
           </div>
-          <div className="notice-list">
-            {notices.map((notice, index) => (
-                <div key={index} className="notice-item">
-                    <div className="notice-date">
-                        <span className="day">{notice.day}</span>
-                        <span className="month">{notice.month}</span>
-                    </div>
-                    <div className="notice-content">
-                        <h5>{notice.title}</h5>
-                        <p>{notice.desc}</p>
-                    </div>
-                </div>
-            ))}
-          </div>
-        </div>
 
       </div>
     </div>
