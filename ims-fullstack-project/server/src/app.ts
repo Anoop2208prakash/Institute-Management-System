@@ -21,6 +21,7 @@ import announcementRoutes from './routes/announcementRoutes';
 import teacherRoutes from './routes/teacherRoutes';
 import attendanceRoutes from './routes/attendanceRoutes';
 import markRoutes from './routes/markRoutes';
+import onlineExamRoutes from './routes/onlineExamRoutes';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/marks', markRoutes);
+app.use('/api/online-exams', onlineExamRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

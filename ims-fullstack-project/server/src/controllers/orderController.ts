@@ -1,7 +1,7 @@
 // server/src/controllers/orderController.ts
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
-import { AuthRequest } from '../middlewares/auth'; // Import AuthRequest
+import { AuthRequest } from '../middlewares/auth';
 
 // 1. GET All Orders (Admin View)
 export const getOrders = async (req: Request, res: Response) => {
@@ -13,7 +13,7 @@ export const getOrders = async (req: Request, res: Response) => {
       orderBy: { date: 'desc' }
     });
     
-    // Fetch user details manually since 'orderBy' is just an ID string
+    // Fetch user details
     const userIds = [...new Set(orders.map(o => o.orderBy))];
     const users = await prisma.user.findMany({
         where: { id: { in: userIds } },
@@ -41,14 +41,14 @@ export const getOrders = async (req: Request, res: Response) => {
   }
 };
 
-// 2. GET My Orders (Student/Teacher View) -- NEW FUNCTION
+// 2. GET My Orders (Student/Teacher View)
 export const getMyOrders = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const orders = await prisma.order.findMany({
-      where: { orderBy: userId }, // Filter by logged-in user
+      where: { orderBy: userId },
       include: { item: true },
       orderBy: { date: 'desc' }
     });
@@ -70,24 +70,40 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 3. UPDATE Order Status (Admin Action)
+// 3. UPDATE Order Status (Admin Action) - WITH INVOICE UPDATE
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Order ID
     const { status } = req.body; // PENDING, APPROVED, DELIVERED
 
-    const updated = await prisma.order.update({
+    console.log(`📦 Updating Order ${id} to ${status}`);
+
+    // A. Update the Order
+    const updatedOrder = await prisma.order.update({
       where: { id },
       data: { status }
     });
 
-    res.json(updated);
+    // B. If DELIVERED, automatically mark the linked Invoice as PAID
+    if (status === 'DELIVERED') {
+        const updateResult = await prisma.feeRecord.updateMany({
+            where: { orderId: id }, // Find invoice linked to this order
+            data: { 
+                status: 'PAID',
+                paidDate: new Date()
+            }
+        });
+        console.log(`💰 Updated Invoice Status: ${updateResult.count} record(s) updated.`);
+    }
+
+    res.json(updatedOrder);
   } catch (error) {
+    console.error("Update Order Error:", error);
     res.status(500).json({ error: 'Failed to update order' });
   }
 };
 
-// 4. CREATE Order (User Action)
+// 4. CREATE Order (With Invoice Link)
 export const createOrder = async (req: Request, res: Response) => {
     try {
         const { itemId, quantity, userId } = req.body;
@@ -99,9 +115,11 @@ export const createOrder = async (req: Request, res: Response) => {
             return;
         }
 
+        const totalPrice = item.price * Number(quantity);
+
         await prisma.$transaction(async (tx) => {
-            // Create Order
-            await tx.order.create({
+            // A. Create Order
+            const newOrder = await tx.order.create({
                 data: {
                     itemId,
                     quantity: Number(quantity),
@@ -110,15 +128,32 @@ export const createOrder = async (req: Request, res: Response) => {
                 }
             });
             
-            // Deduct Stock
+            // B. Deduct Stock
             await tx.inventoryItem.update({
                 where: { id: itemId },
                 data: { quantity: { decrement: Number(quantity) } }
             });
+
+            // C. Generate Linked Invoice
+            const student = await tx.student.findUnique({ where: { userId } });
+            
+            if (student) {
+                await tx.feeRecord.create({
+                    data: {
+                        studentId: student.id,
+                        orderId: newOrder.id, // <--- Link this invoice to the order!
+                        title: `Store Purchase: ${item.name} (x${quantity})`,
+                        amount: totalPrice,
+                        dueDate: new Date(),
+                        status: 'PENDING'
+                    }
+                });
+            }
         });
 
-        res.status(201).json({ message: "Order placed" });
+        res.status(201).json({ message: "Order placed and invoice generated" });
     } catch (e) {
+        console.error("Create Order Error:", e);
         res.status(500).json({ message: "Failed to place order" });
     }
 };

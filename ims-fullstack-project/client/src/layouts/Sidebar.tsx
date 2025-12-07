@@ -5,7 +5,8 @@ import {
   FaHome, FaUserCircle, FaIdCard, FaUsers, FaUserPlus, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
-  FaChevronLeft, FaChevronRight, FaIdBadge, FaCheckSquare, FaPenNib 
+  FaChevronLeft, FaChevronRight, FaIdBadge, FaCheckSquare, FaPenNib, 
+  FaLaptopCode
 } from 'react-icons/fa';
 
 interface SidebarProps {
@@ -26,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
     // --- TEACHER MODULES ---
     { path: '/teacher-subjects', label: 'My Subjects', icon: <FaChalkboardTeacher />, roles: ['teacher', 'super_admin'] },
     { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
+    { path: '/online-tests', label: 'Online Tests', icon: <FaLaptopCode />, roles: ['teacher', 'super_admin'] },
     { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
     { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },
 

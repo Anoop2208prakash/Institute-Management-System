@@ -1,0 +1,285 @@
+// client/src/components/teacher/AddQuestionsStepper.scss
+
+.modal-container {
+    width: 900px !important; // Wider for better layout
+    max-width: 95vw;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+// 1. Header (Top Bar)
+.stepper-header {
+    padding: 1.2rem 2rem;
+    background-color: var(--bg-secondary-color);
+    border-bottom: 1px solid var(--border-light-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h3 {
+        margin: 0;
+        color: var(--heading-color);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        svg {
+            color: var(--primary-color);
+        }
+    }
+}
+
+// 2. Main Layout (Sidebar + Content)
+.stepper-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+
+    // Sidebar (Progress List)
+    .step-sidebar {
+        width: 250px;
+        background-color: var(--bg-color);
+        border-right: 1px solid var(--border-light-color);
+        overflow-y: auto;
+        padding: 1rem;
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+
+            .circle {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                background-color: var(--border-light-color);
+                color: var(--text-muted-color);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 0.85rem;
+                font-weight: 600;
+            }
+
+            span {
+                font-size: 0.9rem;
+                color: var(--text-muted-color);
+                font-weight: 500;
+            }
+
+            // Active Step
+            &.active {
+                background-color: rgba(9, 105, 218, 0.1);
+
+                .circle {
+                    background-color: var(--primary-color);
+                    color: white;
+                }
+
+                span {
+                    color: var(--heading-color);
+                    font-weight: 600;
+                }
+            }
+
+            // Completed Step
+            &.completed {
+                .circle {
+                    background-color: #1a7f37;
+                    color: white;
+                }
+            }
+        }
+    }
+
+    // Content Area
+    .step-content {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+        background-color: var(--card-bg-default);
+
+        .question-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                label {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: var(--font-color);
+                }
+
+                textarea {
+                    padding: 1rem;
+                    border: 1px solid var(--form-input-border-color);
+                    border-radius: 8px;
+                    background-color: var(--bg-color);
+                    font-size: 1rem;
+                    color: var(--font-color);
+                    resize: vertical;
+                    min-height: 100px;
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        outline: none;
+                    }
+                }
+            }
+
+            // Options Grid
+            .options-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+
+                .option-box {
+                    position: relative;
+
+                    input {
+                        width: 100%;
+                        padding: 0.8rem 1rem 0.8rem 3rem; // Padding for radio button
+                        border: 1px solid var(--form-input-border-color);
+                        border-radius: 8px;
+                        background-color: var(--bg-color);
+                        font-size: 0.95rem;
+                        color: var(--font-color);
+                        transition: all 0.2s;
+
+                        &:focus {
+                            border-color: var(--primary-color);
+                        }
+
+                        &.correct {
+                            border-color: #1a7f37;
+                            background-color: rgba(26, 127, 55, 0.05);
+                        }
+                    }
+
+                    // Radio Button for Correct Answer
+                    .radio-check {
+                        position: absolute;
+                        left: 10px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        border: 2px solid var(--border-light-color);
+                        cursor: pointer;
+
+                        &.selected {
+                            background-color: #1a7f37;
+                            border-color: #1a7f37;
+
+                            &::after {
+                                content: '✓';
+                                color: white;
+                                font-size: 0.7rem;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                height: 100%;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .marks-input {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding-top: 1rem;
+                border-top: 1px dashed var(--border-light-color);
+
+                input {
+                    width: 80px;
+                    padding: 0.5rem;
+                    border-radius: 6px;
+                    border: 1px solid var(--form-input-border-color);
+                }
+            }
+        }
+    }
+}
+
+// 3. Footer
+.stepper-footer {
+    padding: 1rem 2rem;
+    background-color: var(--bg-secondary-color);
+    border-top: 1px solid var(--border-light-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    button {
+        padding: 0.8rem 1.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    .btn-nav {
+        &.prev {
+            background: transparent;
+            border-color: var(--border-light-color);
+            color: var(--text-muted-color);
+
+            &:hover:not(:disabled) {
+                border-color: var(--font-color);
+                color: var(--font-color);
+            }
+        }
+
+        &.next {
+            background-color: var(--primary-color);
+            color: white;
+
+            &:hover:not(:disabled) {
+                background-color: var(--btn-primary-hover-bg);
+            }
+        }
+
+        &.finish {
+            background-color: #1a7f37;
+            color: white;
+
+            &:hover {
+                background-color: #136c2e;
+            }
+        }
+    }
+
+    // Cancel Button
+    .btn-cancel {
+        background-color: transparent;
+        color: var(--text-muted-color);
+        border: 1px solid transparent;
+
+        &:hover {
+            color: var(--font-color-danger);
+            background-color: rgba(207, 34, 46, 0.1);
+            border-color: rgba(207, 34, 46, 0.2);
+        }
+    }
+}
