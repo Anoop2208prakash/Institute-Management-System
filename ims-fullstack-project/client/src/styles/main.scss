@@ -1,6 +1,6 @@
 // client/src/styles/main.scss
 
-// 1. Helpers & Variables (If you have them, otherwise optional for now)
+// 1. Helpers & Variables (Optional)
 // @import 'variables';
 // @import 'mixins';
 
@@ -12,6 +12,10 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+
+    // Firefox Scrollbar Support
+    scrollbar-color: var(--border-light-color) transparent;
+    scrollbar-width: thin;
 }
 
 body {
@@ -20,11 +24,53 @@ body {
     color: var(--font-color); // Uses theme variable
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 // Optional: Adjust default input styles to match theme
 input,
 select,
-button {
+button,
+textarea {
     font-family: inherit;
+}
+
+/* =========================================
+   4. CUSTOM SCROLLBAR (Webkit Browsers)
+   ========================================= */
+
+::-webkit-scrollbar {
+    width: 8px;
+    /* Vertical scrollbar width */
+    height: 8px;
+    /* Horizontal scrollbar height */
+}
+
+/* Track (Background) */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Handle (The moving part) */
+::-webkit-scrollbar-thumb {
+    background-color: var(--border-light-color); // Dynamic Theme Color
+    border-radius: 10px; // Rounded corners
+    border: 2px solid transparent; // Creates padding effect
+    background-clip: content-box;
+    transition: background-color 0.2s;
+}
+
+/* Handle on Hover */
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted-color); // Darker/Lighter on hover
+}
+
+/* Handle when Active (Clicking) */
+::-webkit-scrollbar-thumb:active {
+    background-color: var(--primary-color); // Brand color when dragging
+}
+
+/* Corner */
+::-webkit-scrollbar-corner {
+    background: transparent;
 }

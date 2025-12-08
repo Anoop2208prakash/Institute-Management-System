@@ -1,48 +1,36 @@
 // client/src/pages/teacher/AttendanceManager.tsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom'; 
-import { FaCheckSquare, FaSave, FaSearch } from 'react-icons/fa';
+import { FaCheckSquare, FaSave, FaSearch, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
-import LinearLoader from '../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './AttendanceManager.scss';
 
-// 1. Define Interfaces
-interface ClassOption {
-  id: string;
-  name: string;
-}
-
-interface SubjectOption {
-  id: string;
-  name: string;
-  classId: string;
-}
+// Define Interfaces
+interface ClassOption { id: string; name: string; }
+interface SubjectOption { id: string; name: string; classId: string; }
 
 interface StudentRecord {
   studentId: string;
   name: string;
   rollNo: string;
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
+  avatar?: string; // Avatar field
 }
 
 const AttendanceManager: React.FC = () => {
   const location = useLocation();
   const { prefillClassId, prefillSubjectId } = location.state || {};
 
-  // 2. Use Typed State (No more 'any[]')
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
-  
-  // Selection State
   const [selectedClass, setSelectedClass] = useState(prefillClassId || '');
   const [selectedSubject, setSelectedSubject] = useState(prefillSubjectId || '');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-  // Data State
   const [records, setRecords] = useState<StudentRecord[]>([]);
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PRESENT' | 'ABSENT'>('ALL');
+  const [searchStudent, setSearchStudent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
   });
@@ -52,7 +40,6 @@ const AttendanceManager: React.FC = () => {
       setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // Helper to fetch sheet
   const loadSheetData = async (classId: string, subjectId: string, date: string) => {
       if(!classId) return;
       setIsLoading(true);
@@ -76,44 +63,36 @@ const AttendanceManager: React.FC = () => {
       }
   };
 
-  // 1. Fetch Metadata & Auto-Load Sheet
   useEffect(() => {
     const init = async () => {
         const token = localStorage.getItem('token');
-        
-        // A. Fetch Classes & Subjects
         try {
             const res = await fetch('http://localhost:5000/api/attendance/meta', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if(res.ok) {
                 const data = await res.json();
-                // 3. Ensure data matches interface
                 if (data.classes && Array.isArray(data.classes)) setClasses(data.classes);
                 if (data.subjects && Array.isArray(data.subjects)) setSubjects(data.subjects);
             }
         } catch(e) { console.error("Meta fetch error", e); }
 
-        // B. Auto-Fetch Sheet if prefilled
         if (prefillClassId) {
-            loadSheetData(prefillClassId, prefillSubjectId, selectedDate);
+            loadSheetData(prefillClassId, prefillSubjectId, new Date().toISOString().split('T')[0]);
         }
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
-  // Wrapper for Button Click
   const handleFetchClick = () => {
       loadSheetData(selectedClass, selectedSubject, selectedDate);
   };
 
-  // 3. Mark Status Locally
   const mark = (studentId: string, status: StudentRecord['status']) => {
       setRecords(prev => prev.map(r => r.studentId === studentId ? { ...r, status } : r));
   };
 
-  // 4. Save to Database
   const handleSave = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -141,8 +120,12 @@ const AttendanceManager: React.FC = () => {
       }
   };
 
-  // Filter subjects based on selected class
   const filteredSubjects = subjects.filter(s => s.classId === selectedClass);
+  const displayedRecords = records.filter(r => {
+      const matchesSearch = r.name.toLowerCase().includes(searchStudent.toLowerCase());
+      const matchesFilter = filterStatus === 'ALL' || r.status === filterStatus;
+      return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="attendance-page">
@@ -152,8 +135,7 @@ const AttendanceManager: React.FC = () => {
         <h2><FaCheckSquare /> Attendance Manager</h2>
       </div>
 
-      {/* Filters */}
-      <div className="filters-card">
+      <div className="selection-card">
           <div className="form-group">
               <label>Select Class</label>
               <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }}>
@@ -162,9 +144,9 @@ const AttendanceManager: React.FC = () => {
               </select>
           </div>
           <div className="form-group">
-              <label>Select Subject (Optional)</label>
+              <label>Select Subject</label>
               <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)}>
-                  <option value="">-- Homeroom / General --</option>
+                  <option value="">-- General / Homeroom --</option>
                   {filteredSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
           </div>
@@ -173,45 +155,87 @@ const AttendanceManager: React.FC = () => {
               <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
           </div>
           <button className="btn-fetch" onClick={handleFetchClick} disabled={!selectedClass}>
-              <FaSearch /> Load Sheet
+              Load Sheet
           </button>
       </div>
 
-      {/* Sheet */}
       {records.length > 0 && (
-          <div className="sheet-container">
-              <div className="sheet-header">
-                  <h3>Student List ({records.length})</h3>
-                  <button className="btn-save" onClick={handleSave}><FaSave /> Save Attendance</button>
+          <div className="controls-bar">
+              <div className="filters">
+                  <span>Filter:</span>
+                  <button className={filterStatus === 'ALL' ? 'active' : ''} onClick={() => setFilterStatus('ALL')}>All</button>
+                  <button className={filterStatus === 'PRESENT' ? 'active' : ''} onClick={() => setFilterStatus('PRESENT')}>Present</button>
+                  <button className={filterStatus === 'ABSENT' ? 'active' : ''} onClick={() => setFilterStatus('ABSENT')}>Absent</button>
               </div>
-              
-              {isLoading ? <div style={{padding:'2rem'}}><LinearLoader /></div> : (
-                  <div className="sheet-body">
-                      {records.map(student => (
-                          <div key={student.studentId} className="student-row">
-                              <div className="info">
-                                  <span className="name">{student.name}</span>
-                                  <span className="roll">ID: {student.rollNo}</span>
-                              </div>
-                              <div className="actions">
-                                  <button 
-                                    className={`present ${student.status === 'PRESENT' ? 'active' : ''}`}
-                                    onClick={() => mark(student.studentId, 'PRESENT')}
-                                  >P</button>
-                                  <button 
-                                    className={`absent ${student.status === 'ABSENT' ? 'active' : ''}`}
-                                    onClick={() => mark(student.studentId, 'ABSENT')}
-                                  >A</button>
-                                  <button 
-                                    className={`late ${student.status === 'LATE' ? 'active' : ''}`}
-                                    onClick={() => mark(student.studentId, 'LATE')}
-                                  >L</button>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
-              )}
+              <div className="search-box">
+                  <FaSearch />
+                  <input 
+                    placeholder="Search student..." 
+                    value={searchStudent} 
+                    onChange={e => setSearchStudent(e.target.value)}
+                  />
+              </div>
           </div>
+      )}
+
+      {records.length > 0 ? (
+          <>
+            <div className="table-container">
+                <div className="table-header">
+                    <span>Student Details</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                </div>
+                
+                {isLoading ? <div style={{padding:'2rem', textAlign:'center'}}>Loading...</div> : (
+                    <div className="table-body">
+                        {displayedRecords.map(student => (
+                            <div key={student.studentId} className="student-row">
+                                <div className="student-info">
+                                    <img 
+                                        src={student.avatar ? `http://localhost:5000${student.avatar}` : `https://ui-avatars.com/api/?name=${student.name}&background=random`} 
+                                        alt={student.name} 
+                                        className="avatar"
+                                    />
+                                    <div className="details">
+                                        <span className="name">{student.name}</span>
+                                        <span className="sid">SID: {student.rollNo}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="status-cell">
+                                    {student.status === 'PRESENT' ? (
+                                        <span className="status-pill present"><FaCheckCircle /> Present</span>
+                                    ) : (
+                                        <span className="status-pill absent"><FaTimesCircle /> Absent</span>
+                                    )}
+                                </div>
+
+                                <div className="action-cell">
+                                    {student.status === 'PRESENT' ? (
+                                        <button className="btn-mark-absent" onClick={() => mark(student.studentId, 'ABSENT')}>
+                                            Mark Absent
+                                        </button>
+                                    ) : (
+                                        <button className="btn-mark-present" onClick={() => mark(student.studentId, 'PRESENT')}>
+                                            Mark Present
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            
+            <div className="save-bar">
+                <button className="btn-save" onClick={handleSave}>
+                    <FaSave /> Save Attendance
+                </button>
+            </div>
+          </>
+      ) : (
+          !isLoading && selectedClass && <div style={{textAlign:'center', padding:'3rem', color:'gray'}}>No students found.</div>
       )}
     </div>
   );

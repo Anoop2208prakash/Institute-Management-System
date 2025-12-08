@@ -1,158 +1,343 @@
+// client/src/pages/teacher/AttendanceManager.scss
+
 .attendance-page {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
 
-    .filters-card {
+    .page-header {
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.6rem;
+            color: var(--heading-color);
+            margin: 0;
+
+            svg {
+                color: var(--primary-color);
+            }
+        }
+    }
+
+    // --- 1. Selection Card ---
+    .selection-card {
         background: var(--card-bg-default);
-        border: 1px solid var(--card-border-color);
-        border-radius: 12px;
         padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--card-border-color);
         display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
+        gap: 1.5rem;
         align-items: flex-end;
+        flex-wrap: wrap;
 
         .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
             flex: 1;
             min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
 
             label {
                 font-size: 0.85rem;
                 font-weight: 600;
                 color: var(--text-muted-color);
+                text-transform: uppercase;
             }
 
             select,
             input {
-                padding: 0.7rem;
-                border: 1px solid var(--form-input-border-color);
-                border-radius: 6px;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid var(--border-light-color);
                 background: var(--bg-secondary-color);
                 color: var(--font-color);
+                outline: none;
+
+                &:focus {
+                    border-color: var(--primary-color);
+                }
             }
         }
 
         .btn-fetch {
-            background: var(--btn-primary-bg);
+            padding: 10px 24px;
+            background: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             height: 42px;
 
-            &:hover {
+            &:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            &:hover:not(:disabled) {
                 background: var(--btn-primary-hover-bg);
             }
         }
     }
 
-    .sheet-container {
+    // --- 2. Controls Bar ---
+    .controls-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--card-bg-default);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--card-border-color);
+        flex-wrap: wrap;
+        gap: 1rem;
+
+        .filters {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            span {
+                font-weight: 600;
+                color: var(--text-muted-color);
+                font-size: 0.9rem;
+                margin-right: 5px;
+            }
+
+            button {
+                padding: 6px 16px;
+                border-radius: 6px;
+                border: 1px solid transparent;
+                background: var(--bg-secondary-color);
+                color: var(--text-muted-color);
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-weight: 600;
+
+                &:hover {
+                    background: var(--border-light-color);
+                }
+
+                &.active {
+                    background: var(--heading-color);
+                    color: white;
+                }
+            }
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-secondary-color);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-light-color);
+            width: 300px;
+
+            input {
+                border: none;
+                background: transparent;
+                outline: none;
+                width: 100%;
+                font-size: 0.9rem;
+                color: var(--font-color);
+
+                &::placeholder {
+                    color: var(--text-muted-color);
+                }
+            }
+
+            svg {
+                color: var(--text-muted-color);
+            }
+        }
+    }
+
+    // --- 3. Table Container ---
+    .table-container {
         background: var(--card-bg-default);
         border: 1px solid var(--card-border-color);
         border-radius: 12px;
         overflow: hidden;
 
-        .sheet-header {
-            padding: 1rem 1.5rem;
+        // Grid Template: Info (Grow), Status (Fixed), Action (Fixed)
+        .table-header {
+            display: grid;
+            grid-template-columns: 1fr 150px 150px;
+            padding: 1rem 2rem;
+            background: var(--bg-secondary-color);
             border-bottom: 1px solid var(--border-light-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
 
-            h3 {
-                margin: 0;
-                color: var(--heading-color);
+            span {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--text-muted-color);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
             }
 
-            .btn-save {
-                background: #1a7f37;
-                color: white;
-                border: none;
-                padding: 0.6rem 1.5rem;
-                border-radius: 6px;
-                font-weight: 600;
-                cursor: pointer;
+            span:nth-child(2) {
+                text-align: center;
+            }
+
+            // STATUS
+            span:nth-child(3) {
+                text-align: right;
+            }
+
+            // ACTION
+        }
+
+        .table-body {
+            .student-row {
+                display: grid;
+                grid-template-columns: 1fr 150px 150px;
+                padding: 1rem 2rem;
+                border-bottom: 1px solid var(--border-light-color);
+                align-items: center;
+                transition: background 0.1s;
+
+                &:last-child {
+                    border-bottom: none;
+                }
 
                 &:hover {
-                    background: #136c2e;
+                    background: var(--bg-secondary-color);
+                }
+
+                // 1. Student Info
+                .student-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+
+                    .avatar {
+                        width: 45px;
+                        height: 45px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 2px solid var(--border-light-color);
+                    }
+
+                    .details {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2px;
+
+                        .name {
+                            font-weight: 600;
+                            color: var(--heading-color);
+                            font-size: 1rem;
+                        }
+
+                        .sid {
+                            font-family: monospace;
+                            color: var(--text-muted-color);
+                            font-size: 0.8rem;
+                        }
+                    }
+                }
+
+                // 2. Status Pill
+                .status-cell {
+                    text-align: center;
+
+                    .status-pill {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        padding: 6px 14px;
+                        border-radius: 20px;
+                        font-size: 0.85rem;
+                        font-weight: 700;
+
+                        &.present {
+                            background: rgba(22, 163, 74, 0.1);
+                            color: #16a34a;
+                        }
+
+                        &.absent {
+                            background: rgba(220, 38, 38, 0.1);
+                            color: #dc2626;
+                        }
+
+                        &.late {
+                            background: rgba(202, 138, 4, 0.1);
+                            color: #ca8a04;
+                        }
+                    }
+                }
+
+                // 3. Action Button
+                .action-cell {
+                    text-align: right;
+
+                    button {
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        border: 1px solid transparent;
+                        transition: all 0.2s;
+                        min-width: 100px;
+
+                        // Toggle Button Styles
+                        &.btn-mark-absent {
+                            background: white;
+                            color: #dc2626;
+                            border-color: #fca5a5;
+
+                            &:hover {
+                                background: #fef2f2;
+                            }
+                        }
+
+                        &.btn-mark-present {
+                            background: #2563eb;
+                            color: white;
+
+                            &:hover {
+                                background: #1d4ed8;
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
 
-        .student-row {
+    .save-bar {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 1rem;
+
+        .btn-save {
+            background: #0969da;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-light-color);
-
-            &:last-child {
-                border-bottom: none;
-            }
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(9, 105, 218, 0.2);
 
             &:hover {
-                background: var(--bg-secondary-color);
-            }
-
-            .info {
-                flex: 1;
-
-                .name {
-                    font-weight: 600;
-                    color: var(--heading-color);
-                    display: block;
-                }
-
-                .roll {
-                    font-size: 0.85rem;
-                    color: var(--text-muted-color);
-                }
-            }
-
-            .actions {
-                display: flex;
-                gap: 0.5rem;
-
-                button {
-                    padding: 0.4rem 1rem;
-                    border: 1px solid var(--border-light-color);
-                    background: transparent;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 0.85rem;
-                    font-weight: 600;
-                    transition: all 0.2s;
-                    color: var(--text-muted-color);
-
-                    &.present.active {
-                        background: #1a7f37;
-                        color: white;
-                        border-color: #1a7f37;
-                    }
-
-                    &.absent.active {
-                        background: #cf222e;
-                        color: white;
-                        border-color: #cf222e;
-                    }
-
-                    &.late.active {
-                        background: #9a6700;
-                        color: white;
-                        border-color: #9a6700;
-                    }
-
-                    &:hover:not(.active) {
-                        background: var(--border-light-color);
-                    }
-                }
+                background: #0756b3;
+                transform: translateY(-2px);
             }
         }
     }
