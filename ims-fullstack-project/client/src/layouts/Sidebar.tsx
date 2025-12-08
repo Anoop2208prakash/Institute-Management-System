@@ -2,12 +2,26 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  FaHome, FaUserCircle, FaIdCard, FaUsers, FaUserPlus, 
+  FaHome, FaUserCircle, FaIdCard, FaUserPlus, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
-  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList,
-  FaChevronLeft, FaChevronRight, FaIdBadge, FaCheckSquare, FaPenNib, 
-  FaLaptopCode
+  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib, FaSignOutAlt 
 } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import './Sidebar.scss';
+import logo from '../assets/image/banner-logo.png'; // <--- Import Logo
+
+// 1. Define Interfaces for Menu Structure
+interface MenuItem {
+  path: string;
+  label: string;
+  icon: React.ReactNode;
+  roles: string[];
+}
+
+interface MenuGroup {
+  title: string;
+  items: MenuItem[];
+}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,79 +29,132 @@ interface SidebarProps {
   role: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle, role }) => {
-  
-  const menuItems = [
-    // --- COMMON ---
-    { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
-    { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
-    { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
-    { path: '/announcements', label: 'Announcements', icon: <FaBullhorn />, roles: ['all'] },
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
+  const { user, logout } = useAuth();
 
-    // --- TEACHER MODULES ---
-    { path: '/teacher-subjects', label: 'My Subjects', icon: <FaChalkboardTeacher />, roles: ['teacher', 'super_admin'] },
-    { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
-    { path: '/online-tests', label: 'Online Tests', icon: <FaLaptopCode />, roles: ['teacher', 'super_admin'] },
-    { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
-    { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['teacher', 'student'] },
-
-    // --- ADMISSION MODULES (Updated) ---
-    // Only 'admission' and 'super_admin' can see these
-    { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin'] },
-    { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin'] },
-    
-    // --- ADMIN MODULES (General Management) ---
-    { path: '/staff', label: 'Manage Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
-    { path: '/programs', label: 'Manage Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
-    { path: '/semesters', label: 'Manage Semester', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
-    { path: '/subjects', label: 'Manage Subject', icon: <FaBook />, roles: ['admin', 'super_admin'] },
-    { path: '/exams', label: 'Manage Exam', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
-    { path: '/inventory', label: 'Manage Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
-    { path: '/orders', label: 'View Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
-
-    // --- LIBRARIAN ---
-    { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
-    { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
-    
-    // --- SUPER ADMIN ---
-    { path: '/roles', label: 'Manage Roles', icon: <FaIdBadge />, roles: ['super_admin'] },
-
-    // --- STUDENT MODULES ---
-    { path: '/my-subjects', label: 'My Subjects', icon: <FaBook />, roles: ['student'] },
-    { path: '/my-attendance', label: 'My Attendance', icon: <FaCheckSquare />, roles: ['student'] },
-    { path: '/my-results', label: 'My Results', icon: <FaPenNib />, roles: ['student'] },
-    { path: '/my-invoices', label: 'My Invoices', icon: <FaClipboardList />, roles: ['student'] },
-    { path: '/admit-card', label: 'Admit Card', icon: <FaIdCard />, roles: ['student'] },
-    { path: '/stationery', label: 'Stationery Store', icon: <FaBoxOpen />, roles: ['student', 'teacher'] },
-    { path: '/my-orders', label: 'My Orders', icon: <FaShoppingCart />, roles: ['student', 'teacher'] },
-    // { path: '/library-catalog', label: 'Library', icon: <FaBook />, roles: ['student', 'teacher'] },
+  // 2. Menu Groups
+  const menuGroups: MenuGroup[] = [
+    {
+      title: "General",
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
+        { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
+        { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
+        { path: '/announcements', label: 'Announcements', icon: <FaBullhorn />, roles: ['all'] },
+      ]
+    },
+    {
+        title: "Admission",
+        items: [
+            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['admission', 'super_admin'] },
+            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admission', 'super_admin'] },
+        ]
+    },
+    {
+      title: "Academic Management",
+      items: [
+        { path: '/programs', label: 'Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
+        { path: '/semesters', label: 'Semesters', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
+        { path: '/subjects', label: 'Subjects', icon: <FaBook />, roles: ['admin', 'super_admin'] },
+        { path: '/exams', label: 'Exams', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
+        { path: '/staff', label: 'Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
+      ]
+    },
+    {
+      title: "Inventory & Store",
+      items: [
+        { path: '/inventory', label: 'Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
+        { path: '/orders', label: 'Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
+        { path: '/stationery', label: 'Stationery Store', icon: <FaBoxOpen />, roles: ['student', 'teacher'] },
+        { path: '/my-orders', label: 'My Orders', icon: <FaShoppingCart />, roles: ['student', 'teacher'] },
+      ]
+    },
+    {
+      title: "Teacher Zone",
+      items: [
+        { path: '/teacher-subjects', label: 'My Subjects', icon: <FaChalkboardTeacher />, roles: ['teacher', 'super_admin'] },
+        { path: '/attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['teacher', 'super_admin'] },
+        { path: '/online-tests', label: 'Online Tests', icon: <FaClipboardList />, roles: ['teacher', 'super_admin'] },
+        { path: '/enter-marks', label: 'Enter Marks', icon: <FaPenNib />, roles: ['teacher', 'super_admin'] },
+      ]
+    },
+    {
+      title: "Student Zone",
+      items: [
+        { path: '/my-subjects', label: 'My Subjects', icon: <FaBook />, roles: ['student'] },
+        { path: '/my-attendance', label: 'Attendance', icon: <FaCheckSquare />, roles: ['student'] },
+        { path: '/my-results', label: 'Results', icon: <FaPenNib />, roles: ['student'] },
+        { path: '/my-invoices', label: 'Invoices', icon: <FaClipboardList />, roles: ['student'] },
+        { path: '/admit-card', label: 'Admit Card', icon: <FaIdCard />, roles: ['student'] },
+      ]
+    },
+    {
+        title: "Library",
+        items: [
+            { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
+            { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
+            { path: '/library-catalog', label: 'Catalog', icon: <FaBook />, roles: ['teacher', 'student'] },
+        ]
+    },
+    {
+        title: "System",
+        items: [
+            { path: '/roles', label: 'Roles & Permissions', icon: <FaIdBadge />, roles: ['super_admin'] },
+        ]
+    }
   ];
 
-  const filteredMenu = menuItems.filter(item => 
-    item.roles.includes('all') || item.roles.includes(role)
-  );
+  const hasVisibleItems = (groupItems: MenuItem[]) => {
+      return groupItems.some(item => item.roles.includes('all') || item.roles.includes(role));
+  };
 
   return (
     <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-      <div className="sidebar-toggle" onClick={toggle}>
-        {isOpen ? <FaChevronLeft /> : <FaChevronRight />}
+      {/* Header */}
+      <div className="sidebar-header">
+        <div className="logo-area">
+             {/* UPDATED: Uses Image Logo */}
+             <img className='image' src={logo} alt="IMS"/>
+        </div>
       </div>
-      <div className="sidebar-logo">
-         {isOpen ? <h2>IMS Pro</h2> : <h2>IP</h2>}
-      </div>
-      <nav>
-          {filteredMenu.map((item) => (
-              <NavLink 
-                  key={item.path} 
-                  to={item.path} 
-                  className="nav-item" 
-                  title={!isOpen ? item.label : ''}
-              >
-                  {item.icon}
-                  <span>{item.label}</span>
-              </NavLink>
+
+      {/* Menu List */}
+      <nav className="sidebar-nav">
+          {menuGroups.map((group, idx) => (
+              hasVisibleItems(group.items) && (
+                  <div key={idx} className="menu-group">
+                      <div className="menu-group-title">{group.title}</div>
+                      {group.items.filter(item => item.roles.includes('all') || item.roles.includes(role)).map(item => (
+                          <NavLink 
+                              key={item.path} 
+                              to={item.path} 
+                              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                              title={!isOpen ? item.label : ''}
+                          >
+                              {item.icon}
+                              <span>{item.label}</span>
+                          </NavLink>
+                      ))}
+                  </div>
+              )
           ))}
       </nav>
+
+      {/* Footer */}
+      <div className="sidebar-footer">
+          <div className="user-info">
+             {user && (
+                 <>
+                    <span className="name">{user.email.split('@')[0]}</span>
+                    <span className="role">{role.replace('_', ' ')}</span>
+                 </>
+             )}
+          </div>
+          <button className="logout-btn" onClick={logout} title="Sign Out">
+              <FaSignOutAlt />
+              <span>Log Out</span>
+          </button>
+      </div>
     </aside>
   );
 };

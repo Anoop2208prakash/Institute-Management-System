@@ -3,13 +3,13 @@ import { Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 
-// Define Interface
+// Define Interface for Attendance Record
 interface AttendanceRecord {
     studentId: string;
     status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
 }
 
-// 1. Get Metadata
+// 1. Get Teacher's Classes & Subjects (Unchanged)
 export const getTeacherClasses = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -33,15 +33,17 @@ export const getTeacherClasses = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 2. Get Sheet
+// 2. Get Students & Existing Attendance (UPDATED)
 export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
     try {
         const { classId, subjectId, date } = req.query;
         
         if(!classId || !date) return res.status(400).json({message: "Class and Date required"});
 
+        // FIX: Include 'user' to get the avatar
         const students = await prisma.student.findMany({
             where: { classId: String(classId) },
+            include: { user: true }, 
             orderBy: { admissionNo: 'asc' }
         });
 
@@ -50,12 +52,10 @@ export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
         const endOfDay = new Date(String(date));
         endOfDay.setHours(23,59,59,999);
 
-        // Fetch based on Subject (if provided) or General (if null)
-        // Prisma handles "subjectId: null" correctly in findMany
         const existingRecords = await prisma.attendance.findMany({
             where: {
                 classId: String(classId),
-                subjectId: subjectId ? String(subjectId) : null, 
+                subjectId: subjectId ? String(subjectId) : null,
                 date: { gte: startOfDay, lte: endOfDay }
             }
         });
@@ -66,6 +66,7 @@ export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
                 studentId: s.id,
                 name: s.fullName,
                 rollNo: s.admissionNo,
+                avatar: s.user.avatar, // <--- Sending Avatar now
                 status: record ? record.status : 'PRESENT' 
             };
         });
@@ -77,7 +78,7 @@ export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// 3. Save Attendance (FIXED for Subject-Wise)
+// 3. Save Attendance (Unchanged)
 export const saveAttendance = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -89,19 +90,16 @@ export const saveAttendance = async (req: AuthRequest, res: Response) => {
         const attendanceDate = new Date(date);
         attendanceDate.setHours(0,0,0,0); 
 
-        // Prepare Subject ID (Empty string handling for frontend compatibility)
-        // If subjectId is "", send null to DB
         const dbSubjectId = subjectId && subjectId !== "" ? subjectId : null;
 
         await prisma.$transaction(
             (records as AttendanceRecord[]).map((rec) => {
                 return prisma.attendance.upsert({
                     where: {
-                        // FIX: Use the new composite key from schema
                         date_studentId_subjectId: {
                             date: attendanceDate,
                             studentId: rec.studentId,
-                            subjectId: dbSubjectId // Must match exactly (string or null)
+                            subjectId: dbSubjectId
                         }
                     },
                     update: { 
