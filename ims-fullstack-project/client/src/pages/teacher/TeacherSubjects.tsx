@@ -1,9 +1,9 @@
 // client/src/pages/teacher/TeacherSubjects.tsx
 import React, { useState, useEffect } from 'react';
 import { FaChalkboardTeacher, FaUsers, FaBook, FaSearch } from 'react-icons/fa';
-import LinearLoader from '../../components/common/LinearLoader';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import './TeacherSubjects.scss';
-import { TeacherSubjectActionModal } from './TeacherSubjectActionModal';
+import { TeacherSubjectActionModal } from './TeacherSubjectActionModal'; 
 
 interface Student {
   id: string;
@@ -73,9 +73,29 @@ const TeacherSubjects: React.FC = () => {
             </div>
         </div>
 
-        {loading ? <div style={{padding:'2rem'}}><LinearLoader /></div> : (
-            <div className="subjects-grid">
-                {filteredSubjects.length > 0 ? filteredSubjects.map(sub => (
+        <div className="subjects-grid">
+            {/* --- SKELETON LOADER --- */}
+            {loading ? (
+                Array.from(new Array(6)).map((_, index) => (
+                    <div key={index} className="subject-card" style={{pointerEvents: 'none'}}>
+                        <div className="card-header">
+                            {/* Icon Skeleton */}
+                            <Skeleton variant="circular" width={48} height={48} style={{borderRadius: 10}} />
+                            {/* Count Skeleton */}
+                            <Skeleton variant="rectangular" width={60} height={24} style={{borderRadius: 6}} />
+                        </div>
+                        <div className="card-body">
+                            {/* Title Skeleton */}
+                            <Skeleton variant="text" width="70%" height={32} style={{marginBottom: 8}} />
+                            {/* Class Name Skeleton */}
+                            <Skeleton variant="text" width="50%" height={20} style={{marginBottom: 4}} />
+                            {/* Code Skeleton */}
+                            <Skeleton variant="text" width="30%" height={16} />
+                        </div>
+                    </div>
+                ))
+            ) : (
+                filteredSubjects.length > 0 ? filteredSubjects.map(sub => (
                     <div 
                         key={sub.subjectId} 
                         className="subject-card" 
@@ -95,9 +115,9 @@ const TeacherSubjects: React.FC = () => {
                     </div>
                 )) : (
                     <div className="empty-state">No subjects found.</div>
-                )}
-            </div>
-        )}
+                )
+            )}
+        </div>
 
         {/* New Action Modal */}
         <TeacherSubjectActionModal

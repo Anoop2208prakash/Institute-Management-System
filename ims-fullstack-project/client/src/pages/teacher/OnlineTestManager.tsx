@@ -2,10 +2,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom'; 
 import { FaLaptopCode, FaPlus, FaTrash, FaQuestionCircle, FaClock, FaListOl, FaFilter } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
-import './OnlineTestManager.scss'; 
+import './OnlineTestManager.scss';
 import { AddQuestionsStepper, type QuestionPayload } from './AddQuestionsStepper';
 import { CreateTestModal } from './CreateTestModal';
 
@@ -50,6 +51,7 @@ const OnlineTestManager: React.FC = () => {
   const [tests, setTests] = useState<OnlineTest[]>([]);
   const [classes, setClasses] = useState<ClassOption[]>([]);
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -73,13 +75,19 @@ const OnlineTestManager: React.FC = () => {
   };
 
   const fetchTests = useCallback(async () => {
-    const token = localStorage.getItem('token');
+    setLoading(true);
     try {
+        const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:5000/api/online-exams', { 
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         if(res.ok) setTests(await res.json());
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error(e); 
+        showAlert('error', 'Failed to load tests');
+    } finally {
+        setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -137,12 +145,6 @@ const OnlineTestManager: React.FC = () => {
       }
   };
 
-  // Triggered by Delete Button
-  const openDeleteModal = (id: string, title: string) => {
-      setDeleteModal({ show: true, id, title });
-  };
-
-  // Triggered by Modal Confirm
   const confirmDelete = async () => {
       setIsDeleting(true);
       const token = localStorage.getItem('token');
@@ -154,7 +156,7 @@ const OnlineTestManager: React.FC = () => {
           
           if (res.ok) {
             fetchTests();
-            setDeleteModal({ show: false, id: '', title: '' }); // Close Modal
+            setDeleteModal({ show: false, id: '', title: '' }); 
             showAlert('success', 'Test Deleted Successfully');
           } else {
             showAlert('error', 'Failed to delete test');
@@ -172,6 +174,10 @@ const OnlineTestManager: React.FC = () => {
       setIsQuestionModalOpen(true);
   };
 
+  const openDeleteModal = (id: string, title: string) => {
+      setDeleteModal({ show: true, id, title });
+  };
+
   const filteredTests = tests.filter(t => {
       if (prefillClassId && t.classId !== prefillClassId) return false;
       if (prefillSubjectId && t.subjectId !== prefillSubjectId) return false;
@@ -179,7 +185,7 @@ const OnlineTestManager: React.FC = () => {
   });
 
   return (
-    <div className="online-test-page"> {/* Updated Wrapper Class */}
+    <div className="online-test-page">
         <FeedbackAlert 
             isOpen={alertInfo.show} 
             type={alertInfo.type} 
@@ -202,32 +208,56 @@ const OnlineTestManager: React.FC = () => {
             </div>
         </div>
 
-        <div className="tests-grid"> {/* Updated Grid Class */}
-            {filteredTests.length > 0 ? filteredTests.map(test => (
-                <div key={test.id} className="test-card"> {/* Updated Card Class */}
-                    <div className="card-header">
-                        <div className="icon-box"><FaQuestionCircle /></div>
-                        <span className="question-badge">{test.questionCount} Qs</span> {/* Updated Badge Class */}
-                    </div>
-                    <div className="card-body">
-                        <h3>{test.title}</h3>
-                        <span className="class-info">{test.className} - {test.subjectName}</span> {/* Updated Info Class */}
-                        <div className="meta-row"> {/* Updated Meta Class */}
-                            <span><FaClock /> {test.duration} mins</span>
-                            <span style={{marginLeft:'auto'}}>{new Date(test.date).toLocaleDateString()}</span>
+        <div className="tests-grid">
+            
+            {/* --- SKELETON LOADER --- */}
+            {loading ? (
+                Array.from(new Array(6)).map((_, index) => (
+                    <div key={index} className="test-card">
+                        <div className="card-header">
+                            <Skeleton variant="circular" width={48} height={48} style={{borderRadius: 10}} />
+                            <Skeleton variant="rectangular" width={70} height={26} style={{borderRadius: 20}} />
+                        </div>
+                        <div className="card-body">
+                            <Skeleton variant="text" width="80%" height={32} style={{marginBottom: 8}} />
+                            <Skeleton variant="text" width="60%" height={20} style={{marginBottom: 12}} />
+                            <div className="meta-row" style={{borderTop: '1px dashed var(--border-light-color)', paddingTop: 12}}>
+                                <Skeleton variant="text" width="100%" height={20} />
+                            </div>
+                        </div>
+                        <div className="card-footer">
+                             <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
+                             <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
                         </div>
                     </div>
-                    <div className="card-footer"> {/* Updated Footer Class */}
-                         <button className="btn-add-qs" onClick={() => openAddQuestions(test.id)}>
-                            <FaListOl /> Add Qs
-                         </button>
-                         <button className="btn-delete" onClick={() => openDeleteModal(test.id, test.title)}>
-                            <FaTrash /> Delete
-                         </button>
+                ))
+            ) : (
+                filteredTests.length > 0 ? filteredTests.map(test => (
+                    <div key={test.id} className="test-card">
+                        <div className="card-header">
+                            <div className="icon-box"><FaQuestionCircle /></div>
+                            <span className="question-badge">{test.questionCount} Qs</span>
+                        </div>
+                        <div className="card-body">
+                            <h3>{test.title}</h3>
+                            <span className="class-info">{test.className} - {test.subjectName}</span>
+                            <div className="meta-row">
+                                <span><FaClock /> {test.duration} mins</span>
+                                <span style={{marginLeft:'auto'}}>{new Date(test.date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div className="card-footer">
+                             <button className="btn-add-qs" onClick={() => openAddQuestions(test.id)}>
+                                <FaListOl /> Add Qs
+                             </button>
+                             <button className="btn-delete" onClick={() => openDeleteModal(test.id, test.title)}>
+                                <FaTrash /> Delete
+                             </button>
+                        </div>
                     </div>
-                </div>
-            )) : (
-                <div className="empty-state">No tests found for this context.</div>
+                )) : (
+                    <div className="empty-state">No tests found for this context.</div>
+                )
             )}
         </div>
 
@@ -243,7 +273,6 @@ const OnlineTestManager: React.FC = () => {
             onSave={handleAddBulkQuestions}
         />
 
-        {/* --- DELETE MODAL --- */}
         <DeleteModal 
             isOpen={deleteModal.show}
             onClose={() => setDeleteModal({ ...deleteModal, show: false })}

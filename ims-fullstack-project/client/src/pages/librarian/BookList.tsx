@@ -1,10 +1,11 @@
 // client/src/pages/librarian/BookList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
-import { useAuth } from '../../context/AuthContext'; // <--- Import Auth Context
+import { useAuth } from '../../context/AuthContext'; 
 import './BookList.scss';
 import { CreateBookModal } from './CreateBookModal';
 
@@ -29,9 +30,9 @@ interface NewBookData {
 }
 
 const BookList: React.FC = () => {
-  const { user } = useAuth(); // <--- Get Current User
+  const { user } = useAuth(); 
   const [books, setBooks] = useState<Book[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Default to true for initial load
   const [searchTerm, setSearchTerm] = useState('');
   
   // Alert State
@@ -160,37 +161,64 @@ const BookList: React.FC = () => {
 
       {/* Grid */}
       <div className="roles-grid">
-        {/* Loader Removed */}
         
-        {!isLoading && filteredBooks.map(book => (
-            <div key={book.id} className="role-card">
-                <div className="card-content">
-                    <h3>{book.title}</h3>
-                    <p style={{color:'var(--primary-color)', fontWeight:'bold', marginBottom:'0.5rem'}}>{book.author}</p>
-                    <span className="role-id">ISBN: {book.isbn}</span>
-                    <div style={{marginTop:'15px', display:'flex', gap:'15px', fontSize:'0.9rem', fontWeight:'500'}}>
-                        <span style={{color:'var(--text-muted-color)'}}>Total: {book.quantity}</span>
-                        <span style={{color: book.available > 0 ? '#1a7f37' : '#cf222e'}}>
-                            Available: {book.available}
-                        </span>
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(6)).map((_, index) => (
+                <div key={index} className="role-card">
+                    <div className="card-content">
+                        {/* Title Skeleton */}
+                        <Skeleton variant="text" width="80%" height={32} style={{marginBottom: 8}} />
+                        {/* Author Skeleton */}
+                        <Skeleton variant="text" width="50%" height={24} style={{marginBottom: 8}} />
+                        {/* ISBN Skeleton */}
+                        <Skeleton variant="text" width="40%" height={20} />
+                        
+                        {/* Stats Skeleton */}
+                        <div style={{marginTop:'15px', display:'flex', gap:'15px'}}>
+                            <Skeleton variant="text" width={60} height={20} />
+                            <Skeleton variant="text" width={80} height={20} />
+                        </div>
                     </div>
+                    
+                    {canManage && (
+                        <div className="card-actions">
+                            <Skeleton variant="rectangular" width="100%" height={36} style={{borderRadius: 6}} />
+                        </div>
+                    )}
                 </div>
-                
-                {/* ONLY SHOW DELETE IF PERMISSION EXISTS */}
-                {canManage && (
-                    <div className="card-actions">
-                        <button className="delete-btn" onClick={() => openDeleteModal(book.id, book.title)}>
-                            <FaTrash /> Delete Book
-                        </button>
+            ))
+        ) : (
+            filteredBooks.map(book => (
+                <div key={book.id} className="role-card">
+                    <div className="card-content">
+                        <h3>{book.title}</h3>
+                        <p style={{color:'var(--primary-color)', fontWeight:'bold', marginBottom:'0.5rem'}}>{book.author}</p>
+                        <span className="role-id">ISBN: {book.isbn}</span>
+                        <div style={{marginTop:'15px', display:'flex', gap:'15px', fontSize:'0.9rem', fontWeight:'500'}}>
+                            <span style={{color:'var(--text-muted-color)'}}>Total: {book.quantity}</span>
+                            <span style={{color: book.available > 0 ? '#1a7f37' : '#cf222e'}}>
+                                Available: {book.available}
+                            </span>
+                        </div>
                     </div>
-                )}
-            </div>
-        ))}
+                    
+                    {/* ONLY SHOW DELETE IF PERMISSION EXISTS */}
+                    {canManage && (
+                        <div className="card-actions">
+                            <button className="delete-btn" onClick={() => openDeleteModal(book.id, book.title)}>
+                                <FaTrash /> Delete Book
+                            </button>
+                        </div>
+                    )}
+                </div>
+            ))
+        )}
 
         {!isLoading && filteredBooks.length === 0 && <div className="empty-state"><p>No books found.</p></div>}
       </div>
 
-      {/* Modals (Only render if permission exists to save resources, though isCreateModalOpen controls visibility too) */}
+      {/* Modals */}
       {canManage && (
         <>
             <CreateBookModal

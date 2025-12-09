@@ -1,9 +1,9 @@
 // client/src/pages/admin/admission/InquiryList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaEnvelopeOpenText, FaSearch, FaPhone, FaTrash, FaCheckDouble, FaEnvelope } from 'react-icons/fa';
+import { FaEnvelopeOpenText, FaSearch, FaPhone, FaTrash, FaCheckDouble, FaEnvelope, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
-import LinearLoader from '../../../components/common/LinearLoader';
 import { type AlertColor } from '@mui/material/Alert';
 import './InquiryList.scss';
 
@@ -25,7 +25,6 @@ const InquiryList: React.FC = () => {
   
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isDeleting, setIsDeleting] = useState(false);
-  
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
   });
@@ -58,13 +57,9 @@ const InquiryList: React.FC = () => {
           const token = localStorage.getItem('token');
           const res = await fetch(`http://localhost:5000/api/inquiries/${id}/status`, {
               method: 'PUT',
-              headers: { 
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}` 
-              },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
               body: JSON.stringify({ status: 'CONTACTED' })
           });
-          
           if(res.ok) {
               setInquiries(prev => prev.map(i => i.id === id ? { ...i, status: 'CONTACTED' } : i));
               showAlert('success', 'Marked as Contacted');
@@ -96,88 +91,92 @@ const InquiryList: React.FC = () => {
 
   return (
     <div className="inquiry-page">
-      
       <div className="page-header">
         <div className="header-content">
             <h2><FaEnvelopeOpenText /> Admission Inquiries</h2>
-            <p>Track and manage new student leads.</p>
+            <p>Manage new student leads and questions.</p>
+        </div>
+        <div className="header-actions">
+            <div className="search-box">
+                <FaSearch />
+                <input 
+                    placeholder="Search inquiries..." 
+                    value={searchTerm} 
+                    onChange={e => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <div className="count-badge">Total: {filteredList.length}</div>
         </div>
       </div>
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* Controls Bar */}
-      <div className="controls-bar">
-          <div className="count-badge">Total Inquiries: {filteredList.length}</div>
-          <div className="search-box">
-              <FaSearch />
-              <input 
-                  placeholder="Search name or email..." 
-                  value={searchTerm} 
-                  onChange={e => setSearchTerm(e.target.value)}
-              />
-          </div>
-      </div>
-
-      {/* Data Table */}
-      <div className="table-container">
-        <div className="table-header">
-            <span>Details</span>
-            <span>Contact Info</span>
-            <span>Message</span>
-            <span>Status</span>
-            <span>Action</span>
-        </div>
-        
-        {loading && <div style={{padding:'2rem'}}><LinearLoader /></div>}
-
-        {!loading && (
-            <div className="table-body">
-                {filteredList.length > 0 ? filteredList.map(item => (
-                    <div key={item.id} className="inquiry-row">
-                        
-                        {/* 1. Info */}
+      <div className="inquiry-grid">
+        {loading ? (
+             Array.from(new Array(6)).map((_, i) => (
+                 <div key={i} className="inquiry-card">
+                     <div className="card-top">
+                         <div>
+                             <Skeleton variant="text" width={150} height={24} />
+                             <Skeleton variant="text" width={80} height={20} />
+                         </div>
+                         <Skeleton variant="rectangular" width={90} height={24} style={{borderRadius: 6}} />
+                     </div>
+                     <div className="card-body">
+                         <Skeleton variant="rectangular" height={60} style={{borderRadius: 8, marginBottom: 10}} />
+                         <Skeleton variant="text" width="60%" />
+                         <Skeleton variant="text" width="50%" />
+                     </div>
+                 </div>
+             ))
+        ) : (
+            filteredList.length > 0 ? filteredList.map(item => (
+                <div key={item.id} className={`inquiry-card ${item.status.toLowerCase()}`}>
+                    
+                    {/* Header */}
+                    <div className="card-top">
                         <div className="info">
-                            <span className="name">{item.fullName}</span>
-                            <span className="course">{item.course || 'General'}</span>
-                            <span className="date">{new Date(item.date).toLocaleDateString()}</span>
+                            <h3>{item.fullName}</h3>
+                            <span className="course-tag">{item.course || 'General'}</span>
                         </div>
+                        <span className="date">
+                            <FaCalendarAlt /> {new Date(item.date).toLocaleDateString()}
+                        </span>
+                    </div>
 
-                        {/* 2. Contact */}
-                        <div className="contact">
+                    {/* Body */}
+                    <div className="card-body">
+                        <div className="message-box">
+                            "{item.message}"
+                        </div>
+                        <div className="contact-info">
                             <div><FaEnvelope /> {item.email}</div>
                             <div><FaPhone /> {item.phone}</div>
                         </div>
+                    </div>
 
-                        {/* 3. Message */}
-                        <div className="message">
-                            "{item.message}"
-                        </div>
+                    {/* Footer */}
+                    <div className="card-footer">
+                        <span className={`status-badge ${item.status.toLowerCase()}`}>
+                            {item.status === 'CONTACTED' ? <FaCheckDouble /> : <FaClock />} 
+                            {item.status}
+                        </span>
 
-                        {/* 4. Status */}
-                        <div className="status-cell">
-                            <span className={`status-pill ${item.status.toLowerCase()}`}>
-                                {item.status}
-                            </span>
-                        </div>
-
-                        {/* 5. Actions */}
-                        <div className="action-cell">
+                        <div className="actions">
                             {item.status === 'PENDING' && (
                                 <button className="btn-contact" onClick={() => handleMarkContacted(item.id)}>
-                                    <FaCheckDouble /> Mark Done
+                                    Mark Done
                                 </button>
                             )}
                             <button className="btn-delete" onClick={() => setDeleteModal({show:true, id:item.id, name:item.fullName})}>
-                                <FaTrash /> Delete
+                                <FaTrash />
                             </button>
                         </div>
-
                     </div>
-                )) : (
-                    <div className="empty-state">No inquiries found.</div>
-                )}
-            </div>
+                </div>
+            )) : (
+                <div className="empty-state">No inquiries found.</div>
+            )
         )}
       </div>
 
@@ -186,7 +185,7 @@ const InquiryList: React.FC = () => {
         onClose={() => setDeleteModal({...deleteModal, show: false})}
         onConfirm={handleDelete}
         title="Delete Inquiry"
-        message="Are you sure you want to delete the inquiry from"
+        message="Are you sure you want to delete this inquiry?"
         itemName={deleteModal.name}
         isLoading={isDeleting}
       />

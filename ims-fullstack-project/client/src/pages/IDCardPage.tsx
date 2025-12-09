@@ -1,14 +1,15 @@
 // client/src/pages/IDCardPage.tsx
 import React, { useState, useEffect } from 'react';
 import { BsPersonSquare, BsPrinter } from 'react-icons/bs';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import styles from './IDCardPage.module.scss';
+import logo from '../assets/image/logo.png'; 
 
-// 1. Interface matching Backend Response
 interface ProfileData {
   id: string;
   name: string;
   email: string;
-  sID: string; // Staff ID or Student Admission No
+  sID: string; 
   role: string;
   roleDisplay: string;
   avatar?: string;
@@ -25,15 +26,13 @@ const IDCardPage: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // 2. Fetch Profile Data
+  // Fetch Profile Data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token'); // Assuming you store token here on login
+        const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:5000/api/profile/me', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
@@ -51,23 +50,60 @@ const IDCardPage: React.FC = () => {
     fetchProfile();
   }, []);
 
-  if (loading) return <div style={{padding: '2rem', textAlign: 'center'}}>Loading ID Card...</div>;
-  if (!profile) return <div style={{padding: '2rem', textAlign: 'center'}}>Profile not found. Please log in.</div>;
-
-  // 3. Helper to format dates
+  // Format Helpers
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-GB');
   };
 
-  // 4. Calculate Expiry (Example: 1 year from join for Staff, 4 for Students)
   const getExpiry = () => {
-    if (!profile.details.joinDate) return 'N/A';
+    if (!profile?.details.joinDate) return 'N/A';
     const date = new Date(profile.details.joinDate);
     const years = profile.role === 'student' ? 4 : 5; 
     date.setFullYear(date.getFullYear() + years);
     return date.toLocaleDateString('en-GB');
   }
+
+  // --- SKELETON LOADER COMPONENT ---
+  const renderSkeleton = () => (
+      <div className={styles.pageContainer}>
+        <div className={styles.idCard}>
+            <div className={styles.topClip}></div>
+            <div className={styles.cardBody}>
+                {/* Photo Skeleton */}
+                <div className={styles.photo} style={{border: 'none', boxShadow:'none'}}>
+                    <Skeleton variant="circular" width={120} height={120} />
+                </div>
+
+                <div className={styles.details} style={{width: '100%', display:'flex', flexDirection:'column', alignItems:'center'}}>
+                    {/* Name & Title */}
+                    <Skeleton variant="text" width="70%" height={40} style={{marginBottom: 5}} />
+                    <Skeleton variant="text" width="40%" height={25} style={{marginBottom: 20}} />
+
+                    {/* Info Grid */}
+                    <div className={styles.infoGrid} style={{width:'100%'}}>
+                        <Skeleton variant="text" width="100%" height={20} />
+                        <Skeleton variant="text" width="100%" height={20} />
+                        <Skeleton variant="text" width="100%" height={20} />
+                        <Skeleton variant="text" width="100%" height={20} />
+                    </div>
+                </div>
+
+                <div className={styles.footer} style={{width:'100%', justifyContent:'space-between'}}>
+                    <Skeleton variant="rectangular" width={50} height={50} />
+                    <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end'}}>
+                        <Skeleton variant="text" width={80} height={15} />
+                        <Skeleton variant="text" width={80} height={15} />
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+  );
+
+  if (loading) return renderSkeleton();
+
+  if (!profile) return <div style={{padding: '2rem', textAlign: 'center'}}>Profile not found. Please log in.</div>;
 
   return (
     <div className={styles.pageContainer}>
@@ -114,8 +150,7 @@ const IDCardPage: React.FC = () => {
           </div>
 
           <div className={styles.footer}>
-            {/* Replace with your actual Logo image import */}
-            <div style={{fontWeight:'bold', opacity:0.5}}>IMS Logo</div> 
+            <img src={logo} alt="IMS" className={styles.companyLogo} />
             
             <div className={styles.dates}>
               <p>
@@ -132,7 +167,7 @@ const IDCardPage: React.FC = () => {
       </div>
       
       <button className={styles.printButton} onClick={() => window.print()}>
-        <BsPrinter /> Print ID Card
+        <BsPrinter style={{marginRight: '8px'}}/> Print ID Card
       </button>
     </div>
   );

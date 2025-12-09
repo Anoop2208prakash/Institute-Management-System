@@ -1,9 +1,8 @@
 // client/src/pages/admin/RoleManagement.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaTrash, FaShieldAlt, FaPlus, FaLock, FaUserTag, FaSearch } from 'react-icons/fa';
-
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import { DeleteModal } from '../../components/common/DeleteModal';
-import LinearLoader from '../../components/common/LinearLoader';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import './RoleManagement.scss';
 import { CreateRoleModal } from './CreateRoleModal';
@@ -19,10 +18,9 @@ interface Role {
 
 const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // 1. FIX: Explicitly define state type so it accepts 'error' | 'success' etc.
   const [alertInfo, setAlertInfo] = useState<{
     show: boolean;
     type: AlertColor;
@@ -33,25 +31,20 @@ const RoleManagement: React.FC = () => {
     msg: '' 
   });
 
-  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<{ id: string, name: string } | null>(null);
   
-  // Action Loading States
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 2. FIX: Use Set for O(1) lookup performance (Best Practice)
   const SYSTEM_ROLES = new Set(['super_admin', 'admin', 'teacher', 'student']);
 
-  // Helper to show alert
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // Fetch Roles
   const fetchRoles = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -69,7 +62,6 @@ const RoleManagement: React.FC = () => {
 
   useEffect(() => { void fetchRoles(); }, [fetchRoles]);
 
-  // Create Role Logic
   const handleCreate = async (newRoleData: { displayName: string; description: string }) => {
     setIsCreating(true);
     try {
@@ -93,7 +85,6 @@ const RoleManagement: React.FC = () => {
     }
   };
 
-  // Delete Role Logic
   const openDeleteModal = (id: string, name: string) => {
     setRoleToDelete({ id, name });
     setIsDeleteModalOpen(true);
@@ -139,7 +130,7 @@ const RoleManagement: React.FC = () => {
                 <input 
                     type="text" 
                     placeholder="Search roles..." 
-                    value={searchTerm}
+                    value={searchTerm} 
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
@@ -158,49 +149,62 @@ const RoleManagement: React.FC = () => {
       />
 
       <div className="roles-grid">
-        {isLoading && roles.length === 0 && (
-            <div style={{ padding: '2rem', gridColumn: '1 / -1' }}>
-                <LinearLoader />
-            </div>
-        )}
-
-        {!isLoading && filteredRoles.map((role) => {
-          // 3. FIX: Use .has() for Set lookup
-          const isSystem = SYSTEM_ROLES.has(role.name);
-          return (
-            <div key={role.id} className="role-card">
-              <div className="card-top">
-                <div className={`icon-wrapper ${isSystem ? 'system' : 'custom'}`}>
-                  {isSystem ? <FaLock /> : <FaUserTag />}
-                </div>
-                {isSystem && <span className="badge system">System Default</span>}
-              </div>
-
-              <div className="card-content">
-                <h3>{role.displayName}</h3>
-                <span className="role-id">ID: {role.name}</span>
-                <p>{role.description || "No description provided."}</p>
-              </div>
-
-              <div className="card-actions">
-                {isSystem ? (
-                  <button className="lock-btn" title="Cannot delete system role">
-                    <FaLock /> Protected
-                  </button>
-                ) : (
-                  <button className="delete-btn" onClick={() => openDeleteModal(role.id, role.displayName)}>
-                    <FaTrash /> Delete Role
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
         
-        {!isLoading && filteredRoles.length === 0 && (
-            <div className="empty-state">
-                <p>No roles found matching "{searchTerm}"</p>
-            </div>
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+             Array.from(new Array(6)).map((_, i) => (
+                 <div key={i} className="role-card">
+                     <div className="card-top" style={{display: 'flex', justifyContent: 'space-between'}}>
+                         <Skeleton variant="circular" width={40} height={40} />
+                         <Skeleton variant="rectangular" width={60} height={20} style={{borderRadius: 10}} />
+                     </div>
+                     <div className="card-content">
+                         <Skeleton variant="text" width="60%" height={32} style={{marginBottom: 8}} />
+                         <Skeleton variant="text" width="40%" height={20} style={{marginBottom: 12}} />
+                         <Skeleton variant="text" width="90%" height={20} />
+                         <Skeleton variant="text" width="80%" height={20} />
+                     </div>
+                     <div className="card-actions">
+                         <Skeleton variant="rectangular" width="100%" height={36} style={{borderRadius: 6}} />
+                     </div>
+                 </div>
+             ))
+        ) : (
+             filteredRoles.length > 0 ? filteredRoles.map((role) => {
+                const isSystem = SYSTEM_ROLES.has(role.name);
+                return (
+                    <div key={role.id} className="role-card">
+                    <div className="card-top">
+                        <div className={`icon-wrapper ${isSystem ? 'system' : 'custom'}`}>
+                        {isSystem ? <FaLock /> : <FaUserTag />}
+                        </div>
+                        {isSystem && <span className="badge system">System Default</span>}
+                    </div>
+
+                    <div className="card-content">
+                        <h3>{role.displayName}</h3>
+                        <span className="role-id">ID: {role.name}</span>
+                        <p>{role.description || "No description provided."}</p>
+                    </div>
+
+                    <div className="card-actions">
+                        {isSystem ? (
+                        <button className="lock-btn" title="Cannot delete system role">
+                            <FaLock /> Protected
+                        </button>
+                        ) : (
+                        <button className="delete-btn" onClick={() => openDeleteModal(role.id, role.displayName)}>
+                            <FaTrash /> Delete Role
+                        </button>
+                        )}
+                    </div>
+                    </div>
+                );
+             }) : (
+                 <div className="empty-state">
+                     <p>No roles found matching "{searchTerm}"</p>
+                 </div>
+             )
         )}
       </div>
 

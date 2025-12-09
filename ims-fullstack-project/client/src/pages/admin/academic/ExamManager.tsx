@@ -1,6 +1,7 @@
 // client/src/pages/admin/academic/ExamManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaPlus, FaTrash, FaSearch, FaCalendarDay } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -18,7 +19,7 @@ interface Exam {
 
 const ExamManager: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -121,35 +122,62 @@ const ExamManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="exam-list">
-        {/* Loader Removed */}
         
-        {!isLoading && filteredExams.map(ex => (
-            <div key={ex.id} className="exam-row">
-                <div className="row-left">
-                    <div className="icon-box">
-                        <FaClipboardList />
-                    </div>
-                    <div className="info">
-                        <h3>{ex.name}</h3>
-                        <div className="meta-badges">
-                            <span>{ex.className}</span>
-                            <span>{ex.semesterName}</span>
-                            <span>{ex.subjectName}</span>
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(5)).map((_, index) => (
+                <div key={index} className="exam-row" style={{padding: '1.5rem'}}>
+                    {/* Left: Info Skeleton */}
+                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
+                        <Skeleton variant="circular" width={50} height={50} />
+                        <div style={{flex: 1}}>
+                            <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 8}} />
+                            <div style={{display:'flex', gap:'10px'}}>
+                                <Skeleton variant="text" width="60px" height={20} />
+                                <Skeleton variant="text" width="80px" height={20} />
+                                <Skeleton variant="text" width="100px" height={20} />
+                            </div>
                         </div>
                     </div>
+                    {/* Center: Date Skeleton */}
+                    <div className="row-center" style={{width: '20%'}}>
+                        <Skeleton variant="text" width="100%" height={20} />
+                    </div>
+                    {/* Right: Actions Skeleton */}
+                    <div className="row-right">
+                        <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
+                    </div>
                 </div>
+            ))
+        ) : (
+            filteredExams.map(ex => (
+                <div key={ex.id} className="exam-row">
+                    <div className="row-left">
+                        <div className="icon-box">
+                            <FaClipboardList />
+                        </div>
+                        <div className="info">
+                            <h3>{ex.name}</h3>
+                            <div className="meta-badges">
+                                <span>{ex.className}</span>
+                                <span>{ex.semesterName}</span>
+                                <span>{ex.subjectName}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                <div className="row-center">
-                    <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
-                </div>
+                    <div className="row-center">
+                        <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
+                    </div>
 
-                <div className="row-right">
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: ex.id, name: ex.name})}>
-                        <FaTrash /> Delete
-                    </button>
+                    <div className="row-right">
+                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: ex.id, name: ex.name})}>
+                            <FaTrash /> Delete
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ))}
+            ))
+        )}
 
         {!isLoading && filteredExams.length === 0 && (
             <div className="empty-state">No exams scheduled.</div>
