@@ -1,0 +1,353 @@
+// client/src/pages/LandingPage.scss
+
+// Variables
+$primary: #4f46e5;
+$secondary: #818cf8;
+$dark-bg: #0f172a;
+$glass-bg: rgba(255, 255, 255, 0.05);
+$glass-border: rgba(255, 255, 255, 0.1);
+$text-light: #f8fafc;
+$text-dim: #94a3b8;
+
+.landing-page {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: $dark-bg;
+    color: $text-light;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+
+    // --- Background Aurora Effect ---
+    .aurora-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+
+        &::before,
+        &::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.4;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+
+        &::before {
+            background: $primary;
+            top: -10%;
+            left: -10%;
+        }
+
+        &::after {
+            background: $secondary;
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+    }
+
+    @keyframes float {
+        0% {
+            transform: translate(0, 0);
+        }
+
+        100% {
+            transform: translate(50px, 50px);
+        }
+    }
+
+    // --- Content Wrapper ---
+    .content-wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    // --- 1. Floating Navbar ---
+    .landing-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        margin-top: 2rem;
+        border-radius: 50px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid $glass-border;
+        position: sticky;
+        top: 20px;
+        z-index: 100;
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+
+            img {
+                height: 35px;
+                width: auto;
+            }
+
+            span {
+                background: linear-gradient(to right, #fff, #94a3b8);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+
+            @media (max-width: 768px) {
+                display: none;
+            }
+
+            a {
+                text-decoration: none;
+                color: $text-dim;
+                font-weight: 500;
+                font-size: 0.95rem;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: #fff;
+                }
+            }
+        }
+
+        .btn-login {
+            padding: 0.6rem 1.8rem;
+            background: $text-light;
+            color: $dark-bg;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+
+            &:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            }
+        }
+    }
+
+    // --- 2. Hero Section ---
+    .hero-section {
+        text-align: center;
+        padding: 8rem 0 4rem;
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.4);
+            color: $secondary;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            line-height: 1.1;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+
+            span {
+                background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+
+        p {
+            font-size: 1.25rem;
+            color: $text-dim;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 5rem;
+
+            .btn-primary {
+                padding: 1rem 2.5rem;
+                background: $primary;
+                color: white;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                transition: all 0.2s;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+
+                &:hover {
+                    background: lighten($primary, 5%);
+                    transform: translateY(-2px);
+                }
+            }
+
+            .btn-secondary {
+                padding: 1rem 2.5rem;
+                background: rgba(255, 255, 255, 0.05);
+                color: white;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                border: 1px solid $glass-border;
+                transition: all 0.2s;
+
+                &:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+            }
+        }
+
+        .dashboard-preview {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: 16px;
+            border: 1px solid $glass-border;
+            box-shadow: 0 0 80px rgba(79, 70, 229, 0.15);
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                display: block;
+                opacity: 0.9;
+            }
+        }
+    }
+
+    // --- 3. Bento Grid Features ---
+    .features-section {
+        padding: 6rem 0;
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+
+            h2 {
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+            }
+
+            p {
+                color: $text-dim;
+                font-size: 1.1rem;
+            }
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 300px);
+            gap: 1.5rem;
+
+            @media (max-width: 900px) {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+
+            .bento-card {
+                background: rgba(30, 41, 59, 0.4);
+                backdrop-filter: blur(10px);
+                border: 1px solid $glass-border;
+                border-radius: 20px;
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                transition: transform 0.3s;
+
+                &:hover {
+                    transform: translateY(-5px);
+                    border-color: rgba(255, 255, 255, 0.2);
+                    background: rgba(30, 41, 59, 0.6);
+                }
+
+                .icon {
+                    font-size: 2rem;
+                    color: $secondary;
+                    margin-bottom: 1rem;
+                    width: 50px;
+                    height: 50px;
+                    background: rgba(129, 140, 248, 0.1);
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                h3 {
+                    font-size: 1.5rem;
+                    margin-bottom: 0.5rem;
+                    color: #fff;
+                }
+
+                p {
+                    color: $text-dim;
+                    line-height: 1.6;
+                }
+
+                // Specific Card Sizes
+                &.large {
+                    grid-column: span 2;
+                }
+
+                &.tall {
+                    grid-row: span 2;
+                }
+            }
+        }
+    }
+
+    // --- Footer ---
+    .landing-footer {
+        border-top: 1px solid $glass-border;
+        padding: 4rem 0;
+        text-align: center;
+        color: $text-dim;
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            display: block;
+        }
+    }
+
+    // Responsive Typography
+    @media (max-width: 768px) {
+        .hero-section h1 {
+            font-size: 3rem;
+        }
+
+        .bento-grid .bento-card.large,
+        .bento-grid .bento-card.tall {
+            grid-column: span 1;
+            grid-row: auto;
+        }
+    }
+}

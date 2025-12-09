@@ -2,13 +2,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  FaHome, FaUserCircle, FaIdCard, FaUserPlus, FaUsers, 
+  FaHome, FaIdCard, FaUserPlus, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
-  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib, FaSignOutAlt 
+  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib
 } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext';
 import './Sidebar.scss';
-import logo from '../assets/image/banner-logo.png'; // <--- Import Logo
+import logo from '../assets/image/banner-logo.png'; 
 
 // 1. Define Interfaces for Menu Structure
 interface MenuItem {
@@ -30,7 +29,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
-  const { user, logout } = useAuth();
 
   // 2. Menu Groups
   const menuGroups: MenuGroup[] = [
@@ -38,7 +36,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       title: "General",
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: <FaHome />, roles: ['all'] },
-        { path: '/profile', label: 'My Profile', icon: <FaUserCircle />, roles: ['all'] },
         { path: '/id-card', label: 'ID Card', icon: <FaIdCard />, roles: ['all'] },
         { path: '/announcements', label: 'Announcements', icon: <FaBullhorn />, roles: ['all'] },
       ]
@@ -113,8 +110,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       {/* Header */}
       <div className="sidebar-header">
         <div className="logo-area">
-             {/* UPDATED: Uses Image Logo */}
-             <img className='image' src={logo} alt="IMS"/>
+             <img src={logo} alt="IMS" />
+             
         </div>
       </div>
 
@@ -139,22 +136,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
               )
           ))}
       </nav>
-
-      {/* Footer */}
-      <div className="sidebar-footer">
-          <div className="user-info">
-             {user && (
-                 <>
-                    <span className="name">{user.email.split('@')[0]}</span>
-                    <span className="role">{role.replace('_', ' ')}</span>
-                 </>
-             )}
-          </div>
-          <button className="logout-btn" onClick={logout} title="Sign Out">
-              <FaSignOutAlt />
-              <span>Log Out</span>
-          </button>
-      </div>
     </aside>
   );
 };
