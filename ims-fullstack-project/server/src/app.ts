@@ -23,6 +23,7 @@ import attendanceRoutes from './routes/attendanceRoutes';
 import markRoutes from './routes/markRoutes';
 import onlineExamRoutes from './routes/onlineExamRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import inquiryRoutes from './routes/inquiryRoutes';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/marks', markRoutes);
 app.use('/api/online-exams', onlineExamRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/inquiries', inquiryRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

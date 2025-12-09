@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 
-// GET All Announcements
+// 1. GET ALL (Include Author ID for frontend checks)
 export const getAnnouncements = async (req: Request, res: Response) => {
   try {
     const announcements = await prisma.announcement.findMany({
@@ -21,6 +21,7 @@ export const getAnnouncements = async (req: Request, res: Response) => {
         content: a.content,
         target: a.target,
         date: a.date,
+        authorId: a.authorId, // <--- CRITICAL: Needed for permission check
         authorName: a.author.adminProfile?.fullName || a.author.teacherProfile?.fullName || a.author.studentProfile?.fullName || 'Unknown',
         authorAvatar: a.author.avatar 
     }));
@@ -31,7 +32,7 @@ export const getAnnouncements = async (req: Request, res: Response) => {
   }
 };
 
-// CREATE Announcement (Restricted)
+// 2. CREATE Announcement
 export const createAnnouncement = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -39,13 +40,11 @@ export const createAnnouncement = async (req: AuthRequest, res: Response) => {
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    // 1. Check User Role
     const user = await prisma.user.findUnique({
         where: { id: userId },
         include: { role: true }
     });
 
-    // 2. Deny if Student
     if (!user || user.role.name === 'student') {
         return res.status(403).json({ message: "Students cannot post announcements." });
     }
@@ -60,24 +59,32 @@ export const createAnnouncement = async (req: AuthRequest, res: Response) => {
     });
     res.status(201).json(newAnnouncement);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to post announcement' });
   }
 };
 
-// DELETE Announcement (Restricted)
+// 3. DELETE Announcement
 export const deleteAnnouncement = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
+    const { id } = req.params;
     
-    // Check permission
     const user = await prisma.user.findUnique({ where: { id: userId }, include: { role: true } });
-    if (!user || user.role.name === 'student') {
-        return res.status(403).json({ message: "Permission denied" });
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+    const announcement = await prisma.announcement.findUnique({ where: { id } });
+    if (!announcement) return res.status(404).json({ message: "Announcement not found" });
+
+    // PERMISSION CHECK:
+    // 1. Super Admin can delete ANYTHING.
+    // 2. Author can delete THEIR OWN post.
+    if (user.role.name === 'super_admin' || announcement.authorId === userId) {
+        await prisma.announcement.delete({ where: { id } });
+        res.json({ message: 'Announcement deleted' });
+    } else {
+        return res.status(403).json({ message: "You can only delete your own announcements." });
     }
 
-    await prisma.announcement.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete announcement' });
   }

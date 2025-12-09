@@ -41,6 +41,7 @@ import MyOrders from './pages/student/MyOrders';
 import LandingPage from './pages/LandingPage';
 import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
 import AdmissionList from './pages/admin/admission/AdmissionList';
+import InquiryList from './pages/admin/admission/InquiryList';
 
 export const router = createBrowserRouter([
   {
@@ -118,6 +119,8 @@ export const router = createBrowserRouter([
       { path: '/my-results', element: <MyResults /> },
       { path: '/my-invoices', element: <MyInvoices /> },
       { path: '/my-orders', element: <MyOrders /> },
+
+      { path: '/inquiries', element: <InquiryList /> }
     ]
   },
 

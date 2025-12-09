@@ -102,6 +102,7 @@ model Teacher {
   bloodGroup    String?  
   joiningDate   DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   subjects      Subject[]
   classes       Class[]  @relation("ClassTeacher") 
   attendance    Attendance[]
@@ -123,6 +124,7 @@ model Student {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
+  
   attendance  Attendance[]
   fees        FeeRecord[]
   results     Result[]
@@ -142,6 +144,7 @@ model Class {
   description String?  
   teacherId   String?  
   teacher     Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
+  
   students    Student[]
   subjects    Subject[]
   exams       Exam[]
@@ -163,6 +166,7 @@ model Subject {
   teacher   Teacher? @relation(fields: [teacherId], references: [id])
   semesterId String?
   semester   Semester? @relation(fields: [semesterId], references: [id])
+  
   exams      Exam[]   
   attendance Attendance[]
   onlineExams OnlineExam[]
@@ -245,11 +249,8 @@ model FeeRecord {
   status    PaymentStatus @default(PENDING)
   studentId String
   student   Student       @relation(fields: [studentId], references: [id])
-  
-  // Link to Order (One invoice per order)
   orderId   String?       @unique 
   order     Order?        @relation(fields: [orderId], references: [id])
-
   @@map("fee_records")
 }
 
@@ -287,7 +288,7 @@ model Loan {
 }
 
 // --------------------------------------
-// 9. INVENTORY & ORDERS (REFACTORED)
+// 9. INVENTORY & ORDERS
 // --------------------------------------
 
 model InventoryItem {
@@ -296,41 +297,29 @@ model InventoryItem {
   category  String   
   quantity  Int      @default(0)
   price     Float    @default(0.0)
-  
-  // Linked to Order Items, not Orders directly
   orderItems OrderItem[] 
-
   @@map("inventory_items")
 }
 
 model Order {
   id        String        @id @default(uuid())
-  
-  orderBy   String        // User ID
+  orderBy   String        
   date      DateTime      @default(now())
   status    String        @default("PENDING") 
-  total     Float         @default(0.0) // Total Cost
-  
-  // Relations
+  total     Float         @default(0.0) 
   items     OrderItem[]   
   feeRecord FeeRecord?    
-
   @@map("orders")
 }
 
-// NEW: Order Item (Supports multiple items per order)
 model OrderItem {
   id        String        @id @default(uuid())
-  
   orderId   String
   order     Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
   itemId    String
   item      InventoryItem @relation(fields: [itemId], references: [id])
-  
   quantity  Int
-  price     Float         // Snapshot of price
-
+  price     Float         
   @@map("order_items")
 }
 
@@ -358,7 +347,7 @@ model OnlineExam {
   title       String
   description String?
   date        DateTime
-  duration    Int      // Duration in minutes
+  duration    Int      
   classId     String
   class       Class    @relation(fields: [classId], references: [id])
   subjectId   String
@@ -393,4 +382,20 @@ model TestSubmission {
   answers     String     @db.Text 
   submittedAt DateTime   @default(now())
   @@map("test_submissions")
+}
+
+// --------------------------------------
+// 13. PUBLIC INQUIRIES (Leads)
+// --------------------------------------
+
+model Inquiry {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String
+  phone     String
+  course    String?  
+  message   String   @db.Text
+  status    String   @default("PENDING") 
+  date      DateTime @default(now())
+  @@map("inquiries")
 }
