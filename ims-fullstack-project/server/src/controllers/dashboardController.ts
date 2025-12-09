@@ -6,14 +6,15 @@ import { AuthRequest } from '../middlewares/auth';
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    const role = req.user?.role; // 'admin', 'teacher', 'student', 'librarian'
+    const role = req.user?.role; // 'admin', 'teacher', 'student', 'librarian', 'administrator'
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    let stats: any = {};
+    let stats: any = { type: 'UNKNOWN', cards: [] }; // Default init to prevent frontend crash
 
-    // --- ADMIN / SUPER ADMIN ---
-    if (role === 'admin' || role === 'super_admin') {
+    // --- ADMIN / SUPER ADMIN / ADMINISTRATOR ---
+    // Update: Added 'administrator' to this check
+    if (role === 'admin' || role === 'super_admin' || role === 'administrator') {
         const studentCount = await prisma.student.count();
         const teacherCount = await prisma.teacher.count();
         const classCount = await prisma.class.count();
@@ -63,12 +64,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         });
 
         if (student) {
-            // Calc Attendance %
             const totalDays = student.attendance.length;
             const presentDays = student.attendance.filter(a => a.status === 'PRESENT').length;
             const attendancePct = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
-            // Calc Due Fees
             const dueFees = student.fees
                 .filter(f => f.status === 'PENDING' || f.status === 'PARTIAL')
                 .reduce((acc, curr) => acc + Number(curr.amount), 0);
@@ -97,6 +96,18 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
                 { label: 'Active Loans', value: activeLoans, icon: 'hand-holding', color: '#9a6700' },
             ]
         };
+    }
+    
+    // --- FINANCE ---
+    else if (role === 'finance') {
+         // Add finance logic here if needed
+         stats = { type: 'FINANCE', cards: [] };
+    }
+
+    // --- DEFAULT FALLBACK ---
+    // If no stats were generated (e.g. role not found or profile missing)
+    if (!stats.cards) {
+        stats.cards = [];
     }
 
     res.json(stats);

@@ -43,8 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
     {
         title: "Admission",
         items: [
-            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['admission', 'super_admin'] },
-            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['admission', 'super_admin'] },
+            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin'] },
+            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin'] },
         ]
     },
     {
