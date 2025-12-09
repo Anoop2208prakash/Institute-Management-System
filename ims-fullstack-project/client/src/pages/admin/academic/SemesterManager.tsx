@@ -1,6 +1,7 @@
 // client/src/pages/admin/academic/SemesterManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaCalendarAlt, FaPlus, FaTrash, FaSearch, FaClock } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -10,25 +11,22 @@ import { CreateSemesterModal } from './CreateSemesterModal';
 interface Semester {
   id: string;
   name: string;
-  startDate?: string; // Optional now
-  endDate?: string;   // Optional now
+  startDate?: string;
+  endDate?: string; 
   status: string;
   programName?: string;
 }
 
-// 1. Updated Interface (Matches the Modal)
 interface SemesterFormData {
   name: string;
   classId: string;
-  // Dates removed to match the simplified Modal
 }
 
 const SemesterManager: React.FC = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); 
   
-  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   
@@ -59,7 +57,6 @@ const SemesterManager: React.FC = () => {
 
   useEffect(() => { void fetchSemesters(); }, [fetchSemesters]);
 
-  // 2. Updated Create Logic (No Dates)
   const handleCreate = async (data: SemesterFormData) => {
     setIsCreating(true);
     try {
@@ -106,13 +103,12 @@ const SemesterManager: React.FC = () => {
 
   const getStatusColor = (status: string) => {
       switch(status) {
-          case 'ACTIVE': return { bg: 'rgba(26, 127, 55, 0.15)', text: '#1a7f37' }; // Green
-          case 'COMPLETED': return { bg: 'var(--bg-secondary-color)', text: 'var(--text-muted-color)' }; // Gray
-          default: return { bg: 'rgba(9, 105, 218, 0.15)', text: 'var(--primary-color)' }; // Blue
+          case 'ACTIVE': return { bg: 'rgba(26, 127, 55, 0.15)', text: '#1a7f37' };
+          case 'COMPLETED': return { bg: 'var(--bg-secondary-color)', text: 'var(--text-muted-color)' };
+          default: return { bg: 'rgba(9, 105, 218, 0.15)', text: 'var(--primary-color)' };
       }
   };
 
-  // Filter Logic
   const filteredSemesters = semesters.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -142,42 +138,61 @@ const SemesterManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* --- HORIZONTAL LIST VIEW --- */}
       <div className="semester-list">
-        {/* Loader Removed */}
         
-        {!isLoading && filteredSemesters.map(sem => {
-            const statusStyle = getStatusColor(sem.status);
-
-            return (
-                <div key={sem.id} className={`semester-row ${sem.status.toLowerCase()}`}>
-                    {/* Left: Info */}
-                    <div className="row-left">
-                        <div className="icon-box">
-                            <FaCalendarAlt />
-                        </div>
-                        <div className="info">
-                            <h3>{sem.name}</h3>
-                            <span className="program">{sem.programName || 'General Program'}</span>
-                            <div className="dates">
-                                <FaClock style={{fontSize:'0.8rem', color:'var(--primary-color)'}}/> 
-                                {formatDate(sem.startDate)} — {formatDate(sem.endDate)}
-                            </div>
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(5)).map((_, index) => (
+                <div key={index} className="semester-row" style={{padding: '1.5rem'}}>
+                    {/* Left: Info Skeleton */}
+                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
+                        <Skeleton variant="circular" width={50} height={50} />
+                        <div style={{flex: 1}}>
+                            <Skeleton variant="text" width="40%" height={24} style={{marginBottom: 6}} />
+                            <Skeleton variant="text" width="30%" height={16} style={{marginBottom: 4}} />
+                            <Skeleton variant="text" width="20%" height={16} />
                         </div>
                     </div>
-
-                    {/* Right: Status & Actions */}
-                    <div className="row-right">
-                        <span className={`status-badge ${sem.status.toLowerCase()}`} style={{color: statusStyle.text, backgroundColor: statusStyle.bg, borderColor: 'transparent'}}>
-                            {sem.status}
-                        </span>
-                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
-                            <FaTrash /> Delete
-                        </button>
+                    {/* Right: Actions Skeleton */}
+                    <div className="row-right" style={{gap: '1rem'}}>
+                        <Skeleton variant="rectangular" width={80} height={24} style={{borderRadius: 12}} />
+                        <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
                     </div>
                 </div>
-            );
-        })}
+            ))
+        ) : (
+            filteredSemesters.map(sem => {
+                const statusStyle = getStatusColor(sem.status);
+                return (
+                    <div key={sem.id} className={`semester-row ${sem.status.toLowerCase()}`}>
+                        {/* Left: Info */}
+                        <div className="row-left">
+                            <div className="icon-box">
+                                <FaCalendarAlt />
+                            </div>
+                            <div className="info">
+                                <h3>{sem.name}</h3>
+                                <span className="program">{sem.programName || 'General Program'}</span>
+                                <div className="dates">
+                                    <FaClock style={{fontSize:'0.8rem', color:'var(--primary-color)'}}/> 
+                                    {formatDate(sem.startDate)} — {formatDate(sem.endDate)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right: Status & Actions */}
+                        <div className="row-right">
+                            <span className={`status-badge ${sem.status.toLowerCase()}`} style={{color: statusStyle.text, backgroundColor: statusStyle.bg, borderColor: 'transparent'}}>
+                                {sem.status}
+                            </span>
+                            <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
+                                <FaTrash /> Delete
+                            </button>
+                        </div>
+                    </div>
+                );
+            })
+        )}
 
         {!isLoading && filteredSemesters.length === 0 && (
             <div className="empty-state">No semesters found.</div>

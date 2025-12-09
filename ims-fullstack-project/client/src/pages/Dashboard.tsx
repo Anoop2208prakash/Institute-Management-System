@@ -6,11 +6,11 @@ import {
   FaBook, FaCheckSquare, FaFileInvoiceDollar, FaBookReader, FaHandHolding,
   FaCalendarAlt, FaBell, FaClipboardList, FaUserPlus
 } from 'react-icons/fa';
-import LinearLoader from '../components/common/LinearLoader';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.scss';
 
-// 1. FIX: Use Record<string, React.ReactElement> instead of 'any'
+// Icon Mapping
 const iconMap: Record<string, React.ReactElement> = {
   'users': <FaUsers />,
   'chalkboard-teacher': <FaChalkboardTeacher />,
@@ -50,8 +50,8 @@ const Dashboard: React.FC = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-            // 2. FIX: Cast response to DashboardData to avoid 'any'
             const jsonData = await res.json();
+            if (!jsonData.cards) jsonData.cards = [];
             setData(jsonData as DashboardData);
         }
       } catch (e) {
@@ -63,7 +63,40 @@ const Dashboard: React.FC = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <div style={{padding:'2rem'}}><LinearLoader /></div>;
+  // --- SKELETON LOADER UI ---
+  if (loading) {
+      return (
+        <div className="dashboard-page">
+            {/* Banner Skeleton */}
+            <Skeleton variant="rectangular" height={180} style={{borderRadius: '20px'}} />
+            
+            {/* Stats Grid Skeleton */}
+            <div className="stats-grid">
+                {Array.from(new Array(4)).map((_, i) => (
+                    <Skeleton key={i} variant="rectangular" height={120} style={{borderRadius: '16px'}} />
+                ))}
+            </div>
+
+            <div className="dashboard-content">
+                {/* Left Column Skeleton */}
+                <div className="main-column">
+                    <div className="quick-actions" style={{height: '300px', border:'none', background:'none'}}>
+                         <Skeleton variant="text" width="40%" height={40} style={{marginBottom: 20}} />
+                         <div className="actions-grid">
+                             {Array.from(new Array(4)).map((_, i) => (
+                                 <Skeleton key={i} variant="rectangular" height={120} style={{borderRadius: '12px'}} />
+                             ))}
+                         </div>
+                    </div>
+                </div>
+                {/* Right Column Skeleton */}
+                <div className="side-column">
+                    <Skeleton variant="rectangular" height={400} style={{borderRadius: '16px'}} />
+                </div>
+            </div>
+        </div>
+      );
+  }
 
   // Define Quick Actions based on Role
   const renderQuickActions = () => {
@@ -135,20 +168,26 @@ const Dashboard: React.FC = () => {
 
       {/* 2. Stats Grid */}
       <div className="stats-grid">
-        {data?.cards.map((card, idx) => (
-          <div key={idx} className="stat-card">
-            <div 
-              className="icon-wrapper" 
-              style={{ backgroundColor: `${card.color}15`, color: card.color }}
-            >
-              {iconMap[card.icon] || <FaLayerGroup />}
+        {data?.cards && data.cards.length > 0 ? (
+            data.cards.map((card, idx) => (
+            <div key={idx} className="stat-card">
+                <div 
+                className="icon-wrapper" 
+                style={{ backgroundColor: `${card.color}15`, color: card.color }}
+                >
+                {iconMap[card.icon] || <FaLayerGroup />}
+                </div>
+                <div className="info">
+                <span className="label">{card.label}</span>
+                <span className="value">{card.value}</span>
+                </div>
             </div>
-            <div className="info">
-              <span className="label">{card.label}</span>
-              <span className="value">{card.value}</span>
+            ))
+        ) : (
+            <div style={{gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'var(--text-muted-color)'}}>
+                No statistics available.
             </div>
-          </div>
-        ))}
+        )}
       </div>
 
       {/* 3. Main Content Split */}
@@ -201,5 +240,5 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
-
+  
 export default Dashboard;

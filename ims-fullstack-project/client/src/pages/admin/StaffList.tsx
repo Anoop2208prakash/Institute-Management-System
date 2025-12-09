@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaSearch, FaUserPlus, FaTrash, FaEnvelope, FaPhone } from 'react-icons/fa';
-import { DeleteModal } from '../../components/common/DeleteModal'; // <--- Import Modal
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import { DeleteModal } from '../../components/common/DeleteModal';
 import './StaffList.scss';
 
 interface Staff {
@@ -19,7 +20,7 @@ const StaffList: React.FC = () => {
   const navigate = useNavigate();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // --- DELETE MODAL STATE ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -119,50 +120,69 @@ const StaffList: React.FC = () => {
 
       {/* Staff Grid */}
       <div className="staff-grid">
+        
+        {/* --- SKELETON LOADER --- */}
         {isLoading ? (
-            <p style={{color: 'var(--text-muted-color)'}}>Loading directory...</p>
-        ) : filteredStaff.length > 0 ? (
-            filteredStaff.map((member) => (
-            <div key={member.id} className="staff-card">
-                <div className="card-header">
-                    <img 
-                        src={member.avatar ? `http://localhost:5000${member.avatar}` : `https://ui-avatars.com/api/?name=${member.name}&background=random`} 
-                        alt={member.name} 
-                        className="avatar"
-                    />
-                    <div className="role-tag">{member.role}</div>
-                </div>
-                
-                <div className="card-body">
-                    <h3>{member.name}</h3>
-                    <div className="info-row">
-                        <FaEnvelope /> <span>{member.email}</span>
+            Array.from(new Array(6)).map((_, index) => (
+                <div key={index} className="staff-card">
+                    <div className="card-header">
+                        <Skeleton variant="circular" width={80} height={80} style={{border: '4px solid var(--card-bg-default)'}} />
+                        <Skeleton variant="rectangular" width={60} height={20} style={{borderRadius: '20px', marginTop: '10px'}} />
                     </div>
-                    <div className="info-row">
-                        <FaPhone /> <span>{member.phone || 'N/A'}</span>
+                    <div className="card-body">
+                        <Skeleton variant="text" width="60%" height={30} style={{margin: '0 auto 10px'}} />
+                        <div className="info-row" style={{justifyContent: 'center'}}><Skeleton variant="text" width="80%" /></div>
+                        <div className="info-row" style={{justifyContent: 'center'}}><Skeleton variant="text" width="50%" /></div>
+                    </div>
+                    <div className="card-footer" style={{justifyContent: 'space-between'}}>
+                         <Skeleton variant="text" width={60} />
+                         <Skeleton variant="circular" width={30} height={30} />
                     </div>
                 </div>
-
-                <div className="card-footer">
-                    <span className="date">Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
-                    
-                    {/* Updated Delete Button: Opens Modal */}
-                    <button 
-                        className="btn-delete" 
-                        onClick={() => openDeleteModal(member.id, member.name)}
-                        title="Remove Staff"
-                    >
-                        <FaTrash />
-                    </button>
-                </div>
-            </div>
             ))
         ) : (
-            <div className="empty-state">No staff members found.</div>
+            filteredStaff.length > 0 ? (
+                filteredStaff.map((member) => (
+                <div key={member.id} className="staff-card">
+                    <div className="card-header">
+                        <img 
+                            src={member.avatar ? `http://localhost:5000${member.avatar}` : `https://ui-avatars.com/api/?name=${member.name}&background=random`} 
+                            alt={member.name} 
+                            className="avatar"
+                        />
+                        <div className="role-tag">{member.role}</div>
+                    </div>
+                    
+                    <div className="card-body">
+                        <h3>{member.name}</h3>
+                        <div className="info-row">
+                            <FaEnvelope /> <span>{member.email}</span>
+                        </div>
+                        <div className="info-row">
+                            <FaPhone /> <span>{member.phone || 'N/A'}</span>
+                        </div>
+                    </div>
+
+                    <div className="card-footer">
+                        <span className="date">Joined: {new Date(member.joinDate).toLocaleDateString()}</span>
+                        
+                        <button 
+                            className="btn-delete" 
+                            onClick={() => openDeleteModal(member.id, member.name)}
+                            title="Remove Staff"
+                        >
+                            <FaTrash />
+                        </button>
+                    </div>
+                </div>
+                ))
+            ) : (
+                <div className="empty-state">No staff members found.</div>
+            )
         )}
       </div>
 
-      {/* 6. Render Delete Modal */}
+      {/* Render Delete Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}

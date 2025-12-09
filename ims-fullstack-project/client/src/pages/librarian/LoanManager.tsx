@@ -1,7 +1,8 @@
 // client/src/pages/librarian/LoanManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaUndo } from 'react-icons/fa';
-import './LoanManager.scss'; // <--- UPDATED IMPORT
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import './LoanManager.scss'; 
 
 // 1. Define Interfaces
 interface Book {
@@ -23,9 +24,11 @@ const LoanManager: React.FC = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [issueData, setIssueData] = useState({ bookId: '', admissionNo: '', dueDate: '' });
   const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true); // Added loading state
 
-  // 2. Stabilized Fetch Function
+  // 2. Fetch Function
   const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const [loansRes, booksRes] = await Promise.all([
         fetch('http://localhost:5000/api/library/loans'),
@@ -36,13 +39,14 @@ const LoanManager: React.FC = () => {
       if (booksRes.ok) setBooks(await booksRes.json());
     } catch (error) {
       console.error("Failed to load library data", error);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   // 3. Safe Effect Call
   useEffect(() => { 
-    const timer = setTimeout(() => { void fetchData(); }, 0);
-    return () => clearTimeout(timer);
+    void fetchData();
   }, [fetchData]);
 
   const handleIssue = async () => {
@@ -60,7 +64,7 @@ const LoanManager: React.FC = () => {
       if (res.ok) {
         alert("Book Issued Successfully");
         void fetchData(); 
-        setIssueData({ bookId: '', admissionNo: '', dueDate: '' }); // Reset
+        setIssueData({ bookId: '', admissionNo: '', dueDate: '' }); 
       } else {
         const err = await res.json();
         alert(`Failed: ${err.message}`);
@@ -84,23 +88,20 @@ const LoanManager: React.FC = () => {
     }
   };
 
-  // Helper to determine status class
   const getStatusClass = (status: string, dueDate: string) => {
       if (status === 'RETURNED') return 'returned';
-      // Simple check for overdue if still issued
       if (new Date(dueDate) < new Date()) return 'overdue';
       return 'issued';
   };
 
   return (
-    <div className="loan-page"> {/* Updated Class */}
+    <div className="loan-page"> 
       
       <div className="page-header">
         <div className="header-content">
           <h2><FaClipboardList /> Manage Loans</h2>
         </div>
         
-        {/* Issue Book Form (Updated Classes) */}
         <div className="issue-form">
           <select 
             value={issueData.bookId}
@@ -130,41 +131,68 @@ const LoanManager: React.FC = () => {
         </div>
       </div>
 
-      <div className="loans-grid"> {/* Updated Class */}
-        {loans.map(loan => {
-            const statusClass = getStatusClass(loan.status, loan.dueDate);
-            
-            return (
-              <div key={loan.id} className={`loan-card ${loan.status.toLowerCase()}`}> {/* Dynamic Class */}
-                <div className="card-content">
-                  <h3>{loan.bookTitle}</h3>
-                  <div className="student-info">
-                    Student: <strong>{loan.studentName}</strong> 
-                    <span>({loan.admissionNo})</span>
-                  </div>
-                  
-                  <div className="due-date">
-                    Due: {new Date(loan.dueDate).toLocaleDateString()}
-                  </div>
-
-                  {/* Status Badge */}
-                  <span className={`status-badge ${statusClass}`}>
-                    {statusClass === 'overdue' ? 'Overdue' : loan.status}
-                  </span>
-                </div>
-
-                {loan.status === 'ISSUED' && (
-                  <div className="card-actions">
-                    <button className="return-btn" onClick={() => handleReturn(loan.id)}>
-                      <FaUndo /> Return Book
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-        })}
+      <div className="loans-grid"> 
         
-        {loans.length === 0 && (
+        {/* --- SKELETON LOADER --- */}
+        {loading ? (
+            Array.from(new Array(5)).map((_, index) => (
+                <div key={index} className="loan-card">
+                    <div className="card-content">
+                        {/* Title Skeleton */}
+                        <Skeleton variant="text" width="80%" height={30} style={{marginBottom: 8}} />
+                        
+                        {/* Student Info Skeleton */}
+                        <div style={{marginBottom: 15}}>
+                            <Skeleton variant="text" width="60%" height={20} />
+                            <Skeleton variant="text" width="40%" height={16} />
+                        </div>
+                        
+                        {/* Due Date Skeleton */}
+                        <Skeleton variant="text" width="50%" height={20} />
+
+                        {/* Status Badge Skeleton */}
+                        <Skeleton variant="rectangular" width={80} height={24} style={{borderRadius: 20, marginTop: 10}} />
+                    </div>
+                    {/* Action Button Skeleton */}
+                    <div className="card-actions">
+                        <Skeleton variant="rectangular" width="100%" height={36} style={{borderRadius: 6}} />
+                    </div>
+                </div>
+            ))
+        ) : (
+            loans.map(loan => {
+                const statusClass = getStatusClass(loan.status, loan.dueDate);
+                return (
+                  <div key={loan.id} className={`loan-card ${loan.status.toLowerCase()}`}> 
+                    <div className="card-content">
+                      <h3>{loan.bookTitle}</h3>
+                      <div className="student-info">
+                        Student: <strong>{loan.studentName}</strong> 
+                        <span>({loan.admissionNo})</span>
+                      </div>
+                      
+                      <div className="due-date">
+                        Due: {new Date(loan.dueDate).toLocaleDateString()}
+                      </div>
+
+                      <span className={`status-badge ${statusClass}`}>
+                        {statusClass === 'overdue' ? 'Overdue' : loan.status}
+                      </span>
+                    </div>
+
+                    {loan.status === 'ISSUED' && (
+                      <div className="card-actions">
+                        <button className="return-btn" onClick={() => handleReturn(loan.id)}>
+                          <FaUndo /> Return Book
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+            })
+        )}
+        
+        {!loading && loans.length === 0 && (
             <div className="empty-state">No active or past loans found.</div>
         )}
       </div>

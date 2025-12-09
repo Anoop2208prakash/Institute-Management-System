@@ -1,6 +1,7 @@
 // client/src/pages/admin/academic/ClassManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaLayerGroup, FaPlus, FaTrash, FaUsers, FaSearch, FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -14,7 +15,7 @@ interface ClassData {
   name: string;
   description: string | null; 
   teacherId?: string | null; 
-  teacher?: { fullName: string }; // To display current teacher
+  teacher?: { fullName: string }; 
   _count?: {
     students: number;
   };
@@ -22,17 +23,17 @@ interface ClassData {
 
 const ClassManager: React.FC = () => {
   const [classes, setClasses] = useState<ClassData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
-  const [assignModal, setAssignModal] = useState<{show: boolean, data: any}>({ show: false, data: {} }); // <--- New state
+  const [assignModal, setAssignModal] = useState<{show: boolean, data: any}>({ show: false, data: {} }); 
 
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isAssigning, setIsAssigning] = useState(false); // <--- New state
+  const [isAssigning, setIsAssigning] = useState(false); 
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
@@ -105,7 +106,6 @@ const ClassManager: React.FC = () => {
     }
   };
 
-  // NEW: Handle Teacher Assignment
   const handleAssignTeacher = async (classId: string, teacherUserId: string) => {
     setIsAssigning(true);
     try {
@@ -158,42 +158,67 @@ const ClassManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="class-grid">
-        {filteredClasses.map(cls => (
-            <div key={cls.id} className="class-card">
-                <div className="card-top">
-                    <div className="icon-wrapper">
-                        <FaGraduationCap />
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(4)).map((_, i) => (
+                <div key={i} className="class-card">
+                    <div className="card-top">
+                        <Skeleton variant="circular" width={48} height={48} />
+                        <Skeleton variant="rectangular" width={60} height={24} style={{borderRadius: 20}} />
                     </div>
-                    <div className="student-badge">
-                        <FaUsers /> {cls._count?.students || 0}
+                    <div className="card-content">
+                        <Skeleton variant="text" width="60%" height={32} style={{marginBottom: 8}} />
+                        <Skeleton variant="text" width="90%" height={20} />
+                        <Skeleton variant="text" width="80%" height={20} />
+                        
+                        <div style={{marginTop:'15px', display:'flex', alignItems:'center', gap:'10px'}}>
+                            <Skeleton variant="circular" width={20} height={20} />
+                            <Skeleton variant="text" width="120px" height={20} />
+                        </div>
+                    </div>
+                    <div className="card-actions" style={{justifyContent: 'flex-start'}}>
+                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 8, marginRight: 10}} />
+                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 8}} />
                     </div>
                 </div>
-                
-                <div className="card-content">
-                    <h3>{cls.name}</h3>
-                    <p style={{fontSize:'0.9rem', color:'var(--text-muted-color)', marginTop:'5px', lineHeight: '1.4'}}>
-                        {cls.description || "No description provided."}
-                    </p>
+            ))
+        ) : (
+            filteredClasses.map(cls => (
+                <div key={cls.id} className="class-card">
+                    <div className="card-top">
+                        <div className="icon-wrapper">
+                            <FaGraduationCap />
+                        </div>
+                        <div className="student-badge">
+                            <FaUsers /> {cls._count?.students || 0}
+                        </div>
+                    </div>
+                    
+                    <div className="card-content">
+                        <h3>{cls.name}</h3>
+                        <p style={{fontSize:'0.9rem', color:'var(--text-muted-color)', marginTop:'5px', lineHeight: '1.4'}}>
+                            {cls.description || "No description provided."}
+                        </p>
 
-                    {/* Show Current Teacher */}
-                    <div style={{marginTop:'15px', fontSize:'0.85rem', display:'flex', alignItems:'center', gap:'6px', color: cls.teacher ? 'var(--primary-color)' : 'var(--text-muted-color)', fontWeight:500}}>
-                        <FaChalkboardTeacher /> 
-                        {cls.teacher ? cls.teacher.fullName : 'No Class Teacher Assigned'}
+                        {/* Show Current Teacher */}
+                        <div style={{marginTop:'15px', fontSize:'0.85rem', display:'flex', alignItems:'center', gap:'6px', color: cls.teacher ? 'var(--primary-color)' : 'var(--text-muted-color)', fontWeight:500}}>
+                            <FaChalkboardTeacher /> 
+                            {cls.teacher ? cls.teacher.fullName : 'No Class Teacher Assigned'}
+                        </div>
+                    </div>
+
+                    <div className="card-actions">
+                        <button className="delete-btn" style={{color:'var(--font-color)', marginRight:'10px'}} onClick={() => setAssignModal({show:true, data: cls})}>
+                            Assign Teacher
+                        </button>
+
+                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: cls.id, name: cls.name})}>
+                            <FaTrash /> Delete Class
+                        </button>
                     </div>
                 </div>
-
-                <div className="card-actions">
-                    {/* Assign Button */}
-                    <button className="delete-btn" style={{color:'var(--font-color)', marginRight:'10px'}} onClick={() => setAssignModal({show:true, data: cls})}>
-                        Assign Teacher
-                    </button>
-
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: cls.id, name: cls.name})}>
-                        <FaTrash /> Delete Class
-                    </button>
-                </div>
-            </div>
-        ))}
+            ))
+        )}
 
         {!isLoading && filteredClasses.length === 0 && (
             <div className="empty-state">

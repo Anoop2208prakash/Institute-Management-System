@@ -1,6 +1,7 @@
 // client/src/pages/admin/academic/SubjectManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch, FaChalkboardTeacher, FaLayerGroup, FaCalendarAlt } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -18,7 +19,7 @@ interface Subject {
 
 const SubjectManager: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
   // States
@@ -126,53 +127,74 @@ const SubjectManager: React.FC = () => {
 
       {/* --- HORIZONTAL LIST VIEW --- */}
       <div className="subject-list">
-        {/* Loader Removed */}
         
-        {!isLoading && filteredSubjects.map(sub => (
-            <div key={sub.id} className="subject-row">
-                {/* Left: Info */}
-                <div className="row-left">
-                    <div className="icon-box">
-                        <FaBook />
-                    </div>
-                    <div className="info">
-                        <h3>
-                            {sub.name} 
-                            <span className="code-badge">{sub.code}</span>
-                        </h3>
-                        <div className="details">
-                            <span>
-                                <FaLayerGroup style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                <strong>{sub.className}</strong>
-                            </span>
-                            
-                            {sub.semesterName && (
-                                <>
-                                    <span className="separator">|</span>
-                                    <span>
-                                        <FaCalendarAlt style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                        {sub.semesterName}
-                                    </span>
-                                </>
-                            )}
-
-                            <span className="separator">|</span>
-                            <span>
-                                <FaChalkboardTeacher style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                <strong>{sub.teacherName}</strong>
-                            </span>
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(5)).map((_, index) => (
+                <div key={index} className="subject-row" style={{padding: '1.5rem'}}>
+                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
+                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 10}} />
+                        <div className="info" style={{width: '100%'}}>
+                            <Skeleton variant="text" width="40%" height={30} style={{marginBottom: 8}} />
+                            <div className="details" style={{display:'flex', gap:'15px'}}>
+                                <Skeleton variant="text" width="100px" height={20} />
+                                <Skeleton variant="text" width="120px" height={20} />
+                                <Skeleton variant="text" width="150px" height={20} />
+                            </div>
                         </div>
                     </div>
+                    <div className="row-right">
+                        <Skeleton variant="rectangular" width={80} height={36} style={{borderRadius: 6}} />
+                    </div>
                 </div>
+            ))
+        ) : (
+            filteredSubjects.map(sub => (
+                <div key={sub.id} className="subject-row">
+                    {/* Left: Info */}
+                    <div className="row-left">
+                        <div className="icon-box">
+                            <FaBook />
+                        </div>
+                        <div className="info">
+                            <h3>
+                                {sub.name} 
+                                <span className="code-badge">{sub.code}</span>
+                            </h3>
+                            <div className="details">
+                                <span>
+                                    <FaLayerGroup style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                    <strong>{sub.className}</strong>
+                                </span>
+                                
+                                {sub.semesterName && (
+                                    <>
+                                        <span className="separator">|</span>
+                                        <span>
+                                            <FaCalendarAlt style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                            {sub.semesterName}
+                                        </span>
+                                    </>
+                                )}
 
-                {/* Right: Actions */}
-                <div className="row-right">
-                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})}>
-                        <FaTrash /> Delete
-                    </button>
+                                <span className="separator">|</span>
+                                <span>
+                                    <FaChalkboardTeacher style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
+                                    <strong>{sub.teacherName}</strong>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="row-right">
+                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})}>
+                            <FaTrash /> Delete
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ))}
+            ))
+        )}
 
         {!isLoading && filteredSubjects.length === 0 && (
             <div className="empty-state">No subjects found.</div>

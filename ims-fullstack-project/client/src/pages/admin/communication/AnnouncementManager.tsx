@@ -1,6 +1,7 @@
 // client/src/pages/admin/communication/AnnouncementManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBullhorn, FaPlus, FaTrash, FaUserCircle, FaSearch, FaClock } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
@@ -14,7 +15,7 @@ interface Announcement {
   content: string;
   target: string;
   date: string;
-  authorId: string; // <--- Added Author ID
+  authorId: string;
   authorName: string;
   authorAvatar: string | null;
 }
@@ -22,7 +23,7 @@ interface Announcement {
 const AnnouncementManager: React.FC = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -163,6 +164,7 @@ const AnnouncementManager: React.FC = () => {
                 />
             </div>
             
+            {/* HIDE BUTTON FOR STUDENTS */}
             {canPost && (
                 <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                     <FaPlus /> Post New
@@ -174,53 +176,81 @@ const AnnouncementManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="feed-grid">
-        {!isLoading && filteredList.map(item => (
-            <div key={item.id} className="feed-card">
-                <div className="card-header">
-                    <div className="author-section">
-                         {item.authorAvatar ? (
-                             <img 
-                                src={`http://localhost:5000${item.authorAvatar}`} 
-                                alt="Author" 
-                                className="author-avatar"
-                             />
-                        ) : (
-                             <div className="author-placeholder"><FaUserCircle /></div>
-                        )}
-
-                        <div className="author-details">
-                            <span className="author-name">{item.authorName}</span>
-                            <span className="post-date">
-                                <FaClock style={{fontSize:'0.7rem', marginRight:'4px'}} />
-                                {new Date(item.date).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </span>
+        
+        {/* --- SKELETON LOADER --- */}
+        {isLoading ? (
+            Array.from(new Array(3)).map((_, index) => (
+                <div key={index} className="feed-card">
+                    <div className="card-header">
+                        <div className="author-section" style={{gap: '1rem'}}>
+                             <Skeleton variant="circular" width={40} height={40} />
+                             <div className="author-details">
+                                <Skeleton variant="text" width={120} height={20} />
+                                <Skeleton variant="text" width={80} height={15} />
+                             </div>
+                        </div>
+                        <div className="header-right">
+                             <Skeleton variant="rectangular" width={60} height={24} style={{borderRadius: 4}} />
                         </div>
                     </div>
-
-                    <div className="header-right">
-                        {getTargetBadge(item.target)}
-                        
-                        {/* Only show delete button if Super Admin OR Author */}
-                        {canDelete(item.authorId) && (
-                            <button 
-                                className="delete-icon" 
-                                onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}
-                                title="Delete Post"
-                            >
-                                <FaTrash />
-                            </button>
-                        )}
+                    <div className="divider"></div>
+                    <div className="card-body">
+                        <Skeleton variant="text" width="60%" height={30} style={{marginBottom: 10}} />
+                        <Skeleton variant="text" width="100%" />
+                        <Skeleton variant="text" width="90%" />
+                        <Skeleton variant="text" width="95%" />
                     </div>
                 </div>
-                
-                <div className="divider"></div>
+            ))
+        ) : (
+            filteredList.map(item => (
+                <div key={item.id} className="feed-card">
+                    <div className="card-header">
+                        <div className="author-section">
+                             {item.authorAvatar ? (
+                                 <img 
+                                    src={`http://localhost:5000${item.authorAvatar}`} 
+                                    alt="Author" 
+                                    className="author-avatar"
+                                 />
+                            ) : (
+                                 <div className="author-placeholder"><FaUserCircle /></div>
+                            )}
 
-                <div className="card-body">
-                    <h3>{item.title}</h3>
-                    <p>{item.content}</p>
+                            <div className="author-details">
+                                <span className="author-name">{item.authorName}</span>
+                                <span className="post-date">
+                                    <FaClock style={{fontSize:'0.7rem', marginRight:'4px'}} />
+                                    {new Date(item.date).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="header-right">
+                            {getTargetBadge(item.target)}
+                            
+                            {/* Only show delete button if Super Admin OR Author */}
+                            {canDelete(item.authorId) && (
+                                <button 
+                                    className="delete-icon" 
+                                    onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}
+                                    title="Delete Post"
+                                >
+                                    <FaTrash />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="divider"></div>
+
+                    <div className="card-body">
+                        <h3>{item.title}</h3>
+                        <p>{item.content}</p>
+                    </div>
                 </div>
-            </div>
-        ))}
+            ))
+        )}
 
         {!isLoading && filteredList.length === 0 && (
             <div className="empty-state">

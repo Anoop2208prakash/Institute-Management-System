@@ -3,12 +3,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { FaUserGraduate, FaSearch, FaPhone, FaEnvelope, FaIdBadge, FaTrash } from 'react-icons/fa';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import { type AlertColor } from '@mui/material/Alert';
-import './AdmissionList.scss'; // Reusing styles for consistency
+import './AdmissionList.scss'; 
 
-// 1. Interface Matches Backend Response
 interface Student {
-  id: string; // This corresponds to userId
+  id: string; 
   admissionNo: string;
   name: string;
   email: string;
@@ -38,7 +38,6 @@ const AdmissionList: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // Fetch Students
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
@@ -57,7 +56,6 @@ const AdmissionList: React.FC = () => {
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
-  // --- DELETE LOGIC ---
   const openDeleteModal = (id: string, name: string) => {
     setStudentToDelete({ id, name });
     setIsDeleteModalOpen(true);
@@ -72,7 +70,7 @@ const AdmissionList: React.FC = () => {
       });
 
       if (res.ok) {
-        void fetchStudents(); // Refresh list
+        void fetchStudents(); 
         setIsDeleteModalOpen(false);
         showAlert('success', 'Student record deleted successfully');
       } else {
@@ -87,7 +85,6 @@ const AdmissionList: React.FC = () => {
     }
   };
 
-  // Filter Logic
   const filteredStudents = students.filter(student => 
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,7 +92,7 @@ const AdmissionList: React.FC = () => {
   );
 
   return (
-    <div className="admission-page"> {/* Updated Class Name for SCSS */}
+    <div className="admission-page"> 
       
       <div className="page-header">
         <div className="header-content">
@@ -103,7 +100,6 @@ const AdmissionList: React.FC = () => {
             <p>Manage student records and enrollment.</p>
         </div>
         
-        {/* Search Box */}
         <div className="header-actions">
             <div className="search-box">
                 <FaSearch />
@@ -124,55 +120,74 @@ const AdmissionList: React.FC = () => {
 
       {/* Grid */}
       <div className="student-grid">
-        {/* Loader Removed */}
         
-        {!loading && filteredStudents.map(s => (
-            <div key={s.id} className="student-card">
-                <div className="card-header">
-                    <img 
-                        src={s.avatar ? `http://localhost:5000${s.avatar}` : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
-                        className="avatar" 
-                        alt={s.name} 
-                    />
-                    <span className="class-badge" style={{backgroundColor: '#6f42c1'}}>
-                        {s.class}
-                    </span>
-                </div>
-                
-                <div className="card-body">
-                    <h3>{s.name}</h3>
-                    <div className="info-row">
-                        <FaIdBadge /> <span>ID: {s.admissionNo}</span>
+        {/* --- SKELETON LOADER --- */}
+        {loading ? (
+            Array.from(new Array(8)).map((_, index) => (
+                <div key={index} className="student-card">
+                    <div className="card-header">
+                        <Skeleton variant="circular" width={80} height={80} style={{border: '4px solid var(--card-bg-default)'}} />
+                        <Skeleton variant="rectangular" width={60} height={20} style={{borderRadius: '20px', marginTop: '10px'}} />
                     </div>
-                    <div className="info-row">
-                        <FaEnvelope /> <span>{s.email}</span>
+                    <div className="card-body">
+                        <Skeleton variant="text" width="60%" height={30} style={{margin: '0 auto 10px'}} />
+                        <div className="info-row" style={{justifyContent: 'center'}}><Skeleton variant="text" width="80%" /></div>
+                        <div className="info-row" style={{justifyContent: 'center'}}><Skeleton variant="text" width="90%" /></div>
+                        <div className="info-row" style={{justifyContent: 'center'}}><Skeleton variant="text" width="50%" /></div>
                     </div>
-                    <div className="info-row">
-                        <FaPhone /> <span>{s.phone || 'N/A'}</span>
+                    <div className="card-footer" style={{justifyContent: 'space-between'}}>
+                         <Skeleton variant="text" width={40} />
+                         <Skeleton variant="circular" width={30} height={30} />
                     </div>
                 </div>
-
-                <div className="card-footer">
-                    <span className="gender-badge">{s.gender}</span>
+            ))
+        ) : (
+            filteredStudents.map(s => (
+                <div key={s.id} className="student-card">
+                    <div className="card-header">
+                        <img 
+                            src={s.avatar ? `http://localhost:5000${s.avatar}` : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
+                            className="avatar" 
+                            alt={s.name} 
+                        />
+                        <span className="class-badge" style={{backgroundColor: '#6f42c1'}}>
+                            {s.class}
+                        </span>
+                    </div>
                     
-                    {/* Delete Button */}
-                    <button 
-                        className="btn-delete" 
-                        onClick={() => openDeleteModal(s.id, s.name)}
-                        title="Remove Student"
-                    >
-                        <FaTrash />
-                    </button>
+                    <div className="card-body">
+                        <h3>{s.name}</h3>
+                        <div className="info-row">
+                            <FaIdBadge /> <span>ID: {s.admissionNo}</span>
+                        </div>
+                        <div className="info-row">
+                            <FaEnvelope /> <span>{s.email}</span>
+                        </div>
+                        <div className="info-row">
+                            <FaPhone /> <span>{s.phone || 'N/A'}</span>
+                        </div>
+                    </div>
+
+                    <div className="card-footer">
+                        <span className="gender-badge">{s.gender}</span>
+                        
+                        <button 
+                            className="btn-delete" 
+                            onClick={() => openDeleteModal(s.id, s.name)}
+                            title="Remove Student"
+                        >
+                            <FaTrash />
+                        </button>
+                    </div>
                 </div>
-            </div>
-        ))}
+            ))
+        )}
 
         {!loading && filteredStudents.length === 0 && (
             <div className="empty-state">No students found.</div>
         )}
       </div>
 
-      {/* Delete Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
