@@ -1,34 +1,62 @@
 // client/src/features/auth/Login.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
-import { useAuth } from '../../context/AuthContext'; // <--- 1. Import Auth Context
+import { useAuth } from '../../context/AuthContext';
 import './Login.scss';
+import logo from '../../assets/image/logo.png'; // Ensure you have this logo
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // <--- 2. Destructure login function
+  const { login } = useAuth();
   
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: '', password: '' });
 
   const [alertInfo, setAlertInfo] = useState<{
     show: boolean; 
     type: AlertColor; 
     msg: string;
   }>({ 
-    show: false, 
-    type: 'error', 
-    msg: '' 
+    show: false, type: 'error', msg: '' 
   });
+
+  const validate = () => {
+    let isValid = true;
+    const newErrors = { email: '', password: '' };
+
+    if (!credentials.email) {
+      newErrors.email = 'Email address is required';
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
+      newErrors.email = 'Please enter a valid email';
+      isValid = false;
+    }
+
+    if (!credentials.password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
+    if (errors[e.target.name as keyof typeof errors]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     setAlertInfo(prev => ({ ...prev, show: false }));
 
@@ -42,26 +70,20 @@ const Login: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // 3. Use Context Login (Updates State + LocalStorage automatically)
         login(data.token, data.user);
-        
         setAlertInfo({ show: true, type: 'success', msg: 'Login successful! Redirecting...' });
-        
-        setTimeout(() => navigate('/dashboard'), 500); 
+        setTimeout(() => navigate('/dashboard'), 800); 
       } else {
         setAlertInfo({ 
             show: true, 
             type: 'error', 
-            msg: data.message || 'Login failed. Please check credentials.' 
+            msg: data.message || 'Invalid email or password.' 
         });
       }
     } catch (err) {
       console.error("Login Error:", err);
-      
       setAlertInfo({ 
-          show: true, 
-          type: 'error', 
-          msg: 'Network error. Is the backend server running?' 
+          show: true, type: 'error', msg: 'Unable to connect to server.' 
       });
     } finally {
       setLoading(false);
@@ -69,56 +91,90 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-page">
       <FeedbackAlert 
-        isOpen={alertInfo.show} 
-        type={alertInfo.type} 
-        message={alertInfo.msg} 
-        onClose={() => setAlertInfo({ ...alertInfo, show: false })}
+        isOpen={alertInfo.show} type={alertInfo.type} 
+        message={alertInfo.msg} onClose={() => setAlertInfo({ ...alertInfo, show: false })}
       />
 
-      <div className="login-card">
-        <h2>Login</h2>
-        
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input 
-              type="email" 
-              name="email"
-              className="form-input"
-              value={credentials.email}
-              onChange={handleChange}
-              required
-              placeholder="Enter your email"
-            />
+      {/* LEFT: Brand Section */}
+      <div className="login-banner">
+        <div className="banner-content">
+          <img src={logo} alt="IMS Logo" />
+          <h1>Institute Management<br/>System Pro</h1>
+          <p>
+            The centralized platform for students, teachers, and admins. 
+            Manage your academic journey with ease.
+          </p>
+          
+          <div className="feature-pill">
+            <FaCheckCircle style={{color: '#ffd700'}} /> 
+            <span>v2.0 Now Live</span>
+            &nbsp; with Online Exams
           </div>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input 
-              type="password" 
-              name="password"
-              className="form-input"
-              value={credentials.password}
-              onChange={handleChange}
-              required
-              placeholder="Enter your password"
-            />
+      {/* RIGHT: Form Section */}
+      <div className="login-form-container">
+        <div className="login-box">
+          <div className="header">
+            <h2>Welcome back</h2>
+            <p>Please enter your details to sign in.</p>
           </div>
+          
+          <form onSubmit={handleSubmit}>
+            
+            {/* Email Input */}
+            <div className="input-group">
+              <label htmlFor="email">Email</label>
+              <div className="input-wrapper">
+                <FaEnvelope />
+                <input 
+                  type="email" name="email" 
+                  className={errors.email ? 'error' : ''}
+                  value={credentials.email} onChange={handleChange} 
+                  placeholder="Enter your email"
+                />
+              </div>
+              {errors.email && <span className="error-msg">{errors.email}</span>}
+            </div>
 
-          <Link to="/forgot-password" className="forgot-password-link">
-            Forgot Password?
-          </Link>
+            {/* Password Input */}
+            <div className="input-group">
+              <label htmlFor="password">Password</label>
+              <div className="input-wrapper">
+                <FaLock />
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password"
+                  className={errors.password ? 'error' : ''}
+                  value={credentials.password} onChange={handleChange} 
+                  placeholder="••••••••"
+                />
+                <div className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              </div>
+              {errors.password && <span className="error-msg">{errors.password}</span>}
+            </div>
 
-          <button type="submit" className="btn-login" disabled={loading}>
-            {loading ? 'Authenticating...' : 'Login'}
-          </button>
-        </form>
+            <div className="actions">
+              <label>
+                <input type="checkbox" /> Remember for 30 days
+              </label>
+              <Link to="/forgot-password">Forgot Password?</Link>
+            </div>
 
-        <Link to="/staff-register" className="staff-reg-link">
-            Staff Registration (Temporary)
-        </Link>
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? 'Signing in...' : <>Sign In <FaArrowRight /></>}
+            </button>
+          </form>
+
+          <div className="footer">
+            <p>Don't have an account? <Link to="/staff-register">Staff Registration</Link></p>
+          </div>
+        </div>
       </div>
     </div>
   );

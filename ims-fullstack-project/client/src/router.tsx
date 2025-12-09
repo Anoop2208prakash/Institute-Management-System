@@ -17,6 +17,7 @@ import ExamManager from './pages/admin/academic/ExamManager';
 import InventoryManager from './pages/admin/inventory/InventoryManager';
 import OrderList from './pages/admin/inventory/OrderList';
 import AnnouncementManager from './pages/admin/communication/AnnouncementManager';
+// Corrected Paths for Admission Pages
 
 // Librarian Pages
 import BookList from './pages/librarian/BookList';
@@ -25,8 +26,10 @@ import LoanManager from './pages/librarian/LoanManager';
 // Teacher Pages
 import EnterMarks from './pages/teacher/EnterMarks';
 import AttendanceManager from './pages/teacher/AttendanceManager';
-import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
-import AdmissionList from './pages/admin/admission/AdmissionList';
+import TeacherSubjects from './pages/teacher/TeacherSubjects';
+import OnlineTestManager from './pages/teacher/OnlineTestManager';
+
+// Student Pages
 import StationeryStore from './pages/student/StationeryStore';
 import AdmitCardPage from './pages/student/AdmitCardPage';
 import MySubjects from './pages/student/MySubjects';
@@ -34,14 +37,15 @@ import MyAttendance from './pages/student/MyAttendance';
 import MyResults from './pages/student/MyResults';
 import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
-import TeacherSubjects from './pages/teacher/TeacherSubjects';
-import OnlineTestManager from './pages/teacher/OnlineTestManager';
+
 import LandingPage from './pages/LandingPage';
+import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
+import AdmissionList from './pages/admin/admission/AdmissionList';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />, // <--- Default Home
+    element: <LandingPage />, 
   },
   {
     path: '/login',
@@ -50,10 +54,6 @@ export const router = createBrowserRouter([
   {
     path: '/staff-register',
     element: <StaffRegister />,
-  },
-  {
-    path: '/new-admission',
-    element: <NewAdmissionPage />,
   },
   
   // PROTECTED ROUTES WRAPPED IN MAIN LAYOUT
@@ -82,6 +82,11 @@ export const router = createBrowserRouter([
         path: '/staff',
         element: <StaffList />
       },
+      // Moved inside MainLayout so Sidebar shows
+      {
+        path: '/new-admission',
+        element: <NewAdmissionPage />,
+      },
       {
         path: '/view-admission',
         element: <AdmissionList />
@@ -97,7 +102,7 @@ export const router = createBrowserRouter([
       // --- LIBRARIAN ROUTES ---
       { path: '/books', element: <BookList /> }, 
       { path: '/loans', element: <LoanManager /> },
-      { path: '/library-catalog', element: <BookList /> }, // Reuse BookList for catalog
+      { path: '/library-catalog', element: <BookList /> }, 
 
       // --- TEACHER ROUTES ---
       { path: '/teacher-subjects', element: <TeacherSubjects /> },
@@ -113,7 +118,6 @@ export const router = createBrowserRouter([
       { path: '/my-results', element: <MyResults /> },
       { path: '/my-invoices', element: <MyInvoices /> },
       { path: '/my-orders', element: <MyOrders /> },
-      // REMOVED: My Loans
     ]
   },
 

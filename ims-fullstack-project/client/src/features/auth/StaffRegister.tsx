@@ -112,7 +112,7 @@ const StaffRegister: React.FC = () => {
     }
   };
 
-  const onCropComplete = useCallback((croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
+  const onCropComplete = useCallback((_croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
