@@ -1,5 +1,5 @@
 // client/src/router.tsx
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import Login from './features/auth/Login';
 import StaffRegister from './features/auth/StaffRegister';
 import Dashboard from './pages/Dashboard';
@@ -36,11 +36,12 @@ import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
 import TeacherSubjects from './pages/teacher/TeacherSubjects';
 import OnlineTestManager from './pages/teacher/OnlineTestManager';
+import LandingPage from './pages/LandingPage';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/dashboard" replace />,
+    element: <LandingPage />, // <--- Default Home
   },
   {
     path: '/login',
