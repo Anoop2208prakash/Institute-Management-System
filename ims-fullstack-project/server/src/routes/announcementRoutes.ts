@@ -6,7 +6,9 @@ import { authenticate } from '../middlewares/auth';
 const router = Router();
 
 router.get('/', getAnnouncements);
-router.post('/', authenticate, createAnnouncement); // Requires Auth to get Author ID
-router.delete('/:id', deleteAnnouncement);
+router.post('/', authenticate, createAnnouncement);
+
+// --- MAKE SURE THIS LINE EXISTS ---
+router.delete('/:id', authenticate, deleteAnnouncement); 
 
 export default router;

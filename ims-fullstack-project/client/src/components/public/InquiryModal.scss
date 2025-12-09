@@ -1,0 +1,188 @@
+// client/src/components/public/InquiryModal.scss
+
+.inquiry-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75); // Darker backdrop
+    backdrop-filter: blur(5px);
+    z-index: 9999; // Very high Z-index to cover everything
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.2s ease-out;
+    overflow-y: hidden; // Ensure container doesn't scroll
+}
+
+.inquiry-card {
+    background: #fff;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease-out;
+    max-height: 90vh; // Prevent it from being taller than screen
+
+    .modal-header {
+        background: linear-gradient(135deg, var(--primary-color), #8250df);
+        padding: 1.5rem 2rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.4);
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 2rem;
+        overflow-y: auto; // Allow internal scrolling if content is long
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+
+                label {
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: #334155;
+
+                    .req {
+                        color: #dc2626;
+                        margin-left: 2px;
+                    }
+                }
+
+                input,
+                select,
+                textarea {
+                    padding: 12px;
+                    border: 1px solid #cbd5e1; // Default gray
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    outline: none;
+                    transition: all 0.2s;
+                    background-color: #f8fafc;
+                    color: #1e293b;
+                    width: 100%;
+                    font-family: inherit;
+
+                    &:focus {
+                        border-color: var(--primary-color);
+                        background-color: #fff;
+                        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+                    }
+
+                    &::placeholder {
+                        color: #94a3b8;
+                    }
+                }
+
+                select {
+                    cursor: pointer;
+                }
+
+                // --- ERROR STATE ---
+                .input-error {
+                    border-color: #dc2626 !important; // Bright Red
+                    background-color: #fef2f2 !important; // Light Red Bg
+
+                    &:focus {
+                        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+                    }
+                }
+
+                .error-text {
+                    color: #dc2626;
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    margin-top: 2px;
+                    display: block;
+                }
+            }
+
+            .btn-submit {
+                background: var(--primary-color);
+                color: white;
+                padding: 14px;
+                border: none;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                margin-top: 1rem;
+                transition: transform 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                &:hover {
+                    background: #4338ca;
+                    transform: translateY(-2px);
+                }
+
+                &:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+            }
+        }
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

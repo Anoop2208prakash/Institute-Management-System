@@ -14,6 +14,7 @@ interface Announcement {
   content: string;
   target: string;
   date: string;
+  authorId: string; // <--- Added Author ID
   authorName: string;
   authorAvatar: string | null;
 }
@@ -31,18 +32,24 @@ const AnnouncementManager: React.FC = () => {
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
 
-  // --- FIX: Safer Role Check (Avoids 'any' error) ---
+  // Get Role Name safely
   const getRoleName = () => {
     if (!user || !user.role) return '';
-    // If role is an object (populated relation), get name; else assume string
     if (typeof user.role === 'object' && 'name' in user.role) {
         return (user.role as { name: string }).name;
     }
     return String(user.role);
   };
-
   const userRole = getRoleName().toLowerCase();
+  
+  // Can Post: Not a Student
   const canPost = userRole !== 'student';
+
+  // Can Delete Helper (Is Super Admin OR Is Owner)
+  const canDelete = (authorId: string) => {
+      if (userRole === 'super_admin') return true;
+      return user?.id === authorId;
+  };
 
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
@@ -55,7 +62,7 @@ const AnnouncementManager: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/announcements');
       if (res.ok) setAnnouncements(await res.json());
     } catch (e) {
-      console.error(e); // FIX: Log the error
+      console.error(e);
       showAlert('error', 'Failed to load announcements');
     } finally {
       setIsLoading(false);
@@ -85,7 +92,7 @@ const AnnouncementManager: React.FC = () => {
             showAlert('error', err.message || 'Failed to post');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -105,10 +112,11 @@ const AnnouncementManager: React.FC = () => {
             setDeleteModal({ show: false, id: '', title: '' });
             showAlert('success', 'Announcement deleted');
         } else {
-            showAlert('error', 'Failed to delete announcement');
+            const err = await res.json();
+            showAlert('error', err.message || 'Failed to delete announcement');
         }
     } catch(e) { 
-        console.error(e); // FIX: Log the error
+        console.error(e);
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
@@ -155,7 +163,6 @@ const AnnouncementManager: React.FC = () => {
                 />
             </div>
             
-            {/* HIDE BUTTON FOR STUDENTS */}
             {canPost && (
                 <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                     <FaPlus /> Post New
@@ -167,8 +174,6 @@ const AnnouncementManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="feed-grid">
-        {/* Loader Removed */}
-        
         {!isLoading && filteredList.map(item => (
             <div key={item.id} className="feed-card">
                 <div className="card-header">
@@ -195,8 +200,8 @@ const AnnouncementManager: React.FC = () => {
                     <div className="header-right">
                         {getTargetBadge(item.target)}
                         
-                        {/* HIDE DELETE FOR STUDENTS */}
-                        {canPost && (
+                        {/* Only show delete button if Super Admin OR Author */}
+                        {canDelete(item.authorId) && (
                             <button 
                                 className="delete-icon" 
                                 onClick={() => setDeleteModal({show:true, id:item.id, title:item.title})}

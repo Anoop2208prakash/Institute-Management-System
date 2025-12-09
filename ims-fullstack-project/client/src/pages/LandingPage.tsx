@@ -1,12 +1,15 @@
 // client/src/pages/LandingPage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaGraduationCap, FaChalkboardTeacher, FaChartPie, FaRocket, FaShieldAlt, FaMobileAlt } from 'react-icons/fa';
 import './LandingPage.scss';
 import logo from '../assets/image/logo.png'; 
-// import dashboardPreview from '../assets/image/dashboard-preview.png'; // Make sure this image exists or use placeholder
+// import dashboardPreview from '../assets/image/dashboard-preview.png'; 
+import { InquiryModal } from '../components/public/InquiryModal'; // <--- Import Modal
 
 const LandingPage: React.FC = () => {
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false); // <--- State
+
   return (
     <div className="landing-page">
       <div className="aurora-bg"></div>
@@ -22,7 +25,7 @@ const LandingPage: React.FC = () => {
           <div className="nav-links">
             <a href="#features">Features</a>
             <a href="#about">About</a>
-            <a href="#contact">Contact</a>
+            <button onClick={() => setIsInquiryOpen(true)} style={{background:'none', border:'none', color:'#94a3b8', fontSize:'0.95rem', fontWeight:500, cursor:'pointer'}}>Contact</button>
           </div>
           <Link to="/login" className="btn-login">Login Portal</Link>
         </nav>
@@ -40,17 +43,20 @@ const LandingPage: React.FC = () => {
           </p>
           <div className="hero-actions">
             <Link to="/login" className="btn-primary">Get Started Now</Link>
-            <a href="#features" className="btn-secondary">View Features</a>
+            
+            {/* Inquiry Button */}
+            <button className="btn-secondary" onClick={() => setIsInquiryOpen(true)}>
+                Enquire Now
+            </button>
           </div>
 
-          <div className="dashboard-preview">
-             {/* Use a placeholder if you don't have the image yet */}
-             {/* <img 
+          {/* <div className="dashboard-preview">
+             <img 
                 src={dashboardPreview} 
                 alt="Dashboard Preview" 
                 onError={(e) => e.currentTarget.src = 'https://cdn.dribbble.com/users/411475/screenshots/16866228/media/64f1d4f2025345710609384561081512.png?resize=1600x1200&vertical=center'} 
-            /> */}
-          </div>
+            />
+          </div> */}
         </section>
 
         {/* Features Bento Grid */}
@@ -117,6 +123,9 @@ const LandingPage: React.FC = () => {
         </footer>
 
       </div>
+
+      {/* Inquiry Modal */}
+      <InquiryModal isOpen={isInquiryOpen} onClose={() => setIsInquiryOpen(false)} />
     </div>
   );
 };

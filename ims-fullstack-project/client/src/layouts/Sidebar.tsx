@@ -4,7 +4,8 @@ import { NavLink } from 'react-router-dom';
 import { 
   FaHome, FaIdCard, FaUserPlus, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
-  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib
+  FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib,
+  FaEnvelopeOpenText
 } from 'react-icons/fa';
 import './Sidebar.scss';
 import logo from '../assets/image/banner-logo.png'; 
@@ -45,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
         items: [
             { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin'] },
             { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin'] },
+            { path: '/inquiries', label: 'Inquiries (Leads)', icon: <FaEnvelopeOpenText />, roles: ['administrator', 'super_admin'] },
         ]
     },
     {
