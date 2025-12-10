@@ -1,133 +1,195 @@
 // client/src/pages/LandingPage.tsx
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaGraduationCap, FaChalkboardTeacher, FaChartPie, FaRocket, FaShieldAlt, FaMobileAlt } from 'react-icons/fa';
+import React from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { 
+  FaGraduationCap, FaArrowRight, FaUser, 
+  FaTicketAlt, FaShieldAlt, FaCreditCard, FaChevronRight 
+} from 'react-icons/fa';
 import './LandingPage.scss';
-import logo from '../assets/image/logo.png'; 
-// import dashboardPreview from '../assets/image/dashboard-preview.png'; 
-import { InquiryModal } from '../components/public/InquiryModal'; // <--- Import Modal
 
 const LandingPage: React.FC = () => {
-  const [isInquiryOpen, setIsInquiryOpen] = useState(false); // <--- State
+  const navigate = useNavigate();
 
   return (
     <div className="landing-page">
-      <div className="aurora-bg"></div>
-
-      <div className="content-wrapper">
-        
-        {/* Navbar */}
-        <nav className="landing-nav">
-          <div className="logo">
-            <img src={logo} alt="IMS Logo" />
-            <span>IMS Pro</span>
+      
+      {/* === NAVBAR === */}
+      <nav className="landing-nav">
+        <div className="nav-container">
+          <div className="brand">
+            <div className="logo-icon">
+              <FaGraduationCap />
+            </div>
+            <span>IMS <span className="highlight">Portal</span></span>
           </div>
+
           <div className="nav-links">
-            <a href="#features">Features</a>
-            <a href="#about">About</a>
-            <button onClick={() => setIsInquiryOpen(true)} style={{background:'none', border:'none', color:'#94a3b8', fontSize:'0.95rem', fontWeight:500, cursor:'pointer'}}>Contact</button>
+            <a href="#features">Campus Life</a>
+            <a href="#about">Facilities</a>
+            <a href="#contact">Support</a>
           </div>
-          <Link to="/login" className="btn-login">Login Portal</Link>
-        </nav>
 
-        {/* Hero */}
-        <section className="hero-section">
-          <span className="badge">New: Online Examination Module 🚀</span>
-          <h1>
-            <span>The Future of</span><br />
-            Institute Management
-          </h1>
-          <p>
-            Streamline your entire campus with one powerful platform. 
-            From admissions to alumni, we've got you covered with automation and insights.
-          </p>
-          <div className="hero-actions">
-            <Link to="/login" className="btn-primary">Get Started Now</Link>
-            
-            {/* Inquiry Button */}
-            <button className="btn-secondary" onClick={() => setIsInquiryOpen(true)}>
-                Enquire Now
+          <div className="nav-actions">
+            <button className="btn-signin" onClick={() => navigate('/login')}>
+              Sign In
+            </button>
+            <button className="btn-register" onClick={() => navigate('/new-admission')}>
+              Student Admission
             </button>
           </div>
+        </div>
+      </nav>
 
-          {/* <div className="dashboard-preview">
-             <img 
-                src={dashboardPreview} 
-                alt="Dashboard Preview" 
-                onError={(e) => e.currentTarget.src = 'https://cdn.dribbble.com/users/411475/screenshots/16866228/media/64f1d4f2025345710609384561081512.png?resize=1600x1200&vertical=center'} 
+      {/* === HERO SECTION === */}
+      <section className="hero-section">
+        {/* Dynamic Background Blobs */}
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+
+        <div className="hero-container">
+          {/* Text Content */}
+          <div className="hero-content">
+            <div className="badge">
+              <span className="dot"></span>
+              <span>Official Institute Portal</span>
+            </div>
+            
+            <h2>Welcome to</h2>
+            <h1>
+              Institute Management <br />
+              <span className="highlight">System</span>
+            </h1>
+            
+            <p>
+              Elevating the student experience. Manage your gate passes, complaints, fees, and academic progress seamlessly with our smart management system.
+            </p>
+            
+            <div className="cta-group">
+              <Link to="/login" className="btn-primary">
+                Login to Portal <FaArrowRight />
+              </Link>
+              <button className="btn-outline">
+                Campus Tour
+              </button>
+            </div>
+          </div>
+
+          {/* Visual Card (Mockup) */}
+          <div className="hero-visual">
+            <div className="glass-card">
+               <div className="card-header">
+                 <div className="user">
+                   <div className="avatar"><FaUser /></div>
+                   <div>
+                     <p>Rahul Sharma</p>
+                     <p>B.Tech CSE • Room 204</p>
+                   </div>
+                 </div>
+                 <div className="status">Authorized</div>
+               </div>
+
+               <div className="stats-row">
+                 <div className="stat">
+                   <label>Gate Pass</label>
+                   <span>Approved</span>
+                 </div>
+                 <div className="stat">
+                   <label>Attendance</label>
+                   <span>95%</span>
+                 </div>
+               </div>
+
+               <button className="card-btn">Open Dashboard</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === FEATURES SECTION === */}
+      <section id="features" className="features-section">
+          <div className="header">
+            <h2>Smart Campus. Smarter Living.</h2>
+            <p>
+              Experience a fully digital campus life. Say goodbye to paperwork and long queues.
+            </p>
+          </div>
+
+          <div className="features-grid">
+            <FeatureCard 
+              icon={FaTicketAlt}
+              title="E-Gate Pass System"
+              description="Apply for outings or leave directly from your phone. Parents and wardens get instant notifications for approval."
             />
-          </div> */}
-        </section>
-
-        {/* Features Bento Grid */}
-        <section id="features" className="features-section">
-          <div className="section-header">
-            <h2>Everything You Need</h2>
-            <p>Powerful tools designed for the modern educational ecosystem.</p>
+            <FeatureCard 
+              icon={FaShieldAlt}
+              title="24/7 Grievance Cell"
+              description="Facing maintenance issues? Lodge a complaint instantly and track the resolution progress in real-time."
+            />
+            <FeatureCard 
+              icon={FaCreditCard}
+              title="Digital Fee Payment"
+              description="Pay your hostel and academic fees securely via the integrated payment gateway with instant receipt generation."
+            />
           </div>
+      </section>
 
-          <div className="bento-grid">
-            {/* Card 1 (Large) */}
-            <div className="bento-card large">
-              <div className="icon"><FaRocket /></div>
-              <h3>Smart Automation</h3>
-              <p>Automate attendance tracking, fee generation, and result processing. Save 100+ hours of administrative work every month.</p>
+      {/* === FOOTER === */}
+      <footer className="landing-footer">
+        <div className="footer-content">
+          <div>
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.5rem'}}>
+              <div style={{width:'32px', height:'32px', background:'#D7F2F7', borderRadius:'8px', display:'flex', alignItems:'center', justifyContent:'center', color:'#354D62'}}>
+                <FaGraduationCap />
+              </div>
+              <span style={{fontSize:'1.5rem', fontWeight:'700'}}>IMS Pro</span>
             </div>
-
-            {/* Card 2 */}
-            <div className="bento-card">
-              <div className="icon"><FaChartPie /></div>
-              <h3>Analytics</h3>
-              <p>Real-time insights into student performance and financial health.</p>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bento-card">
-              <div className="icon"><FaShieldAlt /></div>
-              <h3>Secure & Safe</h3>
-              <p>Role-based access control ensures data privacy for everyone.</p>
-            </div>
-
-            {/* Card 4 (Tall) */}
-            <div className="bento-card tall">
-              <div className="icon"><FaMobileAlt /></div>
-              <h3>Mobile Ready</h3>
-              <p>Access your dashboard from anywhere. Fully responsive design for tablets and phones, allowing teachers to mark attendance on the go.</p>
-            </div>
-
-            {/* Card 5 */}
-            <div className="bento-card">
-              <div className="icon"><FaChalkboardTeacher /></div>
-              <h3>Teacher Tools</h3>
-              <p>Manage classes, conduct online tests, and grade assignments effortlessly.</p>
-            </div>
-
-             {/* Card 6 */}
-             <div className="bento-card">
-              <div className="icon"><FaGraduationCap /></div>
-              <h3>Student Portal</h3>
-              <p>Students can track their own progress, fees, and library loans.</p>
-            </div>
+            <p>
+              Providing a safe, secure, and smart environment for the leaders of tomorrow.
+            </p>
           </div>
-        </section>
-
-        {/* Footer */}
-        <footer className="landing-footer">
-            <span className="footer-logo">IMS Pro</span>
-            <p>© 2025 Institute Management System. All rights reserved.</p>
-            <div style={{marginTop: '1rem', display:'flex', gap:'1rem', justifyContent:'center', fontSize:'0.9rem'}}>
-                <a href="#" style={{color:'#94a3b8', textDecoration:'none'}}>Privacy</a>
-                <a href="#" style={{color:'#94a3b8', textDecoration:'none'}}>Terms</a>
-                <a href="#" style={{color:'#94a3b8', textDecoration:'none'}}>Support</a>
-            </div>
-        </footer>
-
-      </div>
-
-      {/* Inquiry Modal */}
-      <InquiryModal isOpen={isInquiryOpen} onClose={() => setIsInquiryOpen(false)} />
+          
+          <div>
+            <h4>Quick Links</h4>
+            <ul>
+              <li><Link to="/login"><FaChevronRight style={{fontSize:'0.7rem', marginRight:'5px'}}/> Student Login</Link></li>
+              <li><Link to="/login"><FaChevronRight style={{fontSize:'0.7rem', marginRight:'5px'}}/> Admin Portal</Link></li>
+              <li><a href="#"><FaChevronRight style={{fontSize:'0.7rem', marginRight:'5px'}}/> Hostel Rules</a></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4>Contact Support</h4>
+            <ul>
+              <li><span style={{opacity:0.8}}>Chief Warden:</span> +91 98765 43210</li>
+              <li><span style={{opacity:0.8}}>Email:</span> support@ims-pro.edu</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="copyright">
+          <p>© Anoop Prakash, 2025 Institute Management System. All rights reserved.</p>
+          <div className="links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
+
+// --- HELPER COMPONENT (Internal) ---
+const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+  <div className="feature-card">
+    <div className="icon">
+      <Icon />
+    </div>
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <div style={{marginTop:'1.5rem', fontSize:'0.9rem', fontWeight:'700', color:'#354D62', display:'flex', alignItems:'center', cursor:'pointer', opacity:0.7}}>
+      Learn more <FaArrowRight style={{marginLeft:'5px', fontSize:'0.8rem'}} />
+    </div>
+  </div>
+);
 
 export default LandingPage;
