@@ -8,7 +8,12 @@
     gap: 1.5rem;
     width: 100%;
 
+    // --- Header ---
     .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
         h2 {
             display: flex;
             align-items: center;
@@ -20,6 +25,12 @@
             svg {
                 color: var(--primary-color);
             }
+        }
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
         }
     }
 
@@ -56,6 +67,7 @@
                 background: var(--bg-secondary-color);
                 color: var(--font-color);
                 outline: none;
+                width: 100%;
 
                 &:focus {
                     border-color: var(--primary-color);
@@ -73,8 +85,10 @@
             font-weight: 600;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             height: 42px;
+            white-space: nowrap;
 
             &:disabled {
                 opacity: 0.6;
@@ -83,6 +97,22 @@
 
             &:hover:not(:disabled) {
                 background: var(--btn-primary-hover-bg);
+            }
+        }
+
+        // --- MOBILE SELECTION ---
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            padding: 1.2rem;
+
+            .form-group {
+                min-width: 0;
+            }
+
+            .btn-fetch {
+                width: 100%;
             }
         }
     }
@@ -160,6 +190,33 @@
                 color: var(--text-muted-color);
             }
         }
+
+        // --- MOBILE CONTROLS ---
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            padding: 1rem;
+
+            .filters {
+                width: 100%;
+                justify-content: space-between;
+
+                span {
+                    display: none;
+                }
+
+                // Hide label to save space
+                button {
+                    flex: 1;
+                    text-align: center;
+                }
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
     }
 
     // --- 3. Table Container ---
@@ -169,7 +226,7 @@
         border-radius: 12px;
         overflow: hidden;
 
-        // Grid Template: Info (Grow), Status (Fixed), Action (Fixed)
+        // Grid: Info (Grow), Status (Fixed), Action (Fixed)
         .table-header {
             display: grid;
             grid-template-columns: 1fr 150px 150px;
@@ -195,6 +252,12 @@
             }
 
             // ACTION
+
+            @media (max-width: 768px) {
+                display: none;
+            }
+
+            // Hide header on mobile
         }
 
         .table-body {
@@ -291,7 +354,6 @@
                         transition: all 0.2s;
                         min-width: 100px;
 
-                        // Toggle Button Styles
                         &.btn-mark-absent {
                             background: white;
                             color: #dc2626;
@@ -309,6 +371,57 @@
                             &:hover {
                                 background: #1d4ed8;
                             }
+                        }
+                    }
+                }
+
+                // --- MOBILE ROW STYLES (CARD VIEW) ---
+                @media (max-width: 768px) {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    padding: 1.2rem;
+                    gap: 1rem;
+
+                    // Info Section
+                    .student-info {
+                        width: 100%;
+
+                        .details {
+                            flex: 1;
+
+                            .name {
+                                font-size: 1.05rem;
+                            }
+
+                            .sid {
+                                font-size: 0.85rem;
+                            }
+                        }
+                    }
+
+                    // Re-arrange layout
+                    .status-cell {
+                        text-align: left;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        width: 100%;
+
+                        &::before {
+                            content: 'Current Status:';
+                            font-size: 0.85rem;
+                            color: var(--text-muted-color);
+                            font-weight: 600;
+                        }
+                    }
+
+                    .action-cell {
+                        width: 100%;
+
+                        button {
+                            width: 100%;
+                            padding: 10px;
                         }
                     }
                 }
@@ -338,6 +451,13 @@
             &:hover {
                 background: #0756b3;
                 transform: translateY(-2px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .btn-save {
+                width: 100%;
+                justify-content: center;
             }
         }
     }

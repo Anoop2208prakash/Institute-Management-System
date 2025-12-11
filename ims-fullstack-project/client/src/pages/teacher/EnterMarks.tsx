@@ -1,6 +1,7 @@
 // client/src/pages/teacher/EnterMarks.tsx
 import React, { useState, useEffect } from 'react';
 import { FaPenNib, FaSave } from 'react-icons/fa';
+import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
 import './EnterMarks.scss';
@@ -47,7 +48,7 @@ const EnterMarks: React.FC = () => {
                     const data = await res.json();
                     if (Array.isArray(data)) setExams(data);
                 }
-            } catch(e) { console.error(e); } // Fixed unused variable
+            } catch(e) { console.error(e); } 
         };
         fetchExams();
     }, []);
@@ -69,7 +70,7 @@ const EnterMarks: React.FC = () => {
                     }
                 }
             } catch(e) { 
-                console.error(e); // Fixed unused variable
+                console.error(e); 
                 showAlert('error', 'Failed to load student list'); 
             } finally { setLoading(false); }
         };
@@ -103,7 +104,7 @@ const EnterMarks: React.FC = () => {
             if(res.ok) showAlert('success', 'Marks Saved Successfully');
             else showAlert('error', 'Failed to save marks');
         } catch(e) { 
-            console.error(e); // Fixed unused variable
+            console.error(e); 
             showAlert('error', 'Network error'); 
         }
     };
@@ -138,21 +139,43 @@ const EnterMarks: React.FC = () => {
                         <span>Marks Obtained</span>
                         <span>Total Marks</span>
                     </div>
-                    {loading ? <div style={{padding:'2rem', textAlign:'center'}}>Loading...</div> : 
+                    
+                    {/* --- SKELETON LOADER --- */}
+                    {loading ? (
+                         Array.from(new Array(5)).map((_, index) => (
+                             <div key={index} className="table-row">
+                                 <Skeleton variant="text" width="60%" height={24} />
+                                 <Skeleton variant="text" width="40%" height={20} />
+                                 <div style={{display:'flex', alignItems:'center', gap:'10px', width:'100%'}}>
+                                     <Skeleton variant="rectangular" width={80} height={36} style={{borderRadius: 6}} />
+                                     <Skeleton variant="text" width={40} height={20} />
+                                 </div>
+                                 {/* Desktop only spacer */}
+                                 <span className="desktop-only"></span> 
+                             </div>
+                         ))
+                    ) : (
                         students.map(s => (
                             <div key={s.studentId} className="table-row">
                                 <span className="name">{s.name}</span>
                                 <span className="roll">{s.admissionNo}</span>
-                                <input 
-                                    type="number" 
-                                    value={s.marksObtained} 
-                                    onChange={e => handleMarkChange(s.studentId, e.target.value)}
-                                    min="0" max={s.totalMarks}
-                                />
-                                <span>/ {s.totalMarks}</span>
+                                
+                                {/* Wrapper for Input + Total to keep them together on mobile */}
+                                <div style={{display:'flex', alignItems:'center', gap:'10px', width:'100%'}}>
+                                    <input 
+                                        type="number" 
+                                        value={s.marksObtained} 
+                                        onChange={e => handleMarkChange(s.studentId, e.target.value)}
+                                        min="0" max={s.totalMarks}
+                                        placeholder="0"
+                                    />
+                                    <span style={{color:'var(--text-muted-color)', fontWeight:500}}>/ {s.totalMarks}</span>
+                                </div>
+                                <span className="desktop-only"></span> 
                             </div>
                         ))
-                    }
+                    )}
+                    
                     <div className="table-footer">
                         <button onClick={handleSave}><FaSave style={{marginRight:'8px'}}/> Save Marks</button>
                     </div>
