@@ -32,10 +32,24 @@
         border-bottom: 1px solid var(--card-border-color);
         padding-bottom: 0;
         margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
 
         .tabs {
             display: flex;
             gap: 2rem;
+            overflow-x: auto;
+
+            // --- HIDE SCROLLBAR BUT KEEP SCROLL ---
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+
+            /* IE and Edge */
+            &::-webkit-scrollbar {
+                display: none;
+                /* Chrome, Safari, Opera */
+            }
 
             button.tab-btn {
                 background: none;
@@ -47,6 +61,7 @@
                 cursor: pointer;
                 position: relative;
                 transition: color 0.2s;
+                white-space: nowrap;
 
                 &:hover {
                     color: var(--font-color);
@@ -56,11 +71,10 @@
                     color: var(--primary-color);
                     font-weight: 600;
 
-                    // The Blue Underline
                     &::after {
                         content: '';
                         position: absolute;
-                        bottom: -1px; // Overlap the border
+                        bottom: -1px;
                         left: 0;
                         width: 100%;
                         height: 2px;
@@ -74,6 +88,7 @@
             display: flex;
             gap: 1rem;
             padding-bottom: 0.5rem;
+            align-items: center;
 
             .search-box {
                 display: flex;
@@ -102,22 +117,62 @@
                 }
             }
 
-            .btn-add {
-                background-color: transparent;
-                border: 1px solid var(--card-border-color);
-                color: var(--font-color);
-                padding: 0.4rem 1rem;
-                border-radius: 6px;
+            // --- UPDATED BUTTON STYLE ---
+            .btn-add-primary {
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                padding: 0.7rem 1.5rem;
+                border-radius: 50px;
+                font-weight: 600;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 0.5rem;
-                font-size: 0.9rem;
+                gap: 8px;
                 transition: all 0.2s;
+                white-space: nowrap;
 
                 &:hover {
-                    background-color: var(--bg-secondary-color);
-                    border-color: var(--text-muted-color);
+                    background: var(--btn-primary-hover-bg);
+                    transform: translateY(-2px);
+                }
+            }
+        }
+
+        // --- MOBILE TOP BAR ---
+        @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            border-bottom: none;
+
+            .tabs {
+                width: 100%;
+                border-bottom: 1px solid var(--card-border-color);
+
+                button.tab-btn {
+                    flex: 1;
+                    text-align: center;
+                }
+            }
+
+            .actions {
+                flex-direction: column;
+                width: 100%;
+                padding-bottom: 0;
+
+                .search-box {
+                    width: 100%;
+
+                    input {
+                        width: 100%;
+                    }
+                }
+
+                .btn-add-primary {
+                    width: 100%;
+                    justify-content: center;
+                    padding: 0.8rem;
                 }
             }
         }
@@ -129,17 +184,21 @@
         border: 1px solid var(--card-border-color);
         border-radius: 8px;
         overflow: hidden;
-        min-height: 400px; // Enforce height for empty state
+        min-height: 400px;
         display: flex;
         flex-direction: column;
 
-        // Header Row
+        overflow-x: auto;
+
+        $grid-cols: 2fr 1fr 1fr 1fr;
+
         .grid-header {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr; // Name, Qty, Price, Actions
+            grid-template-columns: $grid-cols;
             padding: 1rem 1.5rem;
-            background-color: var(--bg-secondary-color); // Slightly darker for header
+            background-color: var(--bg-secondary-color);
             border-bottom: 1px solid var(--card-border-color);
+            min-width: 600px;
 
             span {
                 font-size: 0.85rem;
@@ -150,13 +209,13 @@
             }
         }
 
-        // Data Rows
         .grid-body {
             flex: 1;
+            min-width: 600px;
 
             .grid-row {
                 display: grid;
-                grid-template-columns: 2fr 1fr 1fr 1fr;
+                grid-template-columns: $grid-cols;
                 padding: 1rem 1.5rem;
                 border-bottom: 1px solid var(--card-border-color);
                 align-items: center;
@@ -194,6 +253,9 @@
                         font-size: 0.9rem;
                         opacity: 0.7;
                         transition: opacity 0.2s;
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
 
                         &:hover {
                             opacity: 1;
@@ -203,7 +265,6 @@
             }
         }
 
-        // 4. Empty State (Matches Image)
         .empty-state {
             flex: 1;
             display: flex;
@@ -213,6 +274,7 @@
             color: var(--text-muted-color);
             gap: 1rem;
             padding: 3rem;
+            min-width: 100%;
 
             .icon {
                 font-size: 3rem;

@@ -1,10 +1,9 @@
 // client/src/components/teacher/AddQuestionsStepper.tsx
 import React, { useState } from 'react';
 import { FaQuestionCircle, FaCheck } from 'react-icons/fa';
-import '../admin/CreateRoleModal.scss'; // Container logic
-import './AddQuestionsStepper.scss'; // New Styles
+import '../admin/CreateRoleModal.scss'; 
+import './AddQuestionsStepper.scss'; 
 
-// Interface for internal state (form fields)
 interface QuestionData {
   questionText: string;
   optionA: string;
@@ -15,7 +14,6 @@ interface QuestionData {
   marks: number;
 }
 
-// Interface for data sent to backend (API payload)
 export interface QuestionPayload {
   questionText: string;
   options: string[];
@@ -23,14 +21,12 @@ export interface QuestionPayload {
   marks: number;
 }
 
-// Helper type for mapping options
 type OptionKey = 'optionA' | 'optionB' | 'optionC' | 'optionD';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   examId: string;
-  // FIX 1: Replace 'any[]' with strict type
   onSave: (questions: QuestionPayload[]) => Promise<void>;
 }
 
@@ -45,10 +41,8 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
 
   if (!isOpen) return null;
 
-  // FIX 2: Replace 'any' with 'string | number'
   const handleChange = (field: keyof QuestionData, value: string | number) => {
     const updatedQuestions = [...questions];
-    // We need to ensure the value type matches the field type, or cast carefully
     updatedQuestions[activeStep] = { ...updatedQuestions[activeStep], [field]: value };
     setQuestions(updatedQuestions);
   };
@@ -65,7 +59,6 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
     }
     setIsSubmitting(true);
     
-    // Transform internal state to API payload structure
     const payload: QuestionPayload[] = validQuestions.map(q => ({
         questionText: q.questionText,
         options: [q.optionA, q.optionB, q.optionC, q.optionD],
@@ -94,11 +87,11 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
       <div className="modal-container"> 
         
         <div className="stepper-header">
-            <h3><FaQuestionCircle /> Quiz Creator Wizard</h3>
+            <h3><FaQuestionCircle /> Quiz Creator</h3>
         </div>
 
         <div className="stepper-body">
-            {/* Sidebar Navigation */}
+            {/* Sidebar (Desktop) */}
             <div className="step-sidebar">
                 {questions.map((q, idx) => (
                     <div 
@@ -114,6 +107,11 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
 
             {/* Main Content */}
             <div className="step-content">
+                {/* Mobile Progress Indicator */}
+                <div className="mobile-progress">
+                    Step {activeStep + 1} of 10
+                </div>
+
                 <div className="question-editor">
                     <div className="form-group">
                         <label>Question Text (Q{activeStep+1})</label>
@@ -158,7 +156,7 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
         <div className="stepper-footer">
             <button className="btn-cancel" onClick={onClose}>Cancel</button>
 
-            <div style={{display:'flex', gap:'1rem'}}>
+            <div className="nav-actions" style={{display:'flex', gap:'1rem'}}>
                 <button className="btn-nav prev" onClick={handlePrev} disabled={activeStep === 0 || isSubmitting}>
                     Previous
                 </button>
@@ -169,7 +167,7 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
                     </button>
                 ) : (
                     <button className="btn-nav finish" onClick={handleFinish} disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Finish & Save All'}
+                        {isSubmitting ? 'Saving...' : 'Finish'}
                     </button>
                 )}
             </div>

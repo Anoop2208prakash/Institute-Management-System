@@ -1,17 +1,21 @@
+// client/src/pages/teacher/EnterMarks.scss
+
 .marks-page {
     max-width: 1000px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    width: 100%;
 
     .page-header {
         h2 {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             color: var(--heading-color);
+            margin: 0;
 
             svg {
                 color: var(--primary-color);
@@ -19,6 +23,7 @@
         }
     }
 
+    // --- Selection Card ---
     .selection-card {
         background: var(--card-bg-default);
         border: 1px solid var(--card-border-color);
@@ -27,43 +32,80 @@
         display: flex;
         gap: 1rem;
         align-items: flex-end;
+        flex-wrap: wrap;
 
         .form-group {
             flex: 1;
+            min-width: 250px;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
 
             label {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 font-weight: 600;
                 color: var(--text-muted-color);
+                text-transform: uppercase;
             }
 
             select {
-                padding: 0.7rem;
+                padding: 0.8rem;
                 border: 1px solid var(--form-input-border-color);
-                border-radius: 6px;
+                border-radius: 8px;
                 background: var(--bg-secondary-color);
                 color: var(--font-color);
+                font-size: 0.95rem;
+                outline: none;
+                width: 100%;
+                transition: border-color 0.2s;
+
+                &:focus {
+                    border-color: var(--primary-color);
+                }
+            }
+        }
+
+        // Mobile
+        @media (max-width: 600px) {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1.2rem;
+
+            .form-group {
+                width: 100%;
             }
         }
     }
 
+    // --- Marks Table / List ---
     .marks-table {
         background: var(--card-bg-default);
         border: 1px solid var(--card-border-color);
         border-radius: 12px;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
 
         .table-header {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
             padding: 1rem 1.5rem;
             background: var(--bg-secondary-color);
-            font-weight: 600;
-            color: var(--text-muted-color);
             border-bottom: 1px solid var(--border-light-color);
+
+            span {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: var(--text-muted-color);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            @media (max-width: 600px) {
+                display: none;
+            }
+
+            // Hide header on mobile
         }
 
         .table-row {
@@ -72,28 +114,80 @@
             padding: 1rem 1.5rem;
             align-items: center;
             border-bottom: 1px solid var(--border-light-color);
+            transition: background 0.1s;
+
+            &:hover {
+                background: var(--bg-secondary-color);
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
 
             .name {
-                font-weight: 500;
+                font-weight: 600;
                 color: var(--heading-color);
+                font-size: 0.95rem;
             }
 
             .roll {
                 font-family: monospace;
                 color: var(--text-muted-color);
+                font-size: 0.85rem;
             }
 
             input {
-                padding: 0.5rem;
+                padding: 0.6rem;
                 border: 1px solid var(--form-input-border-color);
-                border-radius: 4px;
-                width: 80px;
+                border-radius: 6px;
+                width: 100%;
+                max-width: 100px;
                 background: var(--bg-color);
                 color: var(--font-color);
+                text-align: center;
+                font-weight: 600;
 
                 &:focus {
                     border-color: var(--primary-color);
                     outline: none;
+                    box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.1);
+                }
+            }
+
+            // --- MOBILE ROW (Card View) ---
+            @media (max-width: 600px) {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.8rem;
+                padding: 1.2rem;
+
+                .name {
+                    font-size: 1.1rem;
+                    margin-bottom: 2px;
+                }
+
+                .roll {
+                    margin-bottom: 0.5rem;
+                }
+
+                // Input Row
+                div {
+                    // Wrapper logic might be needed in TSX, or just stack here
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    width: 100%;
+
+                    input {
+                        max-width: 100%;
+                        flex: 1;
+                    }
+
+                    span {
+                        white-space: nowrap;
+                        color: var(--text-muted-color);
+                    }
                 }
             }
         }
@@ -103,18 +197,35 @@
             display: flex;
             justify-content: flex-end;
             background: var(--bg-secondary-color);
+            border-top: 1px solid var(--border-light-color);
 
             button {
                 background: var(--btn-primary-bg);
                 color: white;
                 border: none;
-                padding: 0.7rem 2rem;
-                border-radius: 6px;
-                font-weight: 600;
+                padding: 0.8rem 2.5rem;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 1rem;
                 cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 8px;
 
                 &:hover {
                     background: var(--btn-primary-hover-bg);
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                }
+            }
+
+            @media (max-width: 600px) {
+                justify-content: center;
+
+                button {
+                    width: 100%;
+                    justify-content: center;
                 }
             }
         }

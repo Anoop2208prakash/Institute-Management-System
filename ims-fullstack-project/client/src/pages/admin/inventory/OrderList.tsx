@@ -1,13 +1,12 @@
 // client/src/pages/admin/inventory/OrderList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaShoppingCart, FaCheck, FaTruck, FaSearch, FaBox, FaClipboardList, FaChevronRight } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
 import './OrderList.scss';
 import { ViewOrderModal } from '../../student/ViewOrderModal';
 
-// Updated Interface for Bulk Orders
 interface OrderItem {
   name: string;
   category: string;
@@ -29,9 +28,8 @@ interface Order {
 const OrderList: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
   
-  // Modal State
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

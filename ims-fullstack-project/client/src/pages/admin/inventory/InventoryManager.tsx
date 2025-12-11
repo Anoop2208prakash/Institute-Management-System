@@ -20,10 +20,8 @@ const InventoryManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // --- TAB STATE ---
   const [activeTab, setActiveTab] = useState<'Uniform' | 'Stationery'>('Uniform');
 
-  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -93,7 +91,6 @@ const InventoryManager: React.FC = () => {
     }
   };
 
-  // Filter based on Search AND Active Tab
   const filteredItems = items.filter(i => 
     i.category === activeTab && 
     i.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,12 +99,10 @@ const InventoryManager: React.FC = () => {
   return (
     <div className="inventory-page">
       
-      {/* Header */}
       <div className="page-header">
          <h2><FaBoxOpen /> Inventory Manager</h2>
       </div>
 
-      {/* Top Bar (Tabs & Search) */}
       <div className="top-bar">
         <div className="tabs">
             <button 
@@ -133,7 +128,8 @@ const InventoryManager: React.FC = () => {
                     onChange={e => setSearchTerm(e.target.value)}
                 />
             </div>
-            <button className="btn-add" onClick={() => setIsCreateModalOpen(true)}>
+            {/* UPDATED CLASS: btn-add-primary */}
+            <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                 <FaPlus /> Add {activeTab}
             </button>
         </div>
@@ -141,10 +137,8 @@ const InventoryManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* Data Table Container */}
       <div className="data-grid-container">
         
-        {/* Table Header */}
         <div className="grid-header">
             <span>Item Name</span>
             <span>Quantity</span>
@@ -153,8 +147,6 @@ const InventoryManager: React.FC = () => {
         </div>
 
         <div className="grid-body">
-            {/* Loader removed here */}
-
             {!isLoading && filteredItems.map(item => (
                 <div key={item.id} className="grid-row">
                     <span className="item-name">{item.name}</span>
@@ -168,7 +160,6 @@ const InventoryManager: React.FC = () => {
                 </div>
             ))}
             
-            {/* Empty State */}
             {!isLoading && filteredItems.length === 0 && (
                 <div className="empty-state">
                     <FaFileAlt className="icon" />
@@ -178,7 +169,6 @@ const InventoryManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
       <CreateInventoryModal 
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)} 
