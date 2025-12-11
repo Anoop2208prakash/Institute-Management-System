@@ -1,7 +1,7 @@
 // client/src/pages/admin/academic/SubjectManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch, FaChalkboardTeacher, FaLayerGroup, FaCalendarAlt } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -22,7 +22,6 @@ const SubjectManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -125,7 +124,6 @@ const SubjectManager: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* --- HORIZONTAL LIST VIEW --- */}
       <div className="subject-list">
         
         {/* --- SKELETON LOADER --- */}
@@ -133,17 +131,16 @@ const SubjectManager: React.FC = () => {
             Array.from(new Array(5)).map((_, index) => (
                 <div key={index} className="subject-row" style={{padding: '1.5rem'}}>
                     <div className="row-left" style={{gap: '1rem', width: '100%'}}>
-                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 10}} />
+                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 12, flexShrink:0}} />
                         <div className="info" style={{width: '100%'}}>
-                            <Skeleton variant="text" width="40%" height={30} style={{marginBottom: 8}} />
-                            <div className="details" style={{display:'flex', gap:'15px'}}>
-                                <Skeleton variant="text" width="100px" height={20} />
-                                <Skeleton variant="text" width="120px" height={20} />
-                                <Skeleton variant="text" width="150px" height={20} />
+                            <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 6}} />
+                            <div className="details" style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+                                <Skeleton variant="text" width="100px" height={16} />
+                                <Skeleton variant="text" width="100px" height={16} />
                             </div>
                         </div>
                     </div>
-                    <div className="row-right">
+                    <div className="row-right" style={{width: '20%'}}>
                         <Skeleton variant="rectangular" width={80} height={36} style={{borderRadius: 6}} />
                     </div>
                 </div>

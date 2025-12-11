@@ -1,7 +1,7 @@
 // client/src/pages/admin/academic/ClassManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaLayerGroup, FaPlus, FaTrash, FaUsers, FaSearch, FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -9,7 +9,6 @@ import './ClassManager.scss';
 import { CreateClassModal, type ClassFormData } from './CreateClassModal';
 import { AssignClassTeacherModal } from './AssignClassTeacherModal';
 
-// Updated Interface
 interface ClassData {
   id: string;
   name: string;
@@ -26,7 +25,6 @@ const ClassManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [assignModal, setAssignModal] = useState<{show: boolean, data: any}>({ show: false, data: {} }); 
@@ -163,7 +161,7 @@ const ClassManager: React.FC = () => {
             Array.from(new Array(4)).map((_, i) => (
                 <div key={i} className="class-card">
                     <div className="card-top">
-                        <Skeleton variant="circular" width={48} height={48} />
+                        <Skeleton variant="circular" width={50} height={50} style={{borderRadius: 12}} />
                         <Skeleton variant="rectangular" width={60} height={24} style={{borderRadius: 20}} />
                     </div>
                     <div className="card-content">
@@ -176,9 +174,9 @@ const ClassManager: React.FC = () => {
                             <Skeleton variant="text" width="120px" height={20} />
                         </div>
                     </div>
-                    <div className="card-actions" style={{justifyContent: 'flex-start'}}>
-                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 8, marginRight: 10}} />
-                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 8}} />
+                    <div className="card-actions">
+                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 6}} />
+                        <Skeleton variant="rectangular" width={100} height={36} style={{borderRadius: 6}} />
                     </div>
                 </div>
             ))
@@ -200,7 +198,6 @@ const ClassManager: React.FC = () => {
                             {cls.description || "No description provided."}
                         </p>
 
-                        {/* Show Current Teacher */}
                         <div style={{marginTop:'15px', fontSize:'0.85rem', display:'flex', alignItems:'center', gap:'6px', color: cls.teacher ? 'var(--primary-color)' : 'var(--text-muted-color)', fontWeight:500}}>
                             <FaChalkboardTeacher /> 
                             {cls.teacher ? cls.teacher.fullName : 'No Class Teacher Assigned'}
@@ -208,12 +205,12 @@ const ClassManager: React.FC = () => {
                     </div>
 
                     <div className="card-actions">
-                        <button className="delete-btn" style={{color:'var(--font-color)', marginRight:'10px'}} onClick={() => setAssignModal({show:true, data: cls})}>
+                        <button className="delete-btn" style={{color:'var(--font-color)', border:'1px solid var(--border-light-color)'}} onClick={() => setAssignModal({show:true, data: cls})}>
                             Assign Teacher
                         </button>
 
                         <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: cls.id, name: cls.name})}>
-                            <FaTrash /> Delete Class
+                            <FaTrash /> Delete
                         </button>
                     </div>
                 </div>

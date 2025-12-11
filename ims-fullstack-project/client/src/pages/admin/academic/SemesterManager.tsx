@@ -1,7 +1,7 @@
 // client/src/pages/admin/academic/SemesterManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaCalendarAlt, FaPlus, FaTrash, FaSearch, FaClock } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -144,17 +144,14 @@ const SemesterManager: React.FC = () => {
         {isLoading ? (
             Array.from(new Array(5)).map((_, index) => (
                 <div key={index} className="semester-row" style={{padding: '1.5rem'}}>
-                    {/* Left: Info Skeleton */}
                     <div className="row-left" style={{gap: '1rem', width: '100%'}}>
-                        <Skeleton variant="circular" width={50} height={50} />
+                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 12}} />
                         <div style={{flex: 1}}>
-                            <Skeleton variant="text" width="40%" height={24} style={{marginBottom: 6}} />
-                            <Skeleton variant="text" width="30%" height={16} style={{marginBottom: 4}} />
-                            <Skeleton variant="text" width="20%" height={16} />
+                            <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 6}} />
+                            <Skeleton variant="text" width="40%" height={16} />
                         </div>
                     </div>
-                    {/* Right: Actions Skeleton */}
-                    <div className="row-right" style={{gap: '1rem'}}>
+                    <div className="row-right" style={{gap: '1rem', width: '30%'}}>
                         <Skeleton variant="rectangular" width={80} height={24} style={{borderRadius: 12}} />
                         <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
                     </div>

@@ -6,14 +6,32 @@ import Navbar from './Navbar';
 import './MainLayout.scss';
 
 const MainLayout: React.FC = () => {
+  // 1. Initialize State
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 900);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   const [userRole, setUserRole] = useState<string>('');
   
-  // Navigation Hooks
   const navigation = useNavigation();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+
+  // 2. Handle Screen Resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 900;
+      setIsMobile(mobile);
+      if (!mobile) setIsSidebarOpen(true);
+      else setIsSidebarOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 3. Auto-Close Sidebar on Route Change (Mobile Only)
+  useEffect(() => {
+    if (isMobile) setIsSidebarOpen(false);
+  }, [location.pathname, isMobile]);
 
   // Theme Effect
   useEffect(() => {
@@ -24,7 +42,7 @@ const MainLayout: React.FC = () => {
   const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-  // Fetch Role on Mount
+  // Fetch Role
   useEffect(() => {
     const fetchRole = async () => {
       const token = localStorage.getItem('token');
@@ -37,58 +55,51 @@ const MainLayout: React.FC = () => {
           const data = await res.json();
           setUserRole(data.role); 
         }
-      } catch (error) {
-        console.error("Failed to load user role", error);
-      }
+      } catch (error) { console.error("Failed to load user role", error); }
     };
     fetchRole();
   }, []);
 
-  // --- FIXED LOADING LOGIC ---
+  // Loading Logic
   useEffect(() => {
-    // Check if router is busy
     const isNavigating = navigation.state === 'loading' || navigation.state === 'submitting';
-
     if (isNavigating) {
-      // FIX: Wrap in setTimeout(..., 0) to avoid "Synchronous Update" warning
-      const startTimer = setTimeout(() => {
-        setIsLoading(true);
-      }, 0);
+      const startTimer = setTimeout(() => setIsLoading(true), 0);
       return () => clearTimeout(startTimer);
     } else {
-      // Trigger visually for page transitions even if data is cached
       const startTimer = setTimeout(() => setIsLoading(true), 0);
-      
-      // Turn off after a brief delay for smoothness
-      const endTimer = setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
-      
-      return () => {
-        clearTimeout(startTimer);
-        clearTimeout(endTimer);
-      };
+      const endTimer = setTimeout(() => setIsLoading(false), 500);
+      return () => { clearTimeout(startTimer); clearTimeout(endTimer); };
     }
   }, [navigation.state, location.pathname]);
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${isMobile ? 'mobile-view' : ''}`}>
       
-      {/* 1. Sidebar */}
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        toggle={toggleSidebar} 
-        role={userRole} 
-      />
+      {/* Mobile Overlay */}
+      {isMobile && isSidebarOpen && (
+        <div 
+            className="sidebar-overlay"
+            onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-      {/* 2. Main Content */}
+      {/* Sidebar Wrapper */}
+      <div className={`sidebar-wrapper ${isSidebarOpen ? 'open' : 'closed'}`}>
+          <Sidebar 
+            isOpen={isSidebarOpen} 
+            toggle={toggleSidebar} 
+            role={userRole} 
+          />
+      </div>
+
+      {/* Main Content Area */}
       <main className="main-content">
-        
-        {/* Navbar with Loader */}
         <Navbar 
             theme={theme} 
             toggleTheme={toggleTheme} 
             isLoading={isLoading} 
+            toggleSidebar={toggleSidebar} // <--- Clean Prop Pass
         />
 
         <div className="page-container">

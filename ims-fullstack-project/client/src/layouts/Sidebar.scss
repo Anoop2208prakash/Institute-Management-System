@@ -3,6 +3,7 @@
 .sidebar {
     width: 260px;
     height: 100vh;
+    // FIX: Use Theme Variables instead of hardcoded hex codes
     background-color: var(--card-bg-default);
     color: var(--font-color);
     display: flex;
@@ -14,7 +15,7 @@
     z-index: 100;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-    border-right: 1px solid var(--border-light-color);
+    border-right: 1px solid var(--border-light-color); // Added border for separation in light mode
 
     // --- Collapsed State ---
     &.collapsed {
@@ -92,7 +93,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 1.5rem 1.5rem 1rem;
-        height: 48px;
+        height: 70px;
         flex-shrink: 0;
         border-bottom: 1px solid var(--border-light-color);
 
@@ -107,11 +108,9 @@
 
             // --- IMAGE STYLING ---
             img {
-                width: 175px;
+                width: 36px;
                 height: auto;
                 object-fit: contain;
-                // margin-bottom: 80px;
-                margin: 20px 20px 40px 20px;
             }
         }
 
@@ -142,6 +141,7 @@
         overflow-y: auto;
         padding: 1rem 0.8rem;
 
+        // Scrollbar Styling
         &::-webkit-scrollbar {
             width: 4px;
         }
@@ -172,7 +172,7 @@
             padding: 0.8rem 1rem;
             margin-bottom: 4px;
             border-radius: 8px;
-            color: var(--font-color);
+            color: var(--font-color); // Default text color (visible)
             text-decoration: none;
             transition: all 0.2s ease;
             font-weight: 500;
@@ -196,24 +196,29 @@
                 }
             }
 
-            // --- VISIBILITY FIX: Force White Text on Active ---
+            // --- FIX: Active State Colors ---
             &.active {
+                // Vibrant background gradient for visibility
                 background: linear-gradient(90deg, var(--primary-color), #8250df);
-                color: #fff !important;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 
+                // Force White Text so it's visible on the dark gradient
+                color: #ffffff !important;
+
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+                // Force White Icon
                 svg {
-                    color: #fff !important;
+                    color: #ffffff !important;
                 }
             }
         }
     }
 
-    // --- Footer ---
+    // --- Footer (User Info & Logout) ---
     .sidebar-footer {
         padding: 1rem;
         border-top: 1px solid var(--border-light-color);
-        background-color: var(--bg-secondary-color);
+        background-color: var(--bg-secondary-color); // Slightly darker/lighter based on theme
         display: flex;
         align-items: center;
         justify-content: space-between;

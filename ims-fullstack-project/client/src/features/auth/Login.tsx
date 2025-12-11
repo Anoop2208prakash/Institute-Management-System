@@ -6,7 +6,7 @@ import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
 import { useAuth } from '../../context/AuthContext';
 import './Login.scss';
-import logo from '../../assets/image/logo.png'; // Ensure you have this logo
+import logo from '../../assets/image/logo.png'; 
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -97,7 +97,7 @@ const Login: React.FC = () => {
         message={alertInfo.msg} onClose={() => setAlertInfo({ ...alertInfo, show: false })}
       />
 
-      {/* LEFT: Brand Section */}
+      {/* LEFT: Brand Section (Hidden on Mobile) */}
       <div className="login-banner">
         <div className="banner-content">
           <img src={logo} alt="IMS Logo" />
@@ -118,6 +118,13 @@ const Login: React.FC = () => {
       {/* RIGHT: Form Section */}
       <div className="login-form-container">
         <div className="login-box">
+          
+          {/* --- MOBILE ONLY HEADER --- */}
+          <div className="mobile-brand">
+             <img src={logo} alt="IMS" />
+             <h2>IMS Pro</h2>
+          </div>
+
           <div className="header">
             <h2>Welcome back</h2>
             <p>Please enter your details to sign in.</p>
@@ -161,7 +168,7 @@ const Login: React.FC = () => {
 
             <div className="actions">
               <label>
-                <input type="checkbox" /> Remember for 30 days
+                <input type="checkbox" /> Remember me
               </label>
               <Link to="/forgot-password">Forgot Password?</Link>
             </div>

@@ -92,6 +92,7 @@
             }
         }
 
+        // Hide entire banner on mobile
         @media (max-width: 900px) {
             display: none;
         }
@@ -106,14 +107,59 @@
         padding: 2rem;
         background-color: var(--card-bg-default);
 
+        // --- MOBILE SPECIFIC BACKGROUND ---
+        @media (max-width: 900px) {
+            background: linear-gradient(135deg, var(--primary-color), #6d28d9); // Use gradient bg on mobile
+            padding: 1.5rem;
+        }
+
         .login-box {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             animation: fadeIn 0.4s ease-out;
+
+            // --- MOBILE CARD STYLE ---
+            @media (max-width: 900px) {
+                background: var(--card-bg-default); // White card
+                padding: 2.5rem 2rem;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            // --- Mobile Brand Header ---
+            .mobile-brand {
+                display: none; // Hidden on desktop
+                text-align: center;
+                margin-bottom: 2rem;
+
+                @media (max-width: 900px) {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                img {
+                    width: 50px;
+                    height: 50px;
+                }
+
+                h2 {
+                    margin: 0;
+                    color: var(--primary-color);
+                    font-size: 1.5rem;
+                    font-weight: 800;
+                }
+            }
 
             .header {
                 margin-bottom: 2.5rem;
                 text-align: left;
+
+                @media (max-width: 900px) {
+                    text-align: center;
+                    margin-bottom: 2rem;
+                }
 
                 h2 {
                     font-size: 2rem;
@@ -134,7 +180,7 @@
                 gap: 1.5rem;
 
                 .input-group {
-                    display: block; // Changed from flex column
+                    display: block;
                     position: relative;
                     margin-bottom: 0.5rem;
 
@@ -147,12 +193,10 @@
                         margin-left: 2px;
                     }
 
-                    // --- FIXED INPUT WRAPPER ---
                     .input-wrapper {
                         position: relative;
                         width: 100%;
 
-                        // 1. Left Icon (Envelope/Lock)
                         &>svg:first-child {
                             position: absolute;
                             left: 14px;
@@ -161,21 +205,20 @@
                             color: var(--text-muted-color);
                             font-size: 1.1rem;
                             z-index: 10;
-                            pointer-events: none; // Let clicks pass through to input
+                            pointer-events: none;
                         }
 
-                        // 2. The Input Field
                         input {
                             width: 100%;
                             display: block;
-                            padding: 12px 45px 12px 42px; // Right padding 45px makes room for eye
+                            padding: 12px 45px 12px 42px;
                             border-radius: 8px;
                             border: 1px solid var(--border-light-color);
                             background-color: var(--bg-secondary-color);
                             color: var(--font-color);
                             font-size: 1rem;
                             transition: all 0.2s;
-                            box-sizing: border-box; // Ensures padding doesn't expand width
+                            box-sizing: border-box;
 
                             &::placeholder {
                                 color: var(--text-muted-color);
@@ -189,7 +232,6 @@
                                 box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
                             }
 
-                            // Color the LEFT icon when input is focused
                             &:focus+svg {
                                 color: var(--primary-color);
                             }
@@ -204,10 +246,9 @@
                             }
                         }
 
-                        // 3. Right Icon (Eye Toggle)
                         .toggle-password {
                             position: absolute;
-                            right: 15px; // Fixed 15px from right edge
+                            right: 15px;
                             top: 50%;
                             transform: translateY(-50%);
                             cursor: pointer;

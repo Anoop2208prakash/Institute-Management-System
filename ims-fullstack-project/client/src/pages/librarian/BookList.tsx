@@ -1,7 +1,7 @@
 // client/src/pages/librarian/BookList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBook, FaPlus, FaTrash, FaSearch } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton'; 
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import './BookList.scss';
 import { CreateBookModal } from './CreateBookModal';
 
-// Interface for existing books from API
+// Interface for existing books
 interface Book {
   id: string;
   title: string;
@@ -20,7 +20,7 @@ interface Book {
   available: number;
 }
 
-// Interface for NEW book data (from form)
+// Interface for NEW book data
 interface NewBookData {
   title: string;
   author: string;
@@ -32,7 +32,7 @@ interface NewBookData {
 const BookList: React.FC = () => {
   const { user } = useAuth(); 
   const [books, setBooks] = useState<Book[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Default to true for initial load
+  const [isLoading, setIsLoading] = useState(true); 
   const [searchTerm, setSearchTerm] = useState('');
   
   // Alert State
@@ -48,23 +48,37 @@ const BookList: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check Permissions (Librarian or Super Admin)
-  const canManage = user?.role === 'librarian' || user?.role === 'super_admin';
+  // Robust Role Check
+  const getRoleName = () => {
+      if (!user || !user.role) return '';
+      if (typeof user.role === 'object' && 'name' in user.role) {
+          return (user.role as { name: string }).name;
+      }
+      return String(user.role);
+  };
 
-  // Helper
+  const userRole = getRoleName().toLowerCase();
+  const canManage = userRole === 'librarian' || userRole === 'super_admin' || userRole === 'admin';
+
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // Fetch Books
+  // --- 1. FETCH BOOKS (FIXED: Added Token) ---
   const fetchBooks = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/library/books');
+      const token = localStorage.getItem('token'); // <--- Get Token
+      const res = await fetch('http://localhost:5000/api/library/books', {
+          headers: { 'Authorization': `Bearer ${token}` } // <--- Send Token
+      });
+      
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setBooks(data);
+      } else {
+         console.error("Failed to fetch books:", res.status);
       }
     } catch (e) {
       console.error(e);
@@ -76,13 +90,17 @@ const BookList: React.FC = () => {
 
   useEffect(() => { void fetchBooks(); }, [fetchBooks]);
 
-  // Create Logic
+  // --- 2. ADD BOOK (FIXED: Added Token) ---
   const handleAddBook = async (bookData: NewBookData) => {
     setIsCreating(true);
     try {
+        const token = localStorage.getItem('token');
         const res = await fetch('http://localhost:5000/api/library/books', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // <--- Send Token
+            },
             body: JSON.stringify(bookData)
         });
         if(res.ok) {
@@ -90,7 +108,8 @@ const BookList: React.FC = () => {
             setIsCreateModalOpen(false);
             showAlert('success', 'Book added successfully!');
         } else {
-            showAlert('error', 'Failed to add book. ISBN might be duplicate.');
+            const err = await res.json();
+            showAlert('error', err.message || 'Failed to add book.');
         }
     } catch(e) {
         console.error(e);
@@ -100,7 +119,7 @@ const BookList: React.FC = () => {
     }
   };
 
-  // Delete Logic
+  // --- 3. DELETE BOOK (FIXED: Added Token) ---
   const openDeleteModal = (id: string, title: string) => {
       setBookToDelete({ id, title });
       setIsDeleteModalOpen(true);
@@ -110,7 +129,12 @@ const BookList: React.FC = () => {
       if(!bookToDelete) return;
       setIsDeleting(true);
       try {
-          const res = await fetch(`http://localhost:5000/api/library/books/${bookToDelete.id}`, { method: 'DELETE' });
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:5000/api/library/books/${bookToDelete.id}`, { 
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${token}` } // <--- Send Token
+          });
+          
           if(res.ok) {
               void fetchBooks();
               setIsDeleteModalOpen(false);
@@ -126,7 +150,6 @@ const BookList: React.FC = () => {
       }
   };
 
-  // Search Logic
   const filteredBooks = books.filter(b => 
     b.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     b.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -136,7 +159,6 @@ const BookList: React.FC = () => {
   return (
     <div className="role-page">
       
-      {/* Header */}
       <div className="page-header">
         <div className="header-content">
             <h2><FaBook /> Library Catalog</h2>
@@ -148,7 +170,6 @@ const BookList: React.FC = () => {
                 <input placeholder="Search Title, Author, ISBN..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             </div>
             
-            {/* ONLY SHOW ADD BUTTON IF PERMISSION EXISTS */}
             {canManage && (
                 <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                     <FaPlus /> Add Book
@@ -159,28 +180,21 @@ const BookList: React.FC = () => {
 
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
-      {/* Grid */}
       <div className="roles-grid">
         
-        {/* --- SKELETON LOADER --- */}
+        {/* Skeleton Loader */}
         {isLoading ? (
             Array.from(new Array(6)).map((_, index) => (
                 <div key={index} className="role-card">
                     <div className="card-content">
-                        {/* Title Skeleton */}
                         <Skeleton variant="text" width="80%" height={32} style={{marginBottom: 8}} />
-                        {/* Author Skeleton */}
                         <Skeleton variant="text" width="50%" height={24} style={{marginBottom: 8}} />
-                        {/* ISBN Skeleton */}
                         <Skeleton variant="text" width="40%" height={20} />
-                        
-                        {/* Stats Skeleton */}
                         <div style={{marginTop:'15px', display:'flex', gap:'15px'}}>
                             <Skeleton variant="text" width={60} height={20} />
                             <Skeleton variant="text" width={80} height={20} />
                         </div>
                     </div>
-                    
                     {canManage && (
                         <div className="card-actions">
                             <Skeleton variant="rectangular" width="100%" height={36} style={{borderRadius: 6}} />
@@ -203,7 +217,6 @@ const BookList: React.FC = () => {
                         </div>
                     </div>
                     
-                    {/* ONLY SHOW DELETE IF PERMISSION EXISTS */}
                     {canManage && (
                         <div className="card-actions">
                             <button className="delete-btn" onClick={() => openDeleteModal(book.id, book.title)}>

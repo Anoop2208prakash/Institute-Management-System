@@ -8,6 +8,12 @@
     padding: 2rem;
     min-height: 100vh;
 
+    @media (max-width: 768px) {
+        padding: 10px; // Minimal padding on mobile
+        background-color: var(--bg-secondary-color); // Match background
+        justify-content: flex-start;
+    }
+
     // --- The Card (Screen View) ---
     .admit-card {
         background-color: var(--card-bg-default);
@@ -19,6 +25,12 @@
         overflow: hidden;
         position: relative;
         color: var(--font-color);
+
+        @media (max-width: 768px) {
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: none; // Remove border on mobile for cleaner look
+        }
 
         // Decorative Top Bar
         &::before {
@@ -39,6 +51,15 @@
             align-items: center;
             border-bottom: 2px solid var(--border-light-color);
 
+            // Mobile Stack
+            @media (max-width: 600px) {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1.5rem;
+                padding: 1.5rem;
+            }
+
             .institute-info {
                 h1 {
                     font-size: 1.8rem;
@@ -47,6 +68,11 @@
                     margin: 0;
                     text-transform: uppercase;
                     letter-spacing: 1px;
+
+                    @media (max-width: 600px) {
+                        font-size: 1.5rem;
+                        line-height: 1.2;
+                    }
                 }
 
                 p {
@@ -60,8 +86,12 @@
             .card-title {
                 text-align: right;
 
+                @media (max-width: 600px) {
+                    text-align: center;
+                }
+
                 h2 {
-                    font-size: 1.4rem;
+                    font-size: 1.2rem;
                     background-color: var(--bg-secondary-color);
                     color: var(--primary-color);
                     padding: 6px 16px;
@@ -89,6 +119,15 @@
             gap: 2rem;
             align-items: flex-start;
 
+            // Mobile Stack
+            @media (max-width: 600px) {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 1.5rem;
+                gap: 1.5rem;
+            }
+
             .photo-box {
                 width: 130px;
                 height: 150px;
@@ -97,6 +136,7 @@
                 border-radius: 8px;
                 padding: 4px;
                 flex-shrink: 0;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 
                 img {
                     width: 100%;
@@ -121,6 +161,16 @@
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 1.2rem;
+                width: 100%;
+
+                // Mobile: Stack grid
+                @media (max-width: 600px) {
+                    grid-template-columns: 1fr;
+                    text-align: left;
+                    background: var(--bg-secondary-color); // Highlight info block
+                    padding: 1.2rem;
+                    border-radius: 12px;
+                }
 
                 .info-group {
                     display: flex;
@@ -136,11 +186,17 @@
                     }
 
                     span {
-                        font-size: 1.1rem;
+                        font-size: 1rem;
                         font-weight: 600;
                         color: var(--heading-color);
                         border-bottom: 1px dashed var(--border-light-color);
                         padding-bottom: 2px;
+
+                        @media (max-width: 600px) {
+                            border-bottom: none;
+                        }
+
+                        // Remove underline on mobile block
                     }
                 }
             }
@@ -149,9 +205,15 @@
         // 3. Exam Table
         .exam-section {
             padding: 0 2.5rem 2rem;
+            overflow-x: auto; // Allow scroll on mobile
+
+            @media (max-width: 600px) {
+                padding: 0 1rem 2rem;
+            }
 
             table {
                 width: 100%;
+                min-width: 600px; // Force minimum width for scroll
                 border-collapse: collapse;
                 border-radius: 8px;
                 overflow: hidden;
@@ -163,11 +225,12 @@
                     th {
                         padding: 12px 16px;
                         text-align: left;
-                        font-size: 0.85rem;
+                        font-size: 0.8rem;
                         font-weight: 700;
                         color: var(--text-muted-color);
                         text-transform: uppercase;
                         border-bottom: 1px solid var(--border-light-color);
+                        white-space: nowrap;
                     }
                 }
 
@@ -181,8 +244,9 @@
 
                         td {
                             padding: 12px 16px;
-                            font-size: 0.95rem;
+                            font-size: 0.9rem;
                             color: var(--font-color);
+                            white-space: nowrap; // Prevent wrapping for cleaner table
                         }
                     }
                 }
@@ -198,14 +262,28 @@
             justify-content: space-between;
             align-items: flex-end;
 
+            @media (max-width: 600px) {
+                flex-direction: column;
+                gap: 2rem;
+                align-items: center;
+                text-align: center;
+                padding: 1.5rem;
+            }
+
             .instructions {
                 max-width: 60%;
 
+                @media (max-width: 600px) {
+                    max-width: 100%;
+                    text-align: left;
+                }
+
                 h4 {
-                    margin: 0 0 5px;
-                    font-size: 0.8rem;
+                    margin: 0 0 8px;
+                    font-size: 0.85rem;
                     text-transform: uppercase;
                     color: var(--heading-color);
+                    font-weight: 700;
                 }
 
                 ul {
@@ -213,9 +291,10 @@
                     padding-left: 15px;
 
                     li {
-                        font-size: 0.75rem;
+                        font-size: 0.8rem;
                         color: var(--text-muted-color);
-                        line-height: 1.4;
+                        line-height: 1.5;
+                        margin-bottom: 4px;
                     }
                 }
             }
@@ -227,7 +306,7 @@
                 .line {
                     border-bottom: 1px solid var(--font-color);
                     margin-bottom: 5px;
-                    height: 30px; // Space for signature
+                    height: 30px;
                 }
 
                 span {
@@ -239,24 +318,32 @@
         }
     }
 
-    // --- Actions ---
+    // --- Actions (Print Button) ---
     .action-bar {
         display: flex;
         gap: 1rem;
+
+        @media (max-width: 600px) {
+            width: 100%;
+            position: sticky;
+            bottom: 20px;
+            z-index: 10; // Floating button on mobile
+            justify-content: center;
+        }
 
         button {
             background-color: var(--btn-primary-bg);
             color: white;
             border: none;
             padding: 0.8rem 2rem;
-            border-radius: 8px;
+            border-radius: 50px;
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.3);
             transition: all 0.2s;
 
             &:hover {
@@ -288,7 +375,7 @@
         height: 100%;
         padding: 0;
         margin: 0;
-        background: white; // Save ink
+        background: white;
 
         .admit-card,
         .admit-card * {
@@ -305,8 +392,6 @@
             box-shadow: none;
             border: none;
             border-radius: 0;
-
-            // Force Black text for clarity
             color: #000 !important;
 
             .header h1,
@@ -316,21 +401,26 @@
                 color: #000 !important;
             }
 
-            // Clean borders for print
             border-bottom: 1px solid #000;
 
-            .exam-section table {
-                border: 1px solid #000;
+            // Ensure table fits on paper
+            .exam-section {
+                overflow: visible;
 
-                thead th {
-                    background-color: #f0f0f0 !important;
-                    color: #000 !important;
-                    border-bottom: 1px solid #000;
-                }
+                table {
+                    border: 1px solid #000;
+                    min-width: 100%;
 
-                tbody td {
-                    color: #000 !important;
-                    border-bottom: 1px solid #ccc;
+                    thead th {
+                        background-color: #f0f0f0 !important;
+                        color: #000 !important;
+                        border-bottom: 1px solid #000;
+                    }
+
+                    tbody td {
+                        color: #000 !important;
+                        border-bottom: 1px solid #ccc;
+                    }
                 }
             }
 
@@ -342,6 +432,19 @@
 
             .student-section .photo-box {
                 border: 1px solid #000;
+            }
+
+            // Fix instruction/footer layout for print
+            .card-footer {
+                flex-direction: row !important; // Force row on print even if mobile was column
+                align-items: flex-end !important;
+                background: none !important;
+                border-top: 1px solid #000 !important;
+
+                .instructions {
+                    max-width: 65% !important;
+                    text-align: left !important;
+                }
             }
         }
     }

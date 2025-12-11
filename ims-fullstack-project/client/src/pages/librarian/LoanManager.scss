@@ -1,31 +1,32 @@
 // client/src/pages/librarian/LoanManager.scss
 
 .loan-page {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
     width: 100%;
 
-    // ------------------------------------
-    // 1. Header & Issue Form
-    // ------------------------------------
+    // --- Header & Issue Form ---
     .page-header {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 1.5rem;
+        background: var(--card-bg-default);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--card-border-color);
+        box-shadow: var(--box-shadow-1);
 
         .header-content {
             h2 {
                 display: flex;
                 align-items: center;
                 gap: 0.75rem;
-                font-size: 1.75rem;
+                font-size: 1.6rem;
                 color: var(--heading-color);
-                margin: 0 0 0.5rem 0;
+                margin: 0;
 
                 svg {
                     color: var(--primary-color);
@@ -33,120 +34,117 @@
             }
         }
 
-        // Inline Issue Form
+        // Form Container
         .issue-form {
             display: flex;
-            gap: 0.75rem;
-            background-color: var(--card-bg-default);
-            padding: 0.75rem;
-            border: 1px solid var(--card-border-color);
-            border-radius: 10px;
-            box-shadow: var(--box-shadow-1);
-            flex-wrap: wrap;
+            gap: 1rem;
             align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
 
             select,
             input {
-                padding: 0.6rem 1rem;
-                border: 1px solid var(--form-input-border-color);
+                flex: 1;
+                min-width: 200px;
+                padding: 0.8rem 1rem;
+                border-radius: 8px;
+                border: 1px solid var(--border-light-color);
                 background: var(--bg-secondary-color);
-                border-radius: 6px;
                 color: var(--font-color);
-                font-size: 0.9rem;
+                font-size: 0.95rem;
                 outline: none;
-                min-width: 150px;
                 transition: border-color 0.2s;
 
                 &:focus {
-                    background: var(--bg-color);
                     border-color: var(--primary-color);
                 }
             }
 
-            button.btn-issue {
-                background-color: var(--btn-primary-bg);
-                color: #fff;
+            .btn-issue {
+                padding: 0.8rem 1.5rem;
+                background: var(--primary-color);
+                color: white;
                 border: none;
-                padding: 0.6rem 1.25rem;
-                border-radius: 6px;
+                border-radius: 8px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: all 0.2s;
+                transition: background 0.2s;
                 white-space: nowrap;
 
                 &:hover {
-                    background-color: var(--btn-primary-hover-bg);
-                    transform: translateY(-1px);
+                    background: var(--btn-primary-hover-bg);
+                }
+            }
+
+            // --- MOBILE FORM STYLES ---
+            @media (max-width: 768px) {
+                flex-direction: column;
+                align-items: stretch; // Full width inputs
+                gap: 1rem;
+
+                select,
+                input,
+                .btn-issue {
+                    width: 100%;
+                    min-width: 0; // Reset min-width
                 }
             }
         }
     }
 
-    // ------------------------------------
-    // 2. Loans Grid
-    // ------------------------------------
+    // --- Grid Layout ---
     .loans-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 1.5rem;
 
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-muted-color);
-            background: var(--card-bg-default);
-            border-radius: 12px;
-            border: 1px dashed var(--card-border-color);
+        // Mobile: 1 Column
+        @media (max-width: 600px) {
+            grid-template-columns: 1fr;
         }
 
-        // ------------------------------------
-        // 3. The Loan Card
-        // ------------------------------------
         .loan-card {
-            background-color: var(--card-bg-default);
+            background: var(--card-bg-default);
             border: 1px solid var(--card-border-color);
             border-radius: 12px;
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-height: 180px;
-            transition: all 0.2s ease;
+            gap: 1rem;
+            transition: transform 0.2s;
             position: relative;
             overflow: hidden;
 
-            // Dim returned books to focus attention on active loans
-            &.returned {
-                opacity: 0.6;
-                background-color: var(--bg-secondary-color);
-                border-style: dashed;
+            // Status Borders
+            border-left: 4px solid var(--border-light-color);
 
-                &:hover {
-                    opacity: 1;
-                    border-style: solid;
-                    background-color: var(--card-bg-default);
-                }
+            &.issued {
+                border-left-color: #0969da;
+            }
+
+            &.returned {
+                border-left-color: #1a7f37;
+                opacity: 0.8;
+            }
+
+            &.overdue {
+                border-left-color: #cf222e;
             }
 
             &:hover {
-                transform: translateY(-4px);
+                transform: translateY(-3px);
                 box-shadow: var(--box-shadow-2);
-                border-color: var(--border-heading-color);
             }
 
             .card-content {
-                flex: 1;
-
                 h3 {
-                    margin: 0 0 0.5rem 0;
-                    font-size: 1.2rem;
+                    margin: 0 0 0.5rem;
+                    font-size: 1.1rem;
                     color: var(--heading-color);
-                    line-height: 1.4;
                 }
 
                 .student-info {
-                    font-size: 0.95rem;
+                    font-size: 0.9rem;
                     color: var(--font-color);
                     margin-bottom: 0.5rem;
 
@@ -156,82 +154,81 @@
 
                     span {
                         color: var(--text-muted-color);
-                        font-size: 0.85rem;
+                        font-size: 0.8rem;
                         margin-left: 5px;
                     }
                 }
 
                 .due-date {
-                    font-size: 0.9rem;
+                    font-size: 0.85rem;
                     color: var(--text-muted-color);
-                    margin-bottom: 1rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
+                    font-weight: 500;
                 }
 
-                // Status Badges
                 .status-badge {
-                    display: inline-block;
-                    font-size: 0.75rem;
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    font-size: 0.7rem;
                     font-weight: 700;
                     text-transform: uppercase;
-                    padding: 4px 10px;
-                    border-radius: 20px;
-                    letter-spacing: 0.5px;
+                    padding: 4px 8px;
+                    border-radius: 4px;
 
                     &.issued {
-                        background-color: rgba(210, 153, 34, 0.15); // Orange bg
-                        color: #d29922; // Orange text
-                        border: 1px solid rgba(210, 153, 34, 0.3);
+                        background: rgba(9, 105, 218, 0.1);
+                        color: #0969da;
                     }
 
                     &.returned {
-                        background-color: rgba(26, 127, 55, 0.15); // Green bg
-                        color: #1a7f37; // Green text
-                        border: 1px solid rgba(26, 127, 55, 0.3);
+                        background: rgba(26, 127, 55, 0.1);
+                        color: #1a7f37;
                     }
 
                     &.overdue {
-                        background-color: rgba(207, 34, 46, 0.15); // Red bg
-                        color: #cf222e; // Red text
-                        border: 1px solid rgba(207, 34, 46, 0.3);
+                        background: rgba(207, 34, 46, 0.1);
+                        color: #cf222e;
                     }
                 }
             }
 
-            // Card Footer (Return Button)
             .card-actions {
-                margin-top: 1.5rem;
+                margin-top: auto;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-light-color);
                 display: flex;
                 justify-content: flex-end;
-                border-top: 1px solid var(--border-light-color);
-                padding-top: 1rem;
 
-                button {
-                    background: none;
-                    border: 1px solid transparent;
+                .return-btn {
+                    background: transparent;
+                    border: 1px solid var(--border-light-color);
+                    color: var(--font-color);
+                    padding: 6px 12px;
+                    border-radius: 6px;
                     cursor: pointer;
+                    font-size: 0.85rem;
                     display: flex;
                     align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    padding: 0.4rem 0.8rem;
-                    border-radius: 6px;
+                    gap: 6px;
                     transition: all 0.2s;
 
-                    &.return-btn {
-                        color: #1a7f37; // Green
-                        background-color: rgba(26, 127, 55, 0.1);
-
-                        &:hover {
-                            background-color: #1a7f37;
-                            color: white;
-                        }
+                    &:hover {
+                        background: var(--bg-secondary-color);
+                        color: var(--primary-color);
+                        border-color: var(--primary-color);
                     }
                 }
             }
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 4rem;
+            background: var(--card-bg-default);
+            border-radius: 12px;
+            border: 1px dashed var(--card-border-color);
+            color: var(--text-muted-color);
         }
     }
 }

@@ -7,8 +7,14 @@
     align-items: flex-start;
     min-height: 100vh;
     padding: 40px 20px;
-    background-color: var(--bg-secondary-color);
+    background-color: var(--bg-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    // Mobile Padding Fix
+    @media (max-width: 768px) {
+        padding: 10px;
+        background-color: var(--bg-secondary-color); // Optional: Cleaner look on mobile
+    }
 }
 
 // --- Admission Form Container ---
@@ -17,31 +23,55 @@
     max-width: 900px;
     background: var(--card-bg-default);
     color: var(--font-color);
-    box-shadow: var(--box-shadow-2);
-    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
     overflow: hidden;
     position: relative;
     border: 1px solid var(--border-light-color);
+
+    @media (max-width: 768px) {
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+    }
 }
 
 // --- Angled Header ---
 .header {
-    background-color: var(--bg-secondary-color);
-    color: var(--heading-color);
+    background-color: var(--sidebar-menu-bg-color);
+    color: var(--menu-font-color);
     padding: 30px 40px;
-    // Angled bottom edge
+    // Clip path only for desktop
     clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
     position: relative;
-    border-bottom: 1px solid var(--border-light-color);
+    padding-bottom: 60px; // Space for clip
 
     h2 {
         text-align: center;
         margin-top: 20px;
-        font-weight: 700;
+        font-weight: 600;
         letter-spacing: 2px;
-        border-top: 2px solid var(--primary-color);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         padding-top: 15px;
-        color: var(--primary-color);
+        font-size: 1.2rem;
+        text-transform: uppercase;
+    }
+
+    // --- MOBILE HEADER FIX ---
+    @media (max-width: 768px) {
+        clip-path: none; // Remove angle
+        padding: 20px;
+        padding-bottom: 20px;
+        background-color: var(--bg-secondary-color);
+        color: var(--heading-color);
+        border-bottom: 1px solid var(--border-light-color);
+
+        h2 {
+            color: var(--primary-color);
+            border-top: 1px solid var(--border-light-color);
+            margin-top: 15px;
+            font-size: 1rem;
+        }
     }
 }
 
@@ -50,6 +80,11 @@
     justify-content: space-between;
     align-items: center;
     gap: 20px;
+
+    @media (max-width: 768px) {
+        flex-direction: column; // Stack logo and photo
+        gap: 1.5rem;
+    }
 }
 
 .logoArea {
@@ -58,78 +93,94 @@
     gap: 15px;
 
     .logo {
-        height: 70px;
+        height: 60px;
         width: auto;
     }
 
     h1 {
         margin: 0;
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: 800;
-        color: var(--heading-color);
+        line-height: 1.1;
     }
 
     p {
         margin: 0;
-        font-size: 0.9rem;
-        color: var(--text-muted-color);
+        font-size: 0.85rem;
+        color: var(--secondary-text-color);
         font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+
+        .logo {
+            height: 50px;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+        }
     }
 }
 
 .photoBox {
     height: 140px;
     width: 120px;
-    border: 2px dashed var(--border-light-color);
-    border-radius: 8px;
+    border: 2px dashed var(--card-border-color);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-weight: 600;
-    color: var(--text-muted-color);
+    font-weight: bold;
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    background-color: var(--bg-secondary-color);
-    transition: all 0.2s ease-in-out;
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    transition: all 0.2s;
+    color: var(--text-muted-color);
     font-size: 0.8rem;
     text-align: center;
-    padding: 10px;
 
     &:hover {
         border-color: var(--primary-color);
         color: var(--primary-color);
-        // Use a simpler background change for hover
-        background-color: var(--card-bg-default);
+        background-color: rgba(0, 0, 0, 0.02);
     }
 
     img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 6px;
-    }
-
-    svg {
-        font-size: 2rem;
-        margin-bottom: 5px;
-        opacity: 0.6;
     }
 }
 
 // --- Form Body ---
 .formBody {
-    padding: 30px 50px;
+    padding: 30px 40px;
+
+    @media (max-width: 768px) {
+        padding: 20px; // Reduce padding on mobile
+    }
 }
 
 .formRow {
     display: flex;
     gap: 30px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 
     &>* {
         flex: 1;
+    }
+
+    // --- MOBILE ROW STACKING ---
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 1.2rem;
+        margin-bottom: 1.2rem;
     }
 }
 
@@ -145,36 +196,35 @@
         text-transform: uppercase;
     }
 
-    // Underline Style Inputs
     input[type="text"],
     input[type="date"],
     input[type="email"],
     input[type="tel"],
     input[type="password"],
     select {
-        border: none;
-        border-bottom: 1px dotted var(--border-light-color);
-        padding: 8px 4px;
-        font-size: 1rem;
-        background: transparent;
-        transition: border-color 0.3s;
+        border: 1px solid var(--border-light-color);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        background: var(--bg-secondary-color);
+        transition: all 0.2s;
         color: var(--font-color);
         width: 100%;
 
         &:focus {
             outline: none;
-            border-bottom: 2px solid var(--primary-color);
+            border-color: var(--primary-color);
+            background-color: var(--card-bg-default);
+            box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
         }
 
-        &::placeholder {
-            color: var(--text-muted-color);
-            opacity: 0.5;
+        &:read-only {
+            opacity: 0.7;
         }
     }
 
     select {
         cursor: pointer;
-        background-color: var(--card-bg-default);
     }
 }
 
@@ -182,7 +232,7 @@
     display: flex;
     gap: 20px;
     align-items: center;
-    padding-top: 8px;
+    height: 42px;
 
     label {
         display: flex;
@@ -191,53 +241,73 @@
         cursor: pointer;
         margin-bottom: 0;
         color: var(--font-color);
-        font-weight: 500;
+        font-size: 0.95rem;
         text-transform: none;
+
+        input {
+            margin: 0;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+        }
     }
 }
 
 // --- Address Fieldset ---
 .addressFieldset {
-    border: 1px dashed var(--border-light-color);
-    padding: 20px 25px;
-    margin: 30px 0;
-    border-radius: 6px;
-    // Simplified background to avoid rgba(hex) issue
-    background-color: var(--bg-secondary-color);
+    border: 1px solid var(--border-light-color);
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.01);
 
     legend {
         padding: 0 10px;
         font-weight: 700;
         color: var(--primary-color);
-        text-transform: uppercase;
         font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 768px) {
+        padding: 15px;
+        margin-bottom: 20px;
     }
 }
 
-// --- Footer Section ---
+// --- Footer ---
 .footer {
-    background-color: var(--bg-secondary-color);
-    padding: 50px 40px 40px;
-    margin-top: 30px;
-    clip-path: polygon(0 10%, 100% 0, 100% 100%, 0% 100%);
+    background-color: var(--sidebar-menu-bg-color);
+    padding: 40px;
+    margin-top: 20px;
+    clip-path: polygon(0 15%, 100% 0, 100% 100%, 0% 100%);
+    padding-top: 60px;
+
+    @media (max-width: 768px) {
+        clip-path: none;
+        padding: 20px;
+        margin-top: 0;
+        background: var(--bg-secondary-color);
+        border-top: 1px solid var(--border-light-color);
+    }
 }
 
 .declaration {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
 
     h3 {
-        font-size: 1rem;
+        font-size: 0.9rem;
         font-weight: 700;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         color: var(--heading-color);
-        text-decoration: underline;
+        text-transform: uppercase;
     }
 
     p {
-        font-size: 0.9rem;
-        color: var(--text-muted-color);
-        max-width: 80%;
+        font-size: 0.85rem;
+        color: var(--secondary-text-color);
+        max-width: 600px;
         margin: 0 auto;
         line-height: 1.5;
     }
@@ -246,19 +316,26 @@
 .signatures {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 40px;
+    margin-top: 40px;
     padding: 0 40px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 30px;
+        padding: 0;
+        align-items: center;
+    }
 }
 
 .signatureBox {
-    width: 35%;
-    border-top: 1px dotted var(--font-color);
-    padding-top: 10px;
+    width: 200px;
+    border-top: 1px solid var(--font-color);
+    padding-top: 8px;
     text-align: center;
 
     label {
-        font-size: 0.9rem;
-        color: var(--heading-color);
+        font-size: 0.85rem;
+        color: var(--secondary-text-color);
         font-weight: 600;
     }
 }
@@ -266,59 +343,33 @@
 .submissionArea {
     display: flex;
     justify-content: center;
+    margin-top: 40px;
 }
 
 .submitButton {
     padding: 14px 40px;
-    background-color: var(--btn-primary-bg);
-    color: #fff;
+    background-color: var(--primary-color);
+    color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     transition: all 0.2s;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.3);
 
     &:hover {
         background-color: var(--btn-primary-hover-bg);
         transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-    }
-}
-
-// --- Responsive ---
-@media (max-width: 768px) {
-    .pageWrapper {
-        padding: 10px;
+        box-shadow: 0 6px 15px rgba(var(--primary-rgb), 0.4);
     }
 
-    .header,
-    .footer {
-        clip-path: none;
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
 
-    .headerContent {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .logoArea {
-        flex-direction: column;
-    }
-
-    .formRow {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .signatures {
-        flex-direction: column;
-        gap: 40px;
-        align-items: center;
-    }
-
-    .signatureBox {
-        width: 80%;
+    @media (max-width: 768px) {
+        width: 100%; // Full width button on mobile
     }
 }

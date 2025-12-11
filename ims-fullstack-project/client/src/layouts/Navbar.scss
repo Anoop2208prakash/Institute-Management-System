@@ -13,6 +13,61 @@
     z-index: 99;
     transition: all 0.3s ease;
 
+    .mobile-menu-btn {
+        display: none; // Hidden by default (Desktop)
+        font-size: 1.2rem;
+        color: var(--text-muted-color);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 5px;
+
+        @media (max-width: 900px) {
+            display: flex; // Show on Mobile/Tablet
+        }
+    }
+
+    // --- MOBILE SEARCH MODE ---
+    &.mobile-search-mode {
+        padding: 0 1rem;
+        justify-content: flex-start;
+        gap: 0.5rem;
+
+        .mobile-search-bar {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary-color);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            animation: fadeIn 0.2s ease-out;
+            border: 1px solid var(--primary-color);
+
+            input {
+                flex: 1;
+                border: none;
+                background: transparent;
+                outline: none;
+                font-size: 1rem;
+                color: var(--font-color);
+
+                &::placeholder {
+                    color: var(--text-muted-color);
+                }
+            }
+
+            .search-icon {
+                color: var(--primary-color);
+            }
+        }
+
+        .icon-btn {
+            border: none;
+            padding: 0;
+            width: 40px;
+        }
+    }
+
     // --- Left: Breadcrumb ---
     .navbar-left {
         display: flex;
@@ -25,19 +80,30 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+
+            @media (max-width: 600px) {
+                max-width: 150px;
+                font-size: 0.8rem;
+            }
         }
     }
 
-    // --- Center: Search Bar ---
+    // --- Center: Desktop Search ---
     .navbar-center {
         flex: 1;
         display: flex;
         justify-content: center;
         padding: 0 2rem;
 
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             display: none;
         }
+
+        // Hide on mobile
 
         .global-search {
             display: flex;
@@ -86,7 +152,11 @@
     .navbar-right {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.8rem;
+
+        @media (max-width: 600px) {
+            gap: 0.5rem;
+        }
 
         .icon-btn {
             width: 40px;
@@ -108,7 +178,15 @@
                 color: var(--heading-color);
             }
 
-            // Notification Dot (Conditional)
+            // Mobile Only Button Visibility
+            &.mobile-only-btn {
+                display: none;
+
+                @media (max-width: 768px) {
+                    display: flex;
+                }
+            }
+
             &.has-notification::after {
                 content: '';
                 position: absolute;
@@ -129,15 +207,21 @@
             margin: 0 5px;
         }
 
-        // --- 1. Notification Dropdown (NEW) ---
+        // --- Notification Dropdown ---
         .notification-wrapper {
             position: relative;
 
             .dropdown-content {
                 position: absolute;
                 top: 130%;
-                right: -10px;
-                width: 320px; // Wider for text
+                right: -50px; // Adjust for mobile alignment
+
+                @media(max-width: 600px) {
+                    right: -60px;
+                    width: 280px;
+                }
+
+                width: 320px;
                 background: var(--card-bg-default);
                 border: 1px solid var(--border-light-color);
                 border-radius: 12px;
@@ -157,7 +241,7 @@
                     transform: translateY(0);
                 }
 
-                .header {
+                .dropdown-header {
                     padding: 1rem;
                     border-bottom: 1px solid var(--border-light-color);
                     font-weight: 700;
@@ -171,6 +255,10 @@
                         font-size: 0.75rem;
                         color: var(--primary-color);
                         cursor: pointer;
+                    }
+
+                    p {
+                        margin: 0;
                     }
                 }
 
@@ -218,16 +306,16 @@
                     }
                 }
 
-                .empty {
+                .menu-item {
+                    // For empty state
                     padding: 2rem;
                     text-align: center;
-                    color: var(--text-muted-color);
                     font-size: 0.9rem;
                 }
             }
         }
 
-        // Profile Trigger
+        // --- Profile Menu ---
         .profile-menu {
             position: relative;
 
@@ -250,7 +338,6 @@
                 }
             }
 
-            // Dropdown
             .dropdown-content {
                 position: absolute;
                 top: 130%;
@@ -311,11 +398,21 @@
         }
     }
 
-    // Loader
+    // --- Loader ---
     .loader-container {
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
