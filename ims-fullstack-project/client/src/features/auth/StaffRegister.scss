@@ -9,6 +9,13 @@
     background-color: var(--bg-color);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
+    // --- MOBILE BACKGROUND UPDATE ---
+    @media (max-width: 900px) {
+        background: linear-gradient(135deg, var(--primary-color), #8250df);
+        padding: 1rem;
+        align-items: flex-start; // Allow scrolling on tall forms
+    }
+
     .register-card {
         background-color: var(--card-bg-default);
         border: 1px solid var(--card-border-color);
@@ -17,6 +24,15 @@
         width: 100%;
         max-width: 900px;
         overflow: hidden;
+
+        // Mobile Card Polish
+        @media (max-width: 900px) {
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: none;
+            margin-top: 2rem; // Space from top
+            margin-bottom: 2rem;
+        }
 
         .card-header {
             padding: 1.5rem 2rem;
@@ -42,14 +58,25 @@
             display: flex;
             gap: 2rem;
 
+            // --- MOBILE LAYOUT STACK ---
             @media (max-width: 768px) {
                 flex-direction: column;
+                gap: 2rem;
+                padding: 1.5rem;
             }
 
             // 1. Photo Upload Section
             .image-upload-section {
                 width: 200px;
                 flex-shrink: 0;
+
+                // Mobile: Center the image upload
+                @media (max-width: 768px) {
+                    width: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
 
                 .field-label {
                     display: block;
@@ -62,6 +89,14 @@
                 .image-preview-box {
                     width: 100%;
                     height: 200px;
+
+                    // Mobile: Fixed size for the box
+                    @media (max-width: 768px) {
+                        width: 150px;
+                        height: 150px;
+                        border-radius: 50%; // Circular upload on mobile looks better
+                    }
+
                     border: 2px dashed var(--border-light-color);
                     border-radius: 8px;
                     background-color: var(--bg-secondary-color);
@@ -111,7 +146,8 @@
                 gap: 1.5rem;
 
                 @media (max-width: 600px) {
-                    grid-template-columns: 1fr;
+                    grid-template-columns: 1fr; // Single column on small screens
+                    gap: 1rem;
                 }
 
                 .form-group {
@@ -127,10 +163,10 @@
 
                     .form-input,
                     .form-select {
-                        padding: 0.7rem 1rem;
+                        padding: 0.8rem 1rem; // Slightly larger touch target
                         border: 1px solid var(--border-light-color);
-                        border-radius: 6px;
-                        font-size: 0.95rem;
+                        border-radius: 8px;
+                        font-size: 1rem;
                         background-color: var(--bg-secondary-color);
                         color: var(--font-color);
                         width: 100%;
@@ -159,10 +195,22 @@
             gap: 1rem;
             background-color: var(--bg-secondary-color);
 
+            // Mobile: Stack buttons
+            @media (max-width: 500px) {
+                flex-direction: column-reverse;
+
+                .btn {
+                    width: 100%;
+                    text-align: center;
+                    justify-content: center;
+                    display: flex;
+                }
+            }
+
             .btn {
-                padding: 0.7rem 1.5rem;
-                border-radius: 6px;
-                font-weight: 600;
+                padding: 0.8rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 700;
                 cursor: pointer;
                 font-size: 0.95rem;
                 border: 1px solid transparent;
@@ -206,8 +254,9 @@
     align-items: center;
 
     .cropper-container {
-        width: 500px;
-        background: white;
+        width: 90%;
+        max-width: 500px;
+        background: var(--card-bg-default);
         border-radius: 12px;
         overflow: hidden;
 
@@ -218,15 +267,37 @@
         }
 
         .controls {
-            padding: 1rem;
+            padding: 1.5rem;
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
             flex-direction: column;
+
+            .zoom-range {
+                width: 100%;
+            }
 
             .buttons {
                 display: flex;
                 justify-content: flex-end;
                 gap: 1rem;
+            }
+
+            button {
+                padding: 0.8rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                border: none;
+
+                &.btn-cancel {
+                    background: var(--bg-secondary-color);
+                    color: var(--font-color);
+                }
+
+                &.btn-apply {
+                    background: var(--primary-color);
+                    color: white;
+                }
             }
         }
     }

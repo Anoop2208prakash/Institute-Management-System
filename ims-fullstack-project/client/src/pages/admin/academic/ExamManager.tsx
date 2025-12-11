@@ -1,7 +1,7 @@
 // client/src/pages/admin/academic/ExamManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaPlus, FaTrash, FaSearch, FaCalendarDay } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
@@ -24,10 +24,13 @@ const ExamManager: React.FC = () => {
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
+  
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
+  const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
+    show: false, type: 'success', msg: '' 
+  });
 
   const showAlert = (type: AlertColor, msg: string) => {
     setAlertInfo({ show: true, type, msg });
@@ -126,10 +129,9 @@ const ExamManager: React.FC = () => {
         {/* --- SKELETON LOADER --- */}
         {isLoading ? (
             Array.from(new Array(5)).map((_, index) => (
-                <div key={index} className="exam-row" style={{padding: '1.5rem'}}>
-                    {/* Left: Info Skeleton */}
-                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
-                        <Skeleton variant="circular" width={50} height={50} />
+                <div key={index} className="exam-row">
+                    <div className="row-left">
+                        <Skeleton variant="circular" width={50} height={50} style={{marginRight: '1.5rem'}} />
                         <div style={{flex: 1}}>
                             <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 8}} />
                             <div style={{display:'flex', gap:'10px'}}>
@@ -139,11 +141,9 @@ const ExamManager: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Center: Date Skeleton */}
-                    <div className="row-center" style={{width: '20%'}}>
+                    <div className="row-center">
                         <Skeleton variant="text" width="100%" height={20} />
                     </div>
-                    {/* Right: Actions Skeleton */}
                     <div className="row-right">
                         <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
                     </div>
@@ -167,7 +167,7 @@ const ExamManager: React.FC = () => {
                     </div>
 
                     <div className="row-center">
-                        <FaCalendarDay /> {new Date(ex.date).toLocaleString()}
+                        <FaCalendarDay style={{marginRight:'8px'}}/> {new Date(ex.date).toLocaleString()}
                     </div>
 
                     <div className="row-right">

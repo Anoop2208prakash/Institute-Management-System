@@ -1,14 +1,14 @@
 // client/src/pages/admin/academic/SemesterManager.scss
 
 .semester-page {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
 
-  // Reuse Header styles from ClassManager for consistency
+  // --- Header ---
   .page-header {
     display: flex;
     justify-content: space-between;
@@ -21,7 +21,7 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        font-size: 1.75rem;
+        font-size: 1.8rem;
         color: var(--heading-color);
         margin: 0 0 0.5rem 0;
 
@@ -39,217 +39,232 @@
 
     .header-actions {
       display: flex;
+      align-items: center;
       gap: 1rem;
 
       .search-box {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 10px;
         background: var(--card-bg-default);
-        padding: 0.6rem 1rem;
-        border-radius: 8px;
-        border: 1px solid var(--card-border-color);
+        padding: 0.7rem 1.2rem;
+        border-radius: 50px;
+        border: 1px solid var(--border-light-color);
+        width: 300px;
+        box-shadow: var(--box-shadow-1);
+        transition: all 0.2s;
+
+        &:focus-within {
+          border-color: var(--primary-color);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
 
         input {
           border: none;
           background: transparent;
           outline: none;
+          width: 100%;
+          font-size: 0.95rem;
           color: var(--font-color);
+
+          &::placeholder {
+            color: var(--text-muted-color);
+          }
+        }
+
+        svg {
+          color: var(--text-muted-color);
         }
       }
 
       .btn-add-primary {
-        background: var(--btn-primary-bg);
+        background: var(--primary-color);
         color: white;
         border: none;
-        padding: 0.7rem 1.2rem;
-        border-radius: 8px;
+        padding: 0.7rem 1.5rem;
+        border-radius: 50px;
         font-weight: 600;
         cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 8px;
+        transition: all 0.2s;
+        white-space: nowrap;
 
         &:hover {
           background: var(--btn-primary-hover-bg);
+          transform: translateY(-2px);
+        }
+      }
+    }
+
+    // --- MOBILE HEADER STYLES ---
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.5rem;
+
+      .header-content {
+        text-align: center;
+
+        h2 {
+          justify-content: center;
+          font-size: 1.5rem;
+        }
+      }
+
+      .header-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 1rem;
+
+        .search-box {
+          width: 100%;
+          border-radius: 12px;
+        }
+
+        .btn-add-primary {
+          width: 100%;
+          justify-content: center;
+          padding: 1rem;
+          border-radius: 12px;
         }
       }
     }
   }
 
-  // --- HORIZONTAL LIST LAYOUT ---
+  // --- Semester List Layout ---
   .semester-list {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--text-muted-color);
-      background: var(--card-bg-default);
-      border-radius: 12px;
-      border: 1px dashed var(--card-border-color);
-    }
-
     .semester-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: var(--card-bg-default);
+      background: var(--card-bg-default);
       border: 1px solid var(--card-border-color);
       border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      transition: all 0.2s ease;
-      position: relative;
-      overflow: hidden;
-
-      // Left color accent bar based on status
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background-color: var(--border-light-color); // Default
-      }
-
-      &.active::before {
-        background-color: #1a7f37;
-      }
-
-      // Green
-      &.upcoming::before {
-        background-color: var(--primary-color);
-      }
-
-      // Blue
-      &.completed::before {
-        background-color: var(--text-muted-color);
-      }
-
-      // Gray
+      padding: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--box-shadow-1);
 
       &:hover {
-        transform: translateX(4px);
-        box-shadow: var(--box-shadow-1);
-        border-color: var(--border-heading-color);
+        transform: translateY(-3px);
+        box-shadow: var(--box-shadow-2);
+        border-color: var(--primary-color);
       }
 
-      // Left Section: Icon & Info
+      // Left Side
       .row-left {
         display: flex;
         align-items: center;
         gap: 1.5rem;
 
         .icon-box {
-          width: 48px;
-          height: 48px;
-          border-radius: 10px;
-          background-color: var(--bg-secondary-color);
-          color: var(--primary-color);
+          width: 50px;
+          height: 50px;
+          background: var(--bg-secondary-color);
+          color: var(--text-muted-color);
+          border-radius: 12px;
           display: flex;
-          justify-content: center;
           align-items: center;
-          font-size: 1.2rem;
-          flex-shrink: 0;
+          justify-content: center;
+          font-size: 1.4rem;
         }
 
         .info {
-          display: flex;
-          flex-direction: column;
-          gap: 0.2rem;
-
           h3 {
             margin: 0;
             font-size: 1.1rem;
             color: var(--heading-color);
+            font-weight: 700;
           }
 
           .program {
             font-size: 0.85rem;
-            font-weight: 600;
             color: var(--text-muted-color);
-            text-transform: uppercase;
+            display: block;
+            margin: 4px 0;
           }
 
           .dates {
-            font-size: 0.85rem;
-            color: var(--font-color);
-            opacity: 0.8;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--font-color);
+            font-weight: 500;
           }
         }
       }
 
-      // Right Section: Status & Actions
+      // Right Side
       .row-right {
         display: flex;
         align-items: center;
-        gap: 2rem;
+        gap: 1.5rem;
 
         .status-badge {
           font-size: 0.75rem;
           font-weight: 700;
           text-transform: uppercase;
-          padding: 4px 10px;
+          padding: 6px 12px;
           border-radius: 20px;
           letter-spacing: 0.5px;
-
-          &.active {
-            background: rgba(26, 127, 55, 0.1);
-            color: #1a7f37;
-            border: 1px solid rgba(26, 127, 55, 0.2);
-          }
-
-          &.upcoming {
-            background: rgba(9, 105, 218, 0.1);
-            color: var(--primary-color);
-            border: 1px solid rgba(9, 105, 218, 0.2);
-          }
-
-          &.completed {
-            background: var(--bg-secondary-color);
-            color: var(--text-muted-color);
-            border: 1px solid var(--border-light-color);
-          }
         }
 
         .delete-btn {
-          background: none;
+          background: transparent;
           border: none;
+          color: #cf222e;
           cursor: pointer;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 6px;
           font-size: 0.9rem;
-          color: var(--font-color-danger);
-          opacity: 0.7;
-          padding: 0.5rem;
+          font-weight: 600;
+          padding: 8px 12px;
           border-radius: 6px;
-          transition: all 0.2s;
+          transition: background 0.2s;
 
           &:hover {
-            opacity: 1;
-            background-color: rgba(207, 34, 46, 0.1);
+            background: rgba(207, 34, 46, 0.1);
           }
         }
       }
 
-      // Mobile Responsive: Stack them
-      @media (max-width: 700px) {
+      // --- MOBILE ROW STYLES ---
+      @media (max-width: 768px) {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 1.5rem;
+
+        .row-left {
+          width: 100%;
+
+          .icon-box {
+            flex-shrink: 0;
+          }
+        }
 
         .row-right {
           width: 100%;
           justify-content: space-between;
+          border-top: 1px solid var(--border-light-color);
+          padding-top: 1rem;
         }
       }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem;
+      background: var(--card-bg-default);
+      border-radius: 12px;
+      border: 1px dashed var(--card-border-color);
+      color: var(--text-muted-color);
     }
   }
 }

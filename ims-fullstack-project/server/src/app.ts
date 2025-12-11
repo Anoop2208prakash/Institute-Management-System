@@ -10,7 +10,6 @@ import authRoutes from './routes/authRoutes';
 import staffRoutes from './routes/staffRoutes';
 import profileRoutes from './routes/profileRoutes';
 import studentRoutes from './routes/studentRoutes';
-import libraryRoutes from './routes/libraryRoutes';
 import classRoutes from './routes/classRoutes';
 import subjectRoutes from './routes/subjectRoutes';
 import semesterRoutes from './routes/semesterRoutes';
@@ -24,6 +23,7 @@ import markRoutes from './routes/markRoutes';
 import onlineExamRoutes from './routes/onlineExamRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import inquiryRoutes from './routes/inquiryRoutes';
+import libraryRoutes from './routes/libraryRoutes';
 
 dotenv.config();
 
@@ -46,7 +46,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/students', studentRoutes);
-app.use('/api/library', libraryRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/semesters', semesterRoutes);
@@ -60,6 +59,7 @@ app.use('/api/marks', markRoutes);
 app.use('/api/online-exams', onlineExamRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/library', libraryRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
