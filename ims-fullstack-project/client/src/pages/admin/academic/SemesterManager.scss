@@ -7,6 +7,7 @@
   flex-direction: column;
   gap: 2rem;
   width: 100%;
+  padding: 1rem;
 
   // --- Header ---
   .page-header {
@@ -15,25 +16,54 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 1.5rem;
+    margin-bottom: 1rem;
 
     .header-content {
-      h2 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .back-btn-round {
+        background: var(--bg-secondary-color);
+        border: 1px solid var(--border-light-color);
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        font-size: 1.8rem;
-        color: var(--heading-color);
-        margin: 0 0 0.5rem 0;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--font-color);
+        transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        font-size: 1rem;
 
-        svg {
-          color: var(--primary-color);
+        &:hover {
+          background: var(--btn-secondary-hover-bg);
+          transform: translateX(-3px);
+          box-shadow: var(--box-shadow-1);
         }
       }
 
-      p {
-        margin: 0;
-        color: var(--text-muted-color);
-        font-size: 0.95rem;
+      // Styles for the new Wrapper DIV we added in TSX
+      div {
+        h2 {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 1.8rem;
+          color: var(--heading-color);
+          margin: 0 0 0.25rem 0;
+
+          svg {
+            color: var(--primary-color);
+          }
+        }
+
+        p {
+          margin: 0;
+          color: var(--text-muted-color);
+          font-size: 0.95rem;
+        }
       }
     }
 
@@ -50,13 +80,13 @@
         padding: 0.7rem 1.2rem;
         border-radius: 50px;
         border: 1px solid var(--border-light-color);
-        width: 300px;
+        min-width: 300px;
         box-shadow: var(--box-shadow-1);
         transition: all 0.2s;
 
         &:focus-within {
           border-color: var(--primary-color);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
         }
 
         input {
@@ -97,174 +127,234 @@
         }
       }
     }
+  }
 
-    // --- MOBILE HEADER STYLES ---
-    @media (max-width: 768px) {
-      flex-direction: column;
-      align-items: stretch;
+  // --- CONTENT AREA ---
+  .content-area {
+    .program-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.5rem;
 
-      .header-content {
-        text-align: center;
+      .program-box {
+        background: var(--card-bg-default);
+        border: 1px solid var(--card-border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
 
-        h2 {
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--box-shadow-2);
+          border-color: var(--primary-color);
+
+          .box-arrow {
+            opacity: 1;
+            transform: translateX(0);
+            color: var(--primary-color);
+          }
+        }
+
+        .box-icon {
+          width: 56px;
+          height: 56px;
+          background: rgba(9, 105, 218, 0.08);
+          color: var(--primary-color);
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
           justify-content: center;
           font-size: 1.5rem;
+          flex-shrink: 0;
+        }
+
+        .box-info {
+          flex: 1;
+
+          h3 {
+            font-size: 1.1rem;
+            color: var(--heading-color);
+            margin: 0 0 4px 0;
+            font-weight: 600;
+          }
+
+          p {
+            font-size: 0.9rem;
+            color: var(--text-muted-color);
+            margin: 0;
+          }
+        }
+
+        .box-arrow {
+          color: var(--text-muted-color);
+          opacity: 0.3;
+          transform: translateX(-10px);
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          font-size: 1.1rem;
+        }
+      }
+    }
+
+    .semester-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+
+      .semester-row {
+        background: var(--card-bg-default);
+        border: 1px solid var(--card-border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: var(--box-shadow-1);
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--box-shadow-2);
+          border-color: var(--primary-color);
+        }
+
+        .row-left {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+
+          .icon-box {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-secondary-color);
+            color: var(--text-muted-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+          }
+
+          .info {
+            h3 {
+              margin: 0;
+              font-size: 1.1rem;
+              color: var(--heading-color);
+              font-weight: 700;
+              margin-bottom: 4px;
+            }
+
+            .dates {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 0.85rem;
+              color: var(--font-color);
+              font-weight: 500;
+            }
+          }
+        }
+
+        .row-right {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+
+          .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+          }
+
+          .delete-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+
+            &:hover {
+              background: rgba(207, 34, 46, 0.1);
+              color: #cf222e;
+            }
+          }
         }
       }
 
-      .header-actions {
-        flex-direction: column;
-        width: 100%;
-        gap: 1rem;
+      .empty-state {
+        text-align: center;
+        padding: 4rem;
+        background: var(--bg-secondary-color);
+        border-radius: 12px;
+        border: 1px dashed var(--border-light-color);
+        color: var(--text-muted-color);
 
-        .search-box {
-          width: 100%;
-          border-radius: 12px;
-        }
-
-        .btn-add-primary {
-          width: 100%;
-          justify-content: center;
-          padding: 1rem;
-          border-radius: 12px;
+        .link-btn {
+          background: none;
+          border: none;
+          color: var(--primary-color);
+          cursor: pointer;
+          font-weight: 600;
+          margin-left: 5px;
+          text-decoration: underline;
         }
       }
     }
   }
 
-  // --- Semester List Layout ---
-  .semester-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  // --- RESPONSIVE MOBILE FIX ---
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
 
-    .semester-row {
-      background: var(--card-bg-default);
-      border: 1px solid var(--card-border-color);
-      border-radius: 12px;
-      padding: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: var(--box-shadow-1);
+      .header-content {
+        justify-content: center;
+        text-align: center; // FIX: Ensure text stacks nicely
 
-      &:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--box-shadow-2);
-        border-color: var(--primary-color);
-      }
-
-      // Left Side
-      .row-left {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-
-        .icon-box {
-          width: 50px;
-          height: 50px;
-          background: var(--bg-secondary-color);
-          color: var(--text-muted-color);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.4rem;
-        }
-
-        .info {
-          h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--heading-color);
-            font-weight: 700;
-          }
-
-          .program {
-            font-size: 0.85rem;
-            color: var(--text-muted-color);
-            display: block;
-            margin: 4px 0;
-          }
-
-          .dates {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            color: var(--font-color);
-            font-weight: 500;
+        div {
+          h2 {
+            justify-content: center; // Center Icon + Title
           }
         }
       }
 
-      // Right Side
-      .row-right {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-
-        .status-badge {
-          font-size: 0.75rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          padding: 6px 12px;
-          border-radius: 20px;
-          letter-spacing: 0.5px;
-        }
-
-        .delete-btn {
-          background: transparent;
-          border: none;
-          color: #cf222e;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          padding: 8px 12px;
-          border-radius: 6px;
-          transition: background 0.2s;
-
-          &:hover {
-            background: rgba(207, 34, 46, 0.1);
-          }
-        }
-      }
-
-      // --- MOBILE ROW STYLES ---
-      @media (max-width: 768px) {
+      .header-actions {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
 
-        .row-left {
+        .search-box,
+        .btn-add-primary {
           width: 100%;
-
-          .icon-box {
-            flex-shrink: 0;
-          }
-        }
-
-        .row-right {
-          width: 100%;
-          justify-content: space-between;
-          border-top: 1px solid var(--border-light-color);
-          padding-top: 1rem;
         }
       }
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 4rem;
-      background: var(--card-bg-default);
-      border-radius: 12px;
-      border: 1px dashed var(--card-border-color);
-      color: var(--text-muted-color);
+    .semester-list .semester-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+
+      .row-right {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--border-light-color);
+        padding-top: 1rem;
+      }
     }
   }
 }

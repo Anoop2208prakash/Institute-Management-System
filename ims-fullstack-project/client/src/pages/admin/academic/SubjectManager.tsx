@@ -1,27 +1,53 @@
 // client/src/pages/admin/academic/SubjectManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaBook, FaPlus, FaTrash, FaSearch, FaChalkboardTeacher, FaLayerGroup, FaCalendarAlt } from 'react-icons/fa';
+import { 
+  FaBook, FaPlus, FaTrash, FaSearch, FaLayerGroup, 
+  FaArrowLeft, FaFolderOpen, FaCalendarAlt, FaChalkboardTeacher, FaBarcode 
+} from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
-import './SubjectManager.scss';
+import './SubjectManager.scss'; // Reuse similar styles
 import { CreateSubjectModal, type SubjectFormData } from './CreateSubjectModal';
 
+// --- Interfaces ---
 interface Subject {
   id: string;
   name: string;
   code: string;
-  className: string;
-  teacherName: string;
-  semesterName?: string; 
+  classId: string;
+  semesterId?: string;
+  teacher?: { fullName: string };
+}
+
+interface ClassOption {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface SemesterOption {
+  id: string;
+  name: string;
+  classId: string;
+  status: string;
 }
 
 const SubjectManager: React.FC = () => {
+  // --- Data State ---
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [classes, setClasses] = useState<ClassOption[]>([]);
+  const [semesters, setSemesters] = useState<SemesterOption[]>([]);
+
+  // --- View State (Navigation) ---
+  const [selectedClass, setSelectedClass] = useState<ClassOption | null>(null);
+  const [selectedSemester, setSelectedSemester] = useState<SemesterOption | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
+  // --- Modal State ---
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
   const [isCreating, setIsCreating] = useState(false);
@@ -36,38 +62,56 @@ const SubjectManager: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  const fetchSubjects = useCallback(async () => {
+  // --- 1. Fetch All Data ---
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+
     try {
-      const res = await fetch('http://localhost:5000/api/subjects');
-      if (res.ok) setSubjects(await res.json());
+      const [subjRes, classRes, semRes] = await Promise.all([
+          fetch('http://localhost:5000/api/subjects', { headers }),
+          fetch('http://localhost:5000/api/classes', { headers }),
+          fetch('http://localhost:5000/api/semesters', { headers })
+      ]);
+
+      if (subjRes.ok && classRes.ok && semRes.ok) {
+          setSubjects(await subjRes.json());
+          setClasses(await classRes.json());
+          setSemesters(await semRes.json());
+      }
     } catch (e) {
       console.error(e);
-      showAlert('error', 'Failed to load subjects');
+      showAlert('error', 'Failed to load data');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => { void fetchSubjects(); }, [fetchSubjects]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
+  // --- 2. Actions ---
   const handleCreate = async (data: SubjectFormData) => {
     setIsCreating(true);
+    const token = localStorage.getItem('token');
     try {
         const res = await fetch('http://localhost:5000/api/subjects', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(data)
         });
         if(res.ok) {
-            void fetchSubjects();
+            void fetchData();
             setIsCreateModalOpen(false);
-            showAlert('success', 'Subject added successfully');
+            showAlert('success', 'Subject created successfully');
         } else {
-            showAlert('error', 'Failed to add subject');
+            showAlert('error', 'Failed to create subject');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); 
         showAlert('error', 'Network error'); 
     } finally { 
         setIsCreating(false); 
@@ -76,42 +120,98 @@ const SubjectManager: React.FC = () => {
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    const token = localStorage.getItem('token');
     try {
-        const res = await fetch(`http://localhost:5000/api/subjects/${deleteModal.id}`, { method: 'DELETE' });
+        const res = await fetch(`http://localhost:5000/api/subjects/${deleteModal.id}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if(res.ok) {
-            void fetchSubjects();
+            void fetchData();
             setDeleteModal({ show: false, id: '', name: '' });
             showAlert('success', 'Subject deleted');
         } else {
             showAlert('error', 'Failed to delete subject');
         }
     } catch(e) { 
-        console.error(e);
+        console.error(e); 
         showAlert('error', 'Network error'); 
     } finally { 
         setIsDeleting(false); 
     }
   };
 
-  const filteredSubjects = subjects.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.className.toLowerCase().includes(searchTerm.toLowerCase())
+  // --- 3. Filtering Logic (The Core) ---
+  
+  // A. Programs (Root View)
+  const filteredClasses = classes.filter(c => 
+     c.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // B. Semesters (Inside Program View)
+  const currentSemesters = selectedClass 
+    ? semesters.filter(s => s.classId === selectedClass.id && s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
+
+  // C. Subjects (Inside Semester View)
+  const currentSubjects = selectedSemester
+    ? subjects.filter(sub => sub.semesterId === selectedSemester.id && sub.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
+
+  // --- 4. Render Helpers ---
+  
+  // Handles the "Back" button logic
+  const handleBack = () => {
+      setSearchTerm(''); // Clear search on navigation
+      if (selectedSemester) {
+          setSelectedSemester(null); // Go back to Semesters
+      } else {
+          setSelectedClass(null); // Go back to Programs
+      }
+  };
+
+  const getBreadcrumbTitle = () => {
+      if (selectedSemester) return selectedSemester.name;
+      if (selectedClass) return selectedClass.name;
+      return "Manage Subjects";
+  };
+
+  const getBreadcrumbSubtitle = () => {
+      if (selectedSemester) return `Viewing subjects in ${selectedSemester.name}`;
+      if (selectedClass) return "Select a semester to view subjects";
+      return "Select a program to start";
+  };
+
   return (
-    <div className="subject-page"> 
-      
+    <div className="subject-page">
+      <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
+
+      {/* --- HEADER --- */}
       <div className="page-header">
         <div className="header-content">
-            <h2><FaBook /> Manage Subjects</h2>
-            <p>Assign subjects to programs, semesters, and teachers.</p>
+            {selectedClass ? (
+                 <div style={{display:'flex', alignItems:'center', gap:'1rem'}}>
+                    <button className="back-btn-round" onClick={handleBack}>
+                        <FaArrowLeft />
+                    </button>
+                    <div>
+                        <h2>{getBreadcrumbTitle()}</h2>
+                        <p>{getBreadcrumbSubtitle()}</p>
+                    </div>
+                 </div>
+            ) : (
+                <div>
+                    <h2><FaBook /> Manage Subjects</h2>
+                    <p>Organize curriculum by Program and Semester.</p>
+                </div>
+            )}
         </div>
+        
         <div className="header-actions">
             <div className="search-box">
                 <FaSearch />
                 <input 
-                    placeholder="Search Subjects..." 
+                    placeholder="Search..." 
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -122,79 +222,86 @@ const SubjectManager: React.FC = () => {
         </div>
       </div>
 
-      <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
-
-      <div className="subject-list">
-        
-        {/* --- SKELETON LOADER --- */}
+      {/* --- CONTENT AREA --- */}
+      <div className="content-area">
         {isLoading ? (
-            Array.from(new Array(5)).map((_, index) => (
-                <div key={index} className="subject-row" style={{padding: '1.5rem'}}>
-                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
-                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 12, flexShrink:0}} />
-                        <div className="info" style={{width: '100%'}}>
-                            <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 6}} />
-                            <div className="details" style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
-                                <Skeleton variant="text" width="100px" height={16} />
-                                <Skeleton variant="text" width="100px" height={16} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="row-right" style={{width: '20%'}}>
-                        <Skeleton variant="rectangular" width={80} height={36} style={{borderRadius: 6}} />
-                    </div>
-                </div>
-            ))
+             <div className="grid-view">
+                {Array.from(new Array(4)).map((_, i) => <Skeleton key={i} variant="rectangular" height={140} style={{borderRadius: 16}} />)}
+             </div>
         ) : (
-            filteredSubjects.map(sub => (
-                <div key={sub.id} className="subject-row">
-                    {/* Left: Info */}
-                    <div className="row-left">
-                        <div className="icon-box">
-                            <FaBook />
-                        </div>
-                        <div className="info">
-                            <h3>
-                                {sub.name} 
-                                <span className="code-badge">{sub.code}</span>
-                            </h3>
-                            <div className="details">
-                                <span>
-                                    <FaLayerGroup style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                    <strong>{sub.className}</strong>
-                                </span>
-                                
-                                {sub.semesterName && (
-                                    <>
-                                        <span className="separator">|</span>
-                                        <span>
-                                            <FaCalendarAlt style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                            {sub.semesterName}
-                                        </span>
-                                    </>
-                                )}
+            <>
+                {/* VIEW 1: PROGRAMS (ROOT) */}
+                {!selectedClass && (
+                    <div className="grid-view">
+                        {filteredClasses.length > 0 ? filteredClasses.map(cls => {
+                            const semCount = semesters.filter(s => s.classId === cls.id).length;
+                            return (
+                                <div key={cls.id} className="nav-box" onClick={() => { setSelectedClass(cls); setSearchTerm(''); }}>
+                                    <div className="box-icon"><FaLayerGroup /></div>
+                                    <div className="box-info">
+                                        <h3>{cls.name}</h3>
+                                        <p>{semCount} Semester{semCount !== 1 ? 's' : ''}</p>
+                                    </div>
+                                    <div className="box-arrow"><FaFolderOpen /></div>
+                                </div>
+                            );
+                        }) : <div className="empty-state">No programs found.</div>}
+                    </div>
+                )}
 
-                                <span className="separator">|</span>
-                                <span>
-                                    <FaChalkboardTeacher style={{fontSize:'0.8rem', color:'var(--text-muted-color)'}}/> 
-                                    <strong>{sub.teacherName}</strong>
-                                </span>
+                {/* VIEW 2: SEMESTERS (INSIDE PROGRAM) */}
+                {selectedClass && !selectedSemester && (
+                    <div className="grid-view">
+                        {currentSemesters.length > 0 ? currentSemesters.map(sem => {
+                            const subCount = subjects.filter(s => s.semesterId === sem.id).length;
+                            return (
+                                <div key={sem.id} className="nav-box" onClick={() => { setSelectedSemester(sem); setSearchTerm(''); }}>
+                                    <div className="box-icon"><FaCalendarAlt /></div>
+                                    <div className="box-info">
+                                        <h3>{sem.name}</h3>
+                                        <p>{subCount} Subject{subCount !== 1 ? 's' : ''}</p>
+                                    </div>
+                                    <div className="box-arrow"><FaFolderOpen /></div>
+                                </div>
+                            );
+                        }) : (
+                            <div className="empty-state">
+                                <p>No semesters found in {selectedClass.name}.</p>
                             </div>
-                        </div>
+                        )}
                     </div>
+                )}
 
-                    {/* Right: Actions */}
-                    <div className="row-right">
-                        <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})}>
-                            <FaTrash /> Delete
-                        </button>
+                {/* VIEW 3: SUBJECTS (INSIDE SEMESTER) */}
+                {selectedClass && selectedSemester && (
+                    <div className="list-view">
+                        {currentSubjects.length > 0 ? currentSubjects.map(sub => (
+                             <div key={sub.id} className="list-row">
+                                <div className="row-left">
+                                    <div className="icon-box"><FaBook /></div>
+                                    <div className="info">
+                                        <h3>{sub.name}</h3>
+                                        <div className="details">
+                                            <span><FaBarcode /> {sub.code}</span>
+                                            {sub.teacher && <span><FaChalkboardTeacher /> {sub.teacher.fullName}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="row-right">
+                                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sub.id, name: sub.name})}>
+                                        <FaTrash /> Delete
+                                    </button>
+                                </div>
+                             </div>
+                        )) : (
+                            <div className="empty-state">
+                                <p>No subjects found in {selectedSemester.name}.</p>
+                                <button className="link-btn" onClick={() => setIsCreateModalOpen(true)}>Add Subject?</button>
+                            </div>
+                        )}
                     </div>
-                </div>
-            ))
-        )}
-
-        {!isLoading && filteredSubjects.length === 0 && (
-            <div className="empty-state">No subjects found.</div>
+                )}
+            </>
         )}
       </div>
 

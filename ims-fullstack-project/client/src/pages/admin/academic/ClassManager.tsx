@@ -42,10 +42,17 @@ const ClassManager: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
+  // 1. Fetch Classes (Added Authorization Header)
   const fetchClasses = useCallback(async () => {
     setIsLoading(true);
+    const token = localStorage.getItem('token'); // <--- GET TOKEN
+
     try {
-      const res = await fetch('http://localhost:5000/api/classes');
+      const res = await fetch('http://localhost:5000/api/classes', {
+        headers: {
+            'Authorization': `Bearer ${token}` // <--- ATTACH TOKEN
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setClasses(data);
@@ -60,12 +67,18 @@ const ClassManager: React.FC = () => {
 
   useEffect(() => { void fetchClasses(); }, [fetchClasses]);
 
+  // 2. Create Class (Added Authorization Header)
   const handleCreate = async (data: ClassFormData) => {
     setIsCreating(true);
+    const token = localStorage.getItem('token'); // <--- GET TOKEN
+
     try {
         const res = await fetch('http://localhost:5000/api/classes', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // <--- ATTACH TOKEN
+            },
             body: JSON.stringify(data)
         });
         if(res.ok) {
@@ -84,10 +97,18 @@ const ClassManager: React.FC = () => {
     }
   };
 
+  // 3. Delete Class (Added Authorization Header)
   const handleDelete = async () => {
     setIsDeleting(true);
+    const token = localStorage.getItem('token'); // <--- GET TOKEN
+
     try {
-        const res = await fetch(`http://localhost:5000/api/classes/${deleteModal.id}`, { method: 'DELETE' });
+        const res = await fetch(`http://localhost:5000/api/classes/${deleteModal.id}`, { 
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}` // <--- ATTACH TOKEN
+            }
+        });
         if(res.ok) {
             void fetchClasses();
             setDeleteModal({ show: false, id: '', name: '' });
@@ -104,12 +125,18 @@ const ClassManager: React.FC = () => {
     }
   };
 
+  // 4. Assign Teacher (Added Authorization Header)
   const handleAssignTeacher = async (classId: string, teacherUserId: string) => {
     setIsAssigning(true);
+    const token = localStorage.getItem('token'); // <--- GET TOKEN
+
     try {
         const res = await fetch(`http://localhost:5000/api/classes/${classId}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // <--- ATTACH TOKEN
+            },
             body: JSON.stringify({ teacherId: teacherUserId })
         });
         if(res.ok) {
