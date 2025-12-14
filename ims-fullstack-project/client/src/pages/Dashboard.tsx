@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.tsx
+// client/src/pages/admin/Dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -6,23 +6,12 @@ import {
   FaBook, FaCheckSquare, FaFileInvoiceDollar, FaBookReader, FaHandHolding,
   FaCalendarAlt, FaBell, FaClipboardList, FaUserPlus
 } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
-import { useAuth } from '../context/AuthContext';
+import Skeleton from '@mui/material/Skeleton';
 import './Dashboard.scss';
+import { useAuth } from '../context/AuthContext';
+import RecentActivity from '../components/Dashboard/RecentActivity';
 
-// Icon Mapping
-const iconMap: Record<string, React.ReactElement> = {
-  'users': <FaUsers />,
-  'chalkboard-teacher': <FaChalkboardTeacher />,
-  'layer-group': <FaLayerGroup />,
-  'user-shield': <FaUserShield />,
-  'book': <FaBook />,
-  'check-square': <FaCheckSquare />,
-  'file-invoice-dollar': <FaFileInvoiceDollar />,
-  'book-reader': <FaBookReader />,
-  'hand-holding': <FaHandHolding />
-};
-
+// --- Interfaces ---
 interface StatCard {
   label: string;
   value: string | number;
@@ -36,60 +25,67 @@ interface DashboardData {
   cards: StatCard[];
 }
 
+// --- Icon Mapping ---
+const iconMap: Record<string, React.ReactElement> = {
+  'users': <FaUsers />,
+  'chalkboard-teacher': <FaChalkboardTeacher />,
+  'layer-group': <FaLayerGroup />,
+  'user-shield': <FaUserShield />,
+  'book': <FaBook />,
+  'check-square': <FaCheckSquare />,
+  'file-invoice-dollar': <FaFileInvoiceDollar />,
+  'book-reader': <FaBookReader />,
+  'hand-holding': <FaHandHolding />
+};
+
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // State
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       const token = localStorage.getItem('token');
+      const headers = { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
       try {
-        const res = await fetch('http://localhost:5000/api/dashboard', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-            const jsonData = await res.json();
-            if (!jsonData.cards) jsonData.cards = [];
-            setData(jsonData as DashboardData);
+        // Fetch only Dashboard Stats (Cards)
+        const dashboardRes = await fetch('http://localhost:5000/api/dashboard', { headers });
+        if (dashboardRes.ok) {
+            const jsonStats = await dashboardRes.json();
+            if (!jsonStats.cards) jsonStats.cards = [];
+            setData(jsonStats);
+        } else {
+            console.error("Failed to fetch dashboard stats");
         }
-      } catch (e) {
-        console.error("Dashboard Error", e);
+      } catch (error) {
+        console.error("Network Error:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchStats();
   }, []);
 
-  // --- SKELETON LOADER UI ---
+  // --- Skeleton Loader ---
   if (loading) {
       return (
         <div className="dashboard-page">
-            {/* Banner Skeleton */}
-            <Skeleton variant="rectangular" height={180} style={{borderRadius: '20px'}} />
-            
-            {/* Stats Grid Skeleton */}
+            <Skeleton variant="rectangular" height={180} style={{borderRadius: '20px', marginBottom: '20px'}} />
             <div className="stats-grid">
-                {Array.from(new Array(4)).map((_, i) => (
-                    <Skeleton key={i} variant="rectangular" height={120} style={{borderRadius: '16px'}} />
-                ))}
+                {[1,2,3,4].map((i) => <Skeleton key={i} variant="rectangular" height={120} style={{borderRadius: '16px'}} />)}
             </div>
-
             <div className="dashboard-content">
-                {/* Left Column Skeleton */}
                 <div className="main-column">
-                    <div className="quick-actions" style={{height: '300px', border:'none', background:'none'}}>
-                         <Skeleton variant="text" width="40%" height={40} style={{marginBottom: 20}} />
-                         <div className="actions-grid">
-                             {Array.from(new Array(4)).map((_, i) => (
-                                 <Skeleton key={i} variant="rectangular" height={120} style={{borderRadius: '12px'}} />
-                             ))}
-                         </div>
-                    </div>
+                     <Skeleton variant="rectangular" height={300} style={{borderRadius: '12px'}} />
                 </div>
-                {/* Right Column Skeleton */}
                 <div className="side-column">
                     <Skeleton variant="rectangular" height={400} style={{borderRadius: '16px'}} />
                 </div>
@@ -98,9 +94,11 @@ const Dashboard: React.FC = () => {
       );
   }
 
-  // Define Quick Actions based on Role
+  // --- Quick Actions Logic ---
   const renderQuickActions = () => {
-      if (data?.type === 'ADMIN') {
+      if (!data) return null;
+      
+      if (data.type === 'ADMIN') {
           return (
               <>
                   <button onClick={() => navigate('/new-admission')}>
@@ -118,7 +116,7 @@ const Dashboard: React.FC = () => {
               </>
           );
       }
-      if (data?.type === 'TEACHER') {
+      if (data.type === 'TEACHER') {
         return (
             <>
                 <button onClick={() => navigate('/attendance')}>
@@ -133,7 +131,7 @@ const Dashboard: React.FC = () => {
             </>
         );
       }
-      if (data?.type === 'STUDENT') {
+      if (data.type === 'STUDENT') {
           return (
             <>
                 <button onClick={() => navigate('/my-attendance')}>
@@ -154,10 +152,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-page">
       
-      {/* 1. Modern Welcome Banner */}
+      {/* 1. Welcome Banner */}
       <div className="welcome-banner">
         <div className="content">
-            <h1>Good Morning, {data?.name || user?.email.split('@')[0]}!</h1>
+            <h1>Good Morning, {data?.name || user?.email?.split('@')[0]}!</h1>
             <p>Here's what's happening in your institute today.</p>
         </div>
         <div className="date-badge">
@@ -172,19 +170,19 @@ const Dashboard: React.FC = () => {
             data.cards.map((card, idx) => (
             <div key={idx} className="stat-card">
                 <div 
-                className="icon-wrapper" 
-                style={{ backgroundColor: `${card.color}15`, color: card.color }}
+                  className="icon-wrapper" 
+                  style={{ backgroundColor: `${card.color}15`, color: card.color }}
                 >
-                {iconMap[card.icon] || <FaLayerGroup />}
+                  {iconMap[card.icon] || <FaLayerGroup />}
                 </div>
                 <div className="info">
-                <span className="label">{card.label}</span>
-                <span className="value">{card.value}</span>
+                  <span className="label">{card.label}</span>
+                  <span className="value">{card.value}</span>
                 </div>
             </div>
             ))
         ) : (
-            <div style={{gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: 'var(--text-muted-color)'}}>
+            <div style={{gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#888'}}>
                 No statistics available.
             </div>
         )}
@@ -203,37 +201,9 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          {/* Right: Activity Feed (Static Mockup for Now) */}
+          {/* Right: Activity Feed (NOW USING COMPONENT) */}
           <div className="side-column">
-              <div className="activity-feed">
-                  <h3>Recent Activity</h3>
-                  <div className="feed-list">
-                      <div className="feed-item">
-                          <div className="feed-icon"><FaBell /></div>
-                          <div className="feed-content">
-                              <h4>System Update</h4>
-                              <p>The system was successfully updated to v2.0.</p>
-                              <span className="time">2 hours ago</span>
-                          </div>
-                      </div>
-                      <div className="feed-item">
-                          <div className="feed-icon" style={{color:'#1a7f37', background:'rgba(26,127,55,0.1)'}}><FaUsers /></div>
-                          <div className="feed-content">
-                              <h4>New Admissions</h4>
-                              <p>5 new students were admitted to Grade 10.</p>
-                              <span className="time">Yesterday</span>
-                          </div>
-                      </div>
-                      <div className="feed-item">
-                          <div className="feed-icon" style={{color:'#cf222e', background:'rgba(207,34,46,0.1)'}}><FaFileInvoiceDollar /></div>
-                          <div className="feed-content">
-                              <h4>Fee Collection</h4>
-                              <p>Monthly fee generation completed.</p>
-                              <span className="time">2 days ago</span>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+              <RecentActivity />
           </div>
 
       </div>

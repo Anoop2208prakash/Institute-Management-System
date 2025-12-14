@@ -1,0 +1,97 @@
+/* client/src/components/Common/CustomSelect.scss */
+
+.custom-select-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; // Space between label and input box
+    width: 100%;
+    margin-bottom: 1rem; // Spacing between different form fields
+
+    .custom-label {
+        font-size: 0.75rem; // Small, professional size
+        font-weight: 700; // Bold
+        text-transform: uppercase; // "CLASS / PROGRAM" style
+        color: var(--text-muted-color); // Grey color
+        letter-spacing: 0.5px;
+        margin-left: 2px;
+        display: flex;
+        align-items: center;
+
+        .required {
+            color: #cf222e; // Red asterisk
+            margin-left: 4px;
+            font-size: 1.1em;
+        }
+    }
+
+    // 2. The Input Box
+    .MuiOutlinedInput-root {
+        background-color: var(--bg-color);
+        border-radius: 8px; // Rounded corners like the image
+        transition: all 0.2s ease-in-out;
+
+        // The actual Border
+        fieldset {
+            border-color: var(--form-input-border-color);
+            border-width: 1px;
+        }
+
+        // Hover State
+        &:hover fieldset {
+            border-color: var(--primary-color) !important;
+        }
+
+        // Focused State (The Blue Border in your image)
+        &.Mui-focused {
+            background-color: #fff; // Ensure white bg on focus
+
+            fieldset {
+                border-color: #3b82f6 !important; // Bright Blue border
+                border-width: 2px !important; // Thicker border
+                // Optional: Add a subtle shadow for depth
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            }
+        }
+
+        // Text Style
+        .MuiSelect-select {
+            padding: 10px 14px; // Comfortable padding
+            font-size: 0.95rem;
+            color: var(--font-color);
+
+            // Placeholder Style
+            &.placeholder-text {
+                color: #8c959f; // Muted gray for "Select Class first..."
+            }
+        }
+    }
+}
+
+// 3. Dropdown Menu (Popup)
+.custom-select-menu-paper {
+    background-color: var(--dropdown-content-bg) !important;
+    border: 1px solid var(--dropdown-content-border) !important;
+    box-shadow: var(--dropdown-box-shadow) !important;
+    border-radius: 8px !important;
+    margin-top: 6px;
+    max-height: 300px;
+
+    .MuiMenuItem-root {
+        font-size: 0.9rem;
+        padding: 10px 16px;
+        margin: 4px;
+        border-radius: 6px;
+        color: var(--font-color);
+
+        &:hover {
+            background-color: var(--dropdown-item-hover-bg) !important;
+            color: var(--dropdown-item-hover-color) !important;
+        }
+
+        &.Mui-selected {
+            background-color: rgba(59, 130, 246, 0.15) !important; // Light blue bg
+            color: var(--primary-color) !important;
+            font-weight: 600;
+        }
+    }
+}

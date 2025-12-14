@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaBook } from 'react-icons/fa';
 import './CreateRoleModal.scss'; // Reusing styles
+import type { SelectChangeEvent } from '@mui/material';
+import CustomSelect from '../../../components/common/CustomSelect';
 
 // 1. Define Interfaces
 export interface SubjectFormData {
@@ -59,16 +61,19 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
   // Fetch Data
   useEffect(() => {
     if (isOpen) {
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
         Promise.all([
-            fetch('http://localhost:5000/api/classes').then(res => res.json()),
-            fetch('http://localhost:5000/api/staff').then(res => res.json()),
-            fetch('http://localhost:5000/api/semesters').then(res => res.json()) 
+            fetch('http://localhost:5000/api/classes', { headers }).then(res => res.json()),
+            fetch('http://localhost:5000/api/staff', { headers }).then(res => res.json()),
+            fetch('http://localhost:5000/api/semesters', { headers }).then(res => res.json()) 
         ]).then(([classesData, staffData, semesterData]) => {
             if (Array.isArray(classesData)) setClasses(classesData);
             if (Array.isArray(semesterData)) setSemesters(semesterData);
             
             if (Array.isArray(staffData)) {
-                // Explicitly type the filter and map
+                // Filter only teachers
                 const teacherList = (staffData as RawStaff[])
                     .filter(s => s.role === 'Teacher')
                     .map(t => ({
@@ -89,7 +94,47 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
     await onSave(formData);
     setFormData({ name: '', code: '', classId: '', teacherId: '', semesterId: '' }); 
   };
+
+  // --- Handlers ---
   
+  // 1. Handle Class Change (Resets Semester)
+  const handleClassChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({
+        ...formData,
+        classId: e.target.value as string,
+        semesterId: '' // Reset semester when class changes
+    });
+  };
+
+  // 2. Generic Select Change
+  const handleSelectChange = (field: keyof SubjectFormData) => (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, [field]: e.target.value as string });
+  };
+
+  // --- Transform Options ---
+  
+  // A. Class Options
+  const classOptions = classes.map(cls => ({ 
+      value: cls.id, 
+      label: cls.name 
+  }));
+
+  // B. Teacher Options
+  const teacherOptions = teachers.map(t => ({ 
+      value: t.id, 
+      label: t.name 
+  }));
+
+  // C. Filtered Semester Options
+  const filteredSemesters = formData.classId 
+    ? semesters.filter(sem => sem.classId === formData.classId)
+    : [];
+
+  const semesterOptions = filteredSemesters.map(sem => ({
+      value: sem.id,
+      label: sem.name
+  }));
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
@@ -100,6 +145,7 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            
             <div className="form-group">
                 <label>Subject Name <span className="required">*</span></label>
                 <input 
@@ -121,51 +167,41 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
                 />
             </div>
 
+            {/* --- CUSTOM SELECT: CLASS --- */}
             <div className="form-group">
-                <label>Assign Class <span className="required">*</span></label>
-                <select 
-                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                <CustomSelect
+                    label="Assign Class / Program"
+                    placeholder="Select Class first..."
                     value={formData.classId}
-                    onChange={e => setFormData({...formData, classId: e.target.value})}
-                    required
-                >
-                    <option value="">Select Class...</option>
-                    {classes.map(cls => (
-                        <option key={cls.id} value={cls.id}>{cls.name}</option>
-                    ))}
-                </select>
+                    onChange={handleClassChange}
+                    options={classOptions}
+                    required={true}
+                />
             </div>
 
-            {/* --- NEW SEMESTER DROPDOWN --- */}
+            {/* --- CUSTOM SELECT: SEMESTER --- */}
             <div className="form-group">
-                <label>Semester (Optional)</label>
-                <select 
-                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                <CustomSelect 
+                    label="Semester (Optional)"
+                    placeholder={formData.classId ? "Select Semester..." : "Select Class first"}
                     value={formData.semesterId}
-                    onChange={e => setFormData({...formData, semesterId: e.target.value})}
-                >
-                    <option value="">All Semesters</option>
-                    {semesters.map(sem => (
-                        <option key={sem.id} value={sem.id}>
-                            {sem.name} {sem.programName ? `(${sem.programName})` : ''}
-                        </option>
-                    ))}
-                </select>
+                    onChange={handleSelectChange('semesterId')}
+                    options={semesterOptions}
+                    disabled={!formData.classId}
+                />
             </div>
 
+            {/* --- CUSTOM SELECT: TEACHER --- */}
             <div className="form-group">
-                <label>Assign Teacher (Optional)</label>
-                <select 
-                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                <CustomSelect 
+                    label="Assign Teacher (Optional)"
+                    placeholder="Select Teacher..."
                     value={formData.teacherId}
-                    onChange={e => setFormData({...formData, teacherId: e.target.value})}
-                >
-                    <option value="">Select Teacher...</option>
-                    {teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option> 
-                    ))}
-                </select>
+                    onChange={handleSelectChange('teacherId')}
+                    options={teacherOptions}
+                />
             </div>
+
           </div>
 
           <div className="modal-footer">

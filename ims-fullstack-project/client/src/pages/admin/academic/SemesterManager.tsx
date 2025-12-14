@@ -1,13 +1,17 @@
 // client/src/pages/admin/academic/SemesterManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaCalendarAlt, FaPlus, FaTrash, FaSearch, FaClock } from 'react-icons/fa';
+import { 
+  FaCalendarAlt, FaPlus, FaTrash, FaSearch, FaClock, 
+  FaLayerGroup, FaArrowLeft, FaFolderOpen 
+} from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
 import './SemesterManager.scss'; 
-import { CreateSemesterModal } from './CreateSemesterModal';
+import { CreateSemesterModal, type SemesterFormData } from './CreateSemesterModal';
 
+// --- Interfaces ---
 interface Semester {
   id: string;
   name: string;
@@ -15,24 +19,34 @@ interface Semester {
   endDate?: string; 
   status: string;
   programName?: string;
-}
-
-interface SemesterFormData {
-  name: string;
   classId: string;
 }
 
+interface Program {
+  id: string;
+  name: string;
+  description?: string;
+  _count?: {
+      semesters?: number;
+  };
+}
+
 const SemesterManager: React.FC = () => {
+  // Data States
   const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(''); 
-  
+   
+  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, name: string}>({ show: false, id: '', name: '' });
-  
+   
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
   });
@@ -42,31 +56,47 @@ const SemesterManager: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  const fetchSemesters = useCallback(async () => {
+  // --- Fetch Data ---
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+
     try {
-      const res = await fetch('http://localhost:5000/api/semesters');
-      if (res.ok) setSemesters(await res.json());
+      const [semRes, progRes] = await Promise.all([
+          fetch('http://localhost:5000/api/semesters', { headers }),
+          fetch('http://localhost:5000/api/classes', { headers })
+      ]);
+
+      if (semRes.ok && progRes.ok) {
+          setSemesters(await semRes.json());
+          setPrograms(await progRes.json());
+      }
     } catch (e) {
       console.error(e); 
-      showAlert('error', 'Failed to load semesters');
+      showAlert('error', 'Failed to load academic data');
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => { void fetchSemesters(); }, [fetchSemesters]);
+  useEffect(() => { void fetchData(); }, [fetchData]);
 
+  // --- Actions ---
   const handleCreate = async (data: SemesterFormData) => {
     setIsCreating(true);
+    const token = localStorage.getItem('token');
     try {
         const res = await fetch('http://localhost:5000/api/semesters', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(data)
         });
         if(res.ok) {
-            void fetchSemesters();
+            void fetchData();
             setIsCreateModalOpen(false);
             showAlert('success', 'Semester created successfully');
         } else {
@@ -82,10 +112,14 @@ const SemesterManager: React.FC = () => {
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    const token = localStorage.getItem('token');
     try {
-        const res = await fetch(`http://localhost:5000/api/semesters/${deleteModal.id}`, { method: 'DELETE' });
+        const res = await fetch(`http://localhost:5000/api/semesters/${deleteModal.id}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if(res.ok) {
-            void fetchSemesters();
+            void fetchData();
             setDeleteModal({ show: false, id: '', name: '' });
             showAlert('success', 'Semester deleted');
         } else {
@@ -99,6 +133,7 @@ const SemesterManager: React.FC = () => {
     }
   };
 
+  // --- Helpers ---
   const formatDate = (d?: string) => d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
 
   const getStatusColor = (status: string) => {
@@ -109,91 +144,141 @@ const SemesterManager: React.FC = () => {
       }
   };
 
-  const filteredSemesters = semesters.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.status.toLowerCase().includes(searchTerm.toLowerCase())
+  // --- Filtering ---
+  const filteredPrograms = programs.filter(p => 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const currentSemesters = semesters.filter(s => {
+      const matchesProgram = selectedProgram ? s.classId === selectedProgram.id : true;
+      const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            s.status.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesProgram && matchesSearch;
+  });
 
   return (
     <div className="semester-page"> 
+      <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
+      
+      {/* --- HEADER --- */}
       <div className="page-header">
         <div className="header-content">
-            <h2><FaCalendarAlt /> Manage Semesters</h2>
-            <p>Define academic terms and timelines.</p>
+            {selectedProgram ? (
+                // View: Inside a Program
+                <div style={{display:'flex', alignItems:'center', gap:'1rem'}}>
+                    <button className="back-btn-round" onClick={() => setSelectedProgram(null)}>
+                        <FaArrowLeft />
+                    </button>
+                    <div>
+                        <h2>{selectedProgram.name}</h2>
+                        <p>Managing semesters for this program</p>
+                    </div>
+                </div>
+            ) : (
+                // View: All Programs
+                // FIX: Wrapped in div to stack vertical on mobile
+                <div>
+                    <h2><FaCalendarAlt /> Manage Semesters</h2>
+                    <p>Select a program to view its semesters.</p>
+                </div>
+            )}
         </div>
         <div className="header-actions">
             <div className="search-box">
                 <FaSearch />
                 <input 
-                    placeholder="Search Semesters..." 
+                    placeholder={selectedProgram ? "Search Semesters..." : "Search Programs..."}
                     value={searchTerm} 
                     onChange={e => setSearchTerm(e.target.value)}
                 />
             </div>
             <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
-                <FaPlus /> Add Semester
+                <FaPlus /> {selectedProgram ? "Add Semester" : "Add Semester"}
             </button>
         </div>
       </div>
 
-      <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
-
-      <div className="semester-list">
+      {/* --- CONTENT --- */}
+      <div className="content-area">
         
-        {/* --- SKELETON LOADER --- */}
         {isLoading ? (
-            Array.from(new Array(5)).map((_, index) => (
-                <div key={index} className="semester-row" style={{padding: '1.5rem'}}>
-                    <div className="row-left" style={{gap: '1rem', width: '100%'}}>
-                        <Skeleton variant="rectangular" width={50} height={50} style={{borderRadius: 12}} />
-                        <div style={{flex: 1}}>
-                            <Skeleton variant="text" width="60%" height={24} style={{marginBottom: 6}} />
-                            <Skeleton variant="text" width="40%" height={16} />
-                        </div>
-                    </div>
-                    <div className="row-right" style={{gap: '1rem', width: '30%'}}>
-                        <Skeleton variant="rectangular" width={80} height={24} style={{borderRadius: 12}} />
-                        <Skeleton variant="rectangular" width={80} height={32} style={{borderRadius: 6}} />
-                    </div>
-                </div>
-            ))
-        ) : (
-            filteredSemesters.map(sem => {
-                const statusStyle = getStatusColor(sem.status);
-                return (
-                    <div key={sem.id} className={`semester-row ${sem.status.toLowerCase()}`}>
-                        {/* Left: Info */}
-                        <div className="row-left">
-                            <div className="icon-box">
-                                <FaCalendarAlt />
-                            </div>
-                            <div className="info">
-                                <h3>{sem.name}</h3>
-                                <span className="program">{sem.programName || 'General Program'}</span>
-                                <div className="dates">
-                                    <FaClock style={{fontSize:'0.8rem', color:'var(--primary-color)'}}/> 
-                                    {formatDate(sem.startDate)} — {formatDate(sem.endDate)}
+            <div className="program-grid">
+               {Array.from(new Array(4)).map((_, i) => (
+                   <Skeleton key={i} variant="rectangular" height={140} style={{borderRadius: 16}} />
+               ))}
+            </div>
+        ) : !selectedProgram ? (
+            
+            // VIEW 1: PROGRAM BOXES
+            <div className="program-grid">
+                {filteredPrograms.length > 0 ? (
+                    filteredPrograms.map(prog => {
+                        const semCount = semesters.filter(s => s.classId === prog.id).length;
+                        return (
+                            <div key={prog.id} className="program-box" onClick={() => {
+                                setSelectedProgram(prog);
+                                setSearchTerm('');
+                            }}>
+                                <div className="box-icon">
+                                    <FaLayerGroup />
+                                </div>
+                                <div className="box-info">
+                                    <h3>{prog.name}</h3>
+                                    <p>{semCount} Semester{semCount !== 1 ? 's' : ''}</p>
+                                </div>
+                                <div className="box-arrow">
+                                    <FaFolderOpen />
                                 </div>
                             </div>
-                        </div>
+                        );
+                    })
+                ) : (
+                   <div className="empty-state">No programs found.</div>
+                )}
+            </div>
 
-                        {/* Right: Status & Actions */}
-                        <div className="row-right">
-                            <span className={`status-badge ${sem.status.toLowerCase()}`} style={{color: statusStyle.text, backgroundColor: statusStyle.bg, borderColor: 'transparent'}}>
-                                {sem.status}
-                            </span>
-                            <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
-                                <FaTrash /> Delete
-                            </button>
-                        </div>
+        ) : (
+
+            // VIEW 2: SEMESTER LIST
+            <div className="semester-list">
+                {currentSemesters.length > 0 ? (
+                    currentSemesters.map(sem => {
+                        const statusStyle = getStatusColor(sem.status);
+                        return (
+                            <div key={sem.id} className={`semester-row ${sem.status.toLowerCase()}`}>
+                                <div className="row-left">
+                                    <div className="icon-box">
+                                        <FaCalendarAlt />
+                                    </div>
+                                    <div className="info">
+                                        <h3>{sem.name}</h3>
+                                        <div className="dates">
+                                            <FaClock style={{fontSize:'0.8rem', color:'var(--primary-color)'}}/> 
+                                            {formatDate(sem.startDate)} — {formatDate(sem.endDate)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="row-right">
+                                    <span className={`status-badge ${sem.status.toLowerCase()}`} style={{color: statusStyle.text, backgroundColor: statusStyle.bg}}>
+                                        {sem.status}
+                                    </span>
+                                    <button className="delete-btn" onClick={() => setDeleteModal({show: true, id: sem.id, name: sem.name})}>
+                                        <FaTrash /> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                ) : (
+                    <div className="empty-state">
+                        <p>No semesters found for {selectedProgram.name}.</p>
+                        <button className="link-btn" onClick={() => setIsCreateModalOpen(true)}>Create One?</button>
                     </div>
-                );
-            })
+                )}
+            </div>
         )}
 
-        {!isLoading && filteredSemesters.length === 0 && (
-            <div className="empty-state">No semesters found.</div>
-        )}
       </div>
 
       <CreateSemesterModal

@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/prisma';
+import { logActivity } from '../utils/activityLogger'; // <--- Import Logger
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -33,7 +34,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '1d' } // Token expires in 1 day
     );
 
-    // 4. Send Response
+    // 4. Log the Activity
+    await logActivity('User Login', `User ${user.email} (${user.role.displayName}) logged in.`);
+
+    // 5. Send Response
     res.json({
       message: 'Login successful',
       token,

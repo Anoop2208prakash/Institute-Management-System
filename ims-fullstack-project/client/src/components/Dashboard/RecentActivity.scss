@@ -1,0 +1,121 @@
+// client/src/components/dashboard/RecentActivity.scss
+
+.recent-activity-card {
+    background: var(--card-bg-default);
+    border: 1px solid var(--card-border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--box-shadow-1);
+
+    .card-header {
+        margin-bottom: 0.75rem;
+        flex-shrink: 0;
+
+        h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            color: var(--heading-color);
+            margin: 0;
+            font-weight: 600;
+
+            svg {
+                color: var(--text-muted-color);
+                font-size: 0.95rem;
+            }
+        }
+    }
+
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        overflow-y: auto;
+        max-height: 140px;
+
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: var(--border-light-color);
+            border-radius: 4px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light-color);
+
+            &:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            &:first-child {
+                padding-top: 0;
+            }
+
+            .icon-wrapper {
+                margin-top: 3px;
+                flex-shrink: 0;
+
+                .icon {
+                    font-size: 1rem;
+
+                    // Updated colors to match your theme
+                    &.success {
+                        color: var(--font-color-success);
+                    }
+
+                    &.warning {
+                        color: #d29922;
+                    }
+
+                    &.primary {
+                        color: var(--primary-color);
+                    }
+
+                    &.danger {
+                        color: var(--font-color-danger);
+                    }
+                }
+            }
+
+            .content {
+                flex: 1;
+
+                .action {
+                    font-size: 0.9rem;
+                    color: var(--heading-color);
+                    margin: 0 0 2px 0;
+                    font-weight: 600;
+                }
+
+                .time {
+                    font-size: 0.75rem;
+                    color: var(--text-muted-color);
+                    display: block;
+                    margin-top: 2px;
+                }
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted-color);
+            font-size: 0.85rem;
+            padding: 1.5rem 0;
+        }
+    }
+}

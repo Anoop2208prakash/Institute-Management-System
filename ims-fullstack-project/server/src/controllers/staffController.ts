@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../utils/prisma';
+import { logActivity } from '../utils/activityLogger'; // <--- Import Logger
 
 // ------------------------------------------
 // 1. REGISTER STAFF
@@ -54,20 +55,23 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
       } else {
          // Default to Admin profile for non-teachers (Super Admin, Finance, Librarian, etc.)
          await tx.admin.create({
-            data: {
-                userId: newUser.id,
-                fullName,
-                phone,
-                bloodGroup,
-            }
+           data: {
+               userId: newUser.id,
+               fullName,
+               phone,
+               bloodGroup,
+           }
          });
       }
 
-      return newUser;
+      return { user: newUser, roleName: role?.displayName || 'Staff' };
     });
 
-    console.log(`✅ Staff registered: ${result.email}`);
-    res.status(201).json({ message: "Staff registered successfully", userId: result.id });
+    // C. Log the Activity
+    await logActivity('New Staff', `Registered ${fullName} as ${result.roleName}.`);
+
+    console.log(`✅ Staff registered: ${result.user.email}`);
+    res.status(201).json({ message: "Staff registered successfully", userId: result.user.id });
 
   } catch (error) {
     console.error("Registration Error:", error);
@@ -121,10 +125,23 @@ export const deleteStaff = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Prisma cascade delete handles profiles automatically
-    await prisma.user.delete({
-      where: { id }
+    // Find user first to get name for the log
+    const userToDelete = await prisma.user.findUnique({
+        where: { id },
+        include: { teacherProfile: true, adminProfile: true }
     });
+
+    if (userToDelete) {
+        const name = userToDelete.teacherProfile?.fullName || userToDelete.adminProfile?.fullName || userToDelete.email;
+        
+        // Prisma cascade delete handles profiles automatically
+        await prisma.user.delete({
+            where: { id }
+        });
+
+        // Log the Deletion
+        await logActivity('Staff Removed', `Removed staff member: ${name}`);
+    }
 
     res.json({ message: 'Staff member removed successfully' });
   } catch (error) {

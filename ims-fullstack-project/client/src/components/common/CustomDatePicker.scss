@@ -1,0 +1,175 @@
+/* client/src/components/Common/CustomDatePicker.scss */
+
+.custom-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 1rem;
+
+    // 1. The Detached Label
+    .custom-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted-color); // e.g., #9198a1 in dark
+        letter-spacing: 0.5px;
+        margin-left: 2px;
+        display: flex;
+        align-items: center;
+        text-transform: uppercase;
+
+        .required {
+            color: var(--font-color-danger);
+            margin-left: 4px;
+            font-size: 1.1em;
+        }
+    }
+
+    // 2. The Input Box Wrapper
+    .MuiOutlinedInput-root {
+        background-color: var(--bg-color); // #0d1117 in dark
+        color: var(--font-color); // #f0f6fc in dark
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+        padding-right: 14px;
+
+        // Border
+        fieldset {
+            border-color: var(--form-input-border-color);
+            border-width: 1px;
+        }
+
+        // Hover State
+        &:hover fieldset {
+            border-color: var(--primary-color) !important;
+        }
+
+        // Focused State
+        &.Mui-focused {
+            background-color: var(--bg-color); // Keep dark bg in dark mode
+
+            fieldset {
+                border-color: var(--primary-color) !important;
+                border-width: 2px !important;
+                box-shadow: 0 0 0 3px var(--form-focus-outline);
+            }
+        }
+
+        // --- VISIBILITY FIX: Input Text & Placeholder ---
+        input {
+            padding: 10.5px 14px;
+            font-size: 0.95rem;
+            color: var(--font-color) !important; // Force text color to theme font
+
+            &::placeholder {
+                color: var(--form-placeholder-text-color) !important; // Force placeholder color
+                opacity: 1;
+            }
+        }
+
+        // --- VISIBILITY FIX: Calendar Icon ---
+        .MuiSvgIcon-root {
+            color: var(--secondary-color); // Visible icon color
+            font-size: 1.2rem;
+
+            &:hover {
+                color: var(--primary-color);
+            }
+        }
+    }
+}
+
+/* 3. Global Overrides for the Popup (Calendar/Clock) 
+   We use 'body' to ensure we override MUI's default white background
+*/
+body .MuiPickersPopper-root .MuiPaper-root,
+body .MuiDialog-paper {
+    background-color: var(--dropdown-content-bg) !important; // Dark: #121212
+    color: var(--font-color) !important; // Dark: #f0f6fc
+    border: 1px solid var(--dropdown-content-border);
+    box-shadow: var(--dropdown-box-shadow);
+    border-radius: 12px;
+
+    // Header (Month Year text)
+    .MuiPickersCalendarHeader-label {
+        color: var(--heading-color);
+    }
+
+    // Navigation Arrows (Prev/Next Month)
+    .MuiPickersArrowSwitcher-button,
+    .MuiPickersCalendarHeader-switchViewButton {
+        color: var(--secondary-color);
+
+        &:hover {
+            background-color: var(--bg-secondary-color);
+            color: var(--primary-color);
+        }
+    }
+
+    // Weekday Headers (S M T W...)
+    .MuiDayCalendar-weekDayLabel {
+        color: var(--text-muted-color);
+    }
+
+    // Day Numbers (1, 2, 3...)
+    .MuiPickersDay-root {
+        background-color: transparent;
+        color: var(--font-color); // Ensure numbers are visible!
+        border: 1px solid transparent;
+
+        &:hover {
+            background-color: var(--dropdown-item-hover-bg) !important;
+            color: var(--dropdown-item-hover-color) !important;
+        }
+
+        // Selected Day (Blue circle)
+        &.Mui-selected {
+            background-color: var(--primary-color) !important;
+            color: #ffffff !important;
+
+            &:hover {
+                background-color: var(--btn-primary-hover-bg) !important;
+            }
+        }
+
+        // Today's Date (Border)
+        &.MuiPickersDay-today {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+
+            &.Mui-selected {
+                color: #fff !important;
+            }
+        }
+    }
+
+    // Year Selection View
+    .MuiYearCalendar-root .MuiPickersYear-yearButton {
+        color: var(--font-color);
+
+        &.Mui-selected {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+    }
+
+    // Clock View (For TimePicker)
+    .MuiClock-clock {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .MuiClockPointer-root,
+    .MuiClockPointer-thumb {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .MuiClockNumber-root {
+        color: var(--font-color);
+    }
+
+    // Action Buttons (OK/Cancel)
+    .MuiDialogActions-root button {
+        color: var(--primary-color);
+    }
+}

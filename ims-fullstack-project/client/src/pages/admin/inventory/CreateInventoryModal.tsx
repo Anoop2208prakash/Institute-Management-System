@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { FaTimes, FaBoxOpen } from 'react-icons/fa';
 import '../academic/ClassManager.scss';
+import type { SelectChangeEvent } from '@mui/material';
+import CustomSelect from '../../../components/common/CustomSelect';
 
 // 1. Define Inventory Data Interface
 export interface InventoryFormData {
@@ -37,6 +39,16 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
     setFormData({ name: '', category: '', quantity: 0, price: 0 });
   };
 
+  // Handle Select Change
+  const handleCategoryChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, category: e.target.value as 'Uniform' | 'Stationery' });
+  };
+
+  const categoryOptions = [
+    { value: 'Uniform', label: 'Uniform' },
+    { value: 'Stationery', label: 'Stationery' }
+  ];
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
@@ -50,24 +62,16 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             
+            {/* Custom Select for Category */}
             <div className="form-group">
-                <label>Category <span className="required">*</span></label>
-                <select 
-                    style={{
-                        padding: '0.75rem', 
-                        borderRadius: '6px', 
-                        border: '1px solid var(--form-input-border-color)', 
-                        background: 'var(--bg-color)', 
-                        color: 'var(--font-color)'
-                    }}
+                <CustomSelect
+                    label="Category"
+                    placeholder="Select Type..."
                     value={formData.category}
-                    onChange={e => setFormData({...formData, category: e.target.value as 'Uniform' | 'Stationery'})}
-                    required
-                >
-                    <option value="" disabled>Select Type...</option>
-                    <option value="Uniform">Uniform</option>
-                    <option value="Stationery">Stationery</option>
-                </select>
+                    onChange={handleCategoryChange}
+                    options={categoryOptions}
+                    required={true}
+                />
             </div>
 
             <div className="form-group">
@@ -92,7 +96,6 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
                     />
                 </div>
                 <div className="form-group" style={{flex:1}}>
-                    {/* UPDATED LABEL HERE */}
                     <label>Price (₹)</label>
                     <input 
                         type="number" 

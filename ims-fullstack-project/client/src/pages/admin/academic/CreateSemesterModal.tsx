@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
 import './CreateRoleModal.scss'; 
+import type { SelectChangeEvent } from '@mui/material';
+import CustomSelect from '../../../components/common/CustomSelect';
 
-// Simplified Interface
-interface SemesterFormData {
+// 1. Export Interface
+export interface SemesterFormData {
   name: string;
   classId: string; 
 }
@@ -33,7 +35,10 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-        fetch('http://localhost:5000/api/classes')
+        const token = localStorage.getItem('token'); 
+        fetch('http://localhost:5000/api/classes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) setPrograms(data);
@@ -50,6 +55,15 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
     setFormData({ name: '', classId: '' });
   };
 
+  const programOptions = programs.map(prog => ({
+    value: prog.id,
+    label: prog.name
+  }));
+
+  const handleProgramChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, classId: e.target.value as string });
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-container">
@@ -61,26 +75,18 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             
-            {/* Program Selector */}
+            {/* Custom Select with Placeholder & Required */}
             <div className="form-group">
-                <label>Program / Class <span className="required">*</span></label>
-                <select 
-                    style={{padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--form-input-border-color)', background: 'var(--bg-color)', color: 'var(--font-color)'}}
+                <CustomSelect
+                    label="Program / Class"
+                    placeholder="Select Program..."
                     value={formData.classId}
-                    onChange={e => setFormData({...formData, classId: e.target.value})}
-                    required
-                    autoFocus
-                >
-                    <option value="">Select Program...</option>
-                    {programs.map((prog) => (
-                        <option key={prog.id} value={prog.id}>
-                            {prog.name}
-                        </option>
-                    ))}
-                </select>
+                    onChange={handleProgramChange}
+                    options={programOptions}
+                    required={true}
+                />
             </div>
 
-            {/* Semester Name */}
             <div className="form-group">
                 <label>Semester Name <span className="required">*</span></label>
                 <input 
@@ -90,9 +96,6 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
                     required 
                 />
             </div>
-            
-            {/* Dates removed as requested */}
-
           </div>
 
           <div className="modal-footer">

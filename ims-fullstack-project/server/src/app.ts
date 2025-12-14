@@ -24,6 +24,7 @@ import onlineExamRoutes from './routes/onlineExamRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import inquiryRoutes from './routes/inquiryRoutes';
 import libraryRoutes from './routes/libraryRoutes';
+import activityRoutes from './routes/activityRoutes';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/online-exams', onlineExamRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/library', libraryRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

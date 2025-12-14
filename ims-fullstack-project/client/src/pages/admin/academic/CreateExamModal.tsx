@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaClipboardList } from 'react-icons/fa';
 import './CreateRoleModal.scss'; 
+import type { SelectChangeEvent } from '@mui/material';
+import CustomSelect from '../../../components/common/CustomSelect';
+import CustomDateTimePicker from '../../../components/common/CustomDateTimePicker';
 
 export interface ExamFormData {
   name: string;
@@ -12,7 +15,6 @@ export interface ExamFormData {
 }
 
 interface ClassOpt { id: string; name: string; section: string; }
-// Updated Interface with semesterId
 interface SubjectOpt { id: string; name: string; code: string; classId: string; semesterId?: string; }
 interface SemesterOpt { id: string; name: string; status: string; classId: string; }
 
@@ -37,13 +39,16 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
   const [filteredSubjects, setFilteredSubjects] = useState<SubjectOpt[]>([]);
   const [filteredSemesters, setFilteredSemesters] = useState<SemesterOpt[]>([]);
 
-  // Fetch Data
+  // Fetch Data (With Auth Header)
   useEffect(() => {
     if (isOpen) {
+        const token = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
         Promise.all([
-            fetch('http://localhost:5000/api/classes').then(r => r.json()),
-            fetch('http://localhost:5000/api/subjects').then(r => r.json()),
-            fetch('http://localhost:5000/api/semesters').then(r => r.json())
+            fetch('http://localhost:5000/api/classes', { headers }).then(r => r.json()),
+            fetch('http://localhost:5000/api/subjects', { headers }).then(r => r.json()),
+            fetch('http://localhost:5000/api/semesters', { headers }).then(r => r.json())
         ]).then(([cls, sub, sem]) => {
             if(Array.isArray(cls)) setClasses(cls as ClassOpt[]);
             if(Array.isArray(sub)) setAllSubjects(sub as SubjectOpt[]);
@@ -72,7 +77,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
           setFilteredSubjects([]);
           setFilteredSemesters([]);
       }
-  }, [formData.classId, formData.semesterId, allSubjects, allSemesters]); // Dependent on semesterId too
+  }, [formData.classId, formData.semesterId, allSubjects, allSemesters]); 
 
   if (!isOpen) return null;
 
@@ -81,6 +86,52 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
     await onSave(formData);
     setFormData({ name: '', date: '', classId: '', subjectId: '', semesterId: '' });
   };
+
+  // --- Handlers ---
+  const handleSelectChange = (field: keyof ExamFormData) => (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, [field]: e.target.value as string });
+  };
+
+  const handleClassChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ 
+        ...formData, 
+        classId: e.target.value as string, 
+        subjectId: '', 
+        semesterId: '' 
+    });
+  };
+
+  const handleSemesterChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ 
+        ...formData, 
+        semesterId: e.target.value as string, 
+        subjectId: '' // Clear subject on semester change
+    });
+  };
+
+  const handleDateChange = (date: Date | null) => {
+      if (date) {
+          setFormData({ ...formData, date: date.toISOString() });
+      } else {
+          setFormData({ ...formData, date: '' });
+      }
+  };
+
+  // --- Option Transforms ---
+  const classOptions = classes.map(c => ({ 
+      value: c.id, 
+      label: `${c.name} ${c.section ? `- ${c.section}` : ''}` 
+  }));
+
+  const semesterOptions = filteredSemesters.map(s => ({ 
+      value: s.id, 
+      label: `${s.name} (${s.status})` 
+  }));
+
+  const subjectOptions = filteredSubjects.map(s => ({ 
+      value: s.id, 
+      label: `${s.name} (${s.code})` 
+  }));
 
   return (
     <div className="modal-overlay">
@@ -93,20 +144,19 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             
+            {/* 1. Class Selection */}
             <div className="form-group">
-                <label>Class / Program <span className="required">*</span></label>
-                <select 
-                    style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
+                <CustomSelect
+                    label="Class / Program"
+                    placeholder="Select Class first..."
                     value={formData.classId}
-                    onChange={e => setFormData({...formData, classId: e.target.value, subjectId: '', semesterId: ''})}
-                    required
-                    autoFocus
-                >
-                    <option value="">Select Class first...</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name} {c.section ? `- ${c.section}` : ''}</option>)}
-                </select>
+                    onChange={handleClassChange}
+                    options={classOptions}
+                    required={true}
+                />
             </div>
 
+            {/* 2. Exam Name */}
             <div className="form-group">
                 <label>Exam Name <span className="required">*</span></label>
                 <input 
@@ -117,54 +167,49 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
                 />
             </div>
             
+            {/* 3. Date & Time */}
             <div className="form-group">
-                <label>Date <span className="required">*</span></label>
-                <input 
-                    type="datetime-local"
-                    value={formData.date} 
-                    onChange={e => setFormData({...formData, date: e.target.value})} 
-                    required 
+                <CustomDateTimePicker
+                    label="Exam Date & Time"
+                    type="datetime"
+                    value={formData.date ? new Date(formData.date) : null}
+                    onChange={handleDateChange}
+                    required={true}
                 />
             </div>
 
+            {/* 4. Semester & Subject (Side by Side) */}
             <div className="form-row" style={{display:'flex', gap:'1rem'}}>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Semester</label>
-                    <select 
-                        style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
+                    <CustomSelect
+                        label="Semester"
+                        placeholder="Select..."
                         value={formData.semesterId}
-                        onChange={e => setFormData({...formData, semesterId: e.target.value, subjectId: ''})} // Clear subject on semester change
-                        required
+                        onChange={handleSemesterChange}
+                        options={semesterOptions}
                         disabled={!formData.classId}
-                    >
-                        <option value="">Select...</option>
-                        {filteredSemesters.map(s => (
-                            <option key={s.id} value={s.id}>{s.name} ({s.status})</option>
-                        ))}
-                    </select>
+                        required={true}
+                    />
                 </div>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Subject</label>
-                    <select 
-                        style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}
+                    <CustomSelect
+                        label="Subject"
+                        placeholder={filteredSubjects.length === 0 && formData.semesterId ? "No Subjects" : "Select..."}
                         value={formData.subjectId}
-                        onChange={e => setFormData({...formData, subjectId: e.target.value})}
-                        required
+                        onChange={handleSelectChange('subjectId')}
+                        options={subjectOptions}
                         disabled={!formData.classId}
-                    >
-                        <option value="">Select...</option>
-                        {filteredSubjects.length === 0 && formData.semesterId && <option disabled>No subjects in this semester</option>}
-                        {filteredSubjects.map(s => (
-                            <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
-                        ))}
-                    </select>
+                        required={true}
+                    />
                 </div>
             </div>
           </div>
 
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-save" disabled={isLoading}>{isLoading ? 'Scheduling...' : 'Schedule Exam'}</button>
+            <button type="submit" className="btn-save" disabled={isLoading}>
+                {isLoading ? 'Scheduling...' : 'Schedule Exam'}
+            </button>
           </div>
         </form>
       </div>

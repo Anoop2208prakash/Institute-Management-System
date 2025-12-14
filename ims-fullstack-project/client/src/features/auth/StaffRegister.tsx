@@ -6,16 +6,18 @@ import Cropper from 'react-easy-crop';
 import { getCroppedImg } from '../../utils/canvasUtils';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
-import './StaffRegister.scss';
+import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
+import CustomSelect from '../../components/common/CustomSelect';
 
-// Define the shape of a Role object
+import './StaffRegister.scss';
+import type { SelectChangeEvent } from '@mui/material';
+
 interface Role {
   id: string;
   name: string;
   displayName: string;
 }
 
-// Crop Type definition
 interface PixelCrop {
   x: number;
   y: number;
@@ -26,11 +28,9 @@ interface PixelCrop {
 const StaffRegister: React.FC = () => {
   const navigate = useNavigate();
   
-  // 1. State for Dynamic Roles
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(true);
 
-  // 2. Alert State
   const [alertInfo, setAlertInfo] = useState<{
     show: boolean; 
     type: AlertColor; 
@@ -46,46 +46,39 @@ const StaffRegister: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // 3. State for Form Data
+  // State for Form Data
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     phone: '',
-    dob: '',
+    dob: '', 
     roleId: '', 
     bloodGroup: '',
-    joiningDate: new Date().toISOString().split('T')[0],
+    // This sets the default to "Today"
+    joiningDate: new Date().toISOString().split('T')[0], 
   });
 
-  // 4. State for Image & Cropper
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<PixelCrop | null>(null);
   const [isCropping, setIsCropping] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
-  // 5. Fetch Roles (and Filter out Student)
   useEffect(() => {
     const fetchRoles = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/roles'); 
         if (response.ok) {
           const data = await response.json();
-          
-          // FILTER: Remove 'student' from the list
           const staffRoles = data.filter((role: Role) => role.name !== 'student');
-          
           setRoles(staffRoles);
         } else {
-          console.error('Failed to fetch roles');
           showAlert('error', 'Failed to load roles.');
         }
       } catch (error) {
-        console.error('Error connecting to server:', error);
         showAlert('error', 'Network error. Check connection.');
       } finally {
         setLoadingRoles(false);
@@ -94,12 +87,23 @@ const StaffRegister: React.FC = () => {
     fetchRoles();
   }, []);
 
-  // Handle Input Changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- CROPPER LOGIC ---
+  const handleSelectChange = (field: string) => (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, [field]: e.target.value as string });
+  };
+
+  const handleDateChange = (field: string) => (date: Date | null) => {
+    if (date) {
+      const dateString = date.toISOString().split('T')[0];
+      setFormData({ ...formData, [field]: dateString });
+    } else {
+      setFormData({ ...formData, [field]: '' });
+    }
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -131,28 +135,21 @@ const StaffRegister: React.FC = () => {
         setTempImageSrc(null);
       }
     } catch (e) {
-      console.error(e);
       showAlert('error', 'Failed to crop image.');
     }
   };
 
-  // Handle Submit
   const handleSubmit = async () => {
     if (!formData.fullName || !formData.email || !formData.password || !formData.roleId) {
-      showAlert('warning', "Please fill in all required fields (Name, Email, Password, Role)");
+      showAlert('warning', "Please fill in all required fields.");
       return;
     }
 
     try {
       const data = new FormData();
-      data.append('fullName', formData.fullName);
-      data.append('email', formData.email);
-      data.append('password', formData.password);
-      data.append('phone', formData.phone);
-      data.append('dob', formData.dob);
-      data.append('roleId', formData.roleId);
-      data.append('bloodGroup', formData.bloodGroup);
-      data.append('joiningDate', formData.joiningDate);
+      Object.entries(formData).forEach(([key, value]) => {
+          data.append(key, value);
+      });
 
       if (imageFile) {
         data.append('profileImage', imageFile);
@@ -170,16 +167,21 @@ const StaffRegister: React.FC = () => {
         const errorData = await response.json();
         showAlert('error', `Registration Failed: ${errorData.message || 'Unknown error'}`);
       }
-
     } catch (error) {
-      console.error("❌ Network Error:", error);
       showAlert('error', "Network Error: Could not connect to server.");
     }
   };
 
+  const roleOptions = roles.map(r => ({ value: r.id, label: r.displayName }));
+  const bloodGroupOptions = [
+    { value: 'A+', label: 'A+' }, { value: 'A-', label: 'A-' },
+    { value: 'B+', label: 'B+' }, { value: 'B-', label: 'B-' },
+    { value: 'O+', label: 'O+' }, { value: 'O-', label: 'O-' },
+    { value: 'AB+', label: 'AB+' }, { value: 'AB-', label: 'AB-' },
+  ];
+
   return (
     <div className="register-container">
-      
       <FeedbackAlert 
         isOpen={alertInfo.show} 
         type={alertInfo.type} 
@@ -192,23 +194,20 @@ const StaffRegister: React.FC = () => {
           <div className="cropper-container">
             <div className="crop-area">
                 <Cropper
-                image={tempImageSrc || ''}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onCropComplete={onCropComplete}
-                onZoomChange={setZoom}
+                  image={tempImageSrc || ''}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
                 />
             </div>
             <div className="controls">
                 <input
                     type="range"
                     value={zoom}
-                    min={1}
-                    max={3}
-                    step={0.1}
-                    aria-labelledby="Zoom"
+                    min={1} max={3} step={0.1}
                     onChange={(e) => setZoom(Number(e.target.value))}
                     className="zoom-range"
                 />
@@ -303,66 +302,44 @@ const StaffRegister: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="field-label">Date of Birth</label>
-              <input 
-                name="dob"
-                type="date" 
-                className="form-input"
-                value={formData.dob}
-                onChange={handleChange}
-              />
+                <CustomDateTimePicker
+                    label="Date of Birth"
+                    type="date"
+                    value={formData.dob ? new Date(formData.dob) : null}
+                    onChange={handleDateChange('dob')}
+                />
             </div>
 
             <div className="form-group">
-              <label className="field-label">Role</label>
-              <select 
-                name="roleId"
-                className="form-select" 
-                value={formData.roleId}
-                onChange={handleChange}
-              >
-                <option value="" disabled>Select Role...</option>
-                {loadingRoles ? (
-                  <option>Loading roles...</option>
-                ) : (
-                  roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.displayName}
-                    </option>
-                  ))
-                )}
-              </select>
+                <CustomSelect
+                    label="Role" 
+                    placeholder="Select Role..."
+                    value={formData.roleId}
+                    onChange={handleSelectChange('roleId')}
+                    options={roleOptions}
+                    required={true}
+                />
             </div>
 
             <div className="form-group">
-              <label className="field-label">Blood Group</label>
-              <select 
-                name="bloodGroup"
-                className="form-select" 
-                value={formData.bloodGroup}
-                onChange={handleChange}
-              >
-                <option value="" disabled>Select...</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
+                <CustomSelect 
+                    label="Blood Group"
+                    placeholder="Select Blood Group..."
+                    value={formData.bloodGroup}
+                    onChange={handleSelectChange('bloodGroup')}
+                    options={bloodGroupOptions}
+                />
             </div>
 
+            {/* JOINING DATE: Disabled so user cannot change it */}
             <div className="form-group">
-              <label className="field-label">Date Joined</label>
-              <input 
-                name="joiningDate"
-                type="date" 
-                className="form-input"
-                value={formData.joiningDate}
-                onChange={handleChange}
-              />
+                 <CustomDateTimePicker 
+                    label="Joining Date"
+                    type="date"
+                    value={formData.joiningDate ? new Date(formData.joiningDate) : new Date()}
+                    onChange={handleDateChange('joiningDate')}
+                    disabled={true} 
+                />
             </div>
           </div>
         </div>
