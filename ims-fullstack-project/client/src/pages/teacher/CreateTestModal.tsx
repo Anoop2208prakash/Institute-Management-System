@@ -1,7 +1,10 @@
 // client/src/components/teacher/CreateTestModal.tsx
 import React, { useState } from 'react';
 import { FaTimes, FaLaptopCode } from 'react-icons/fa';
-import '../admin/CreateRoleModal.scss'; // Reuse styles
+import '../admin/CreateRoleModal.scss'; 
+import type { SelectChangeEvent } from '@mui/material';
+import CustomSelect from '../../components/common/CustomSelect';
+import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
 
 // 1. Interfaces
 interface TestFormData {
@@ -21,15 +24,15 @@ interface ClassOption {
 interface SubjectOption {
   id: string;
   name: string;
-  classId: string; // Needed for filtering
+  classId: string; 
 }
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: TestFormData) => Promise<void>;
-  classes: ClassOption[]; // Fixed Type
-  subjects: SubjectOption[]; // Fixed Type
+  classes: ClassOption[]; 
+  subjects: SubjectOption[]; 
 }
 
 export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, classes, subjects }) => {
@@ -42,11 +45,51 @@ export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, clas
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave(formData);
+    // Reset Form
     setFormData({ title: '', description: '', date: '', duration: 30, classId: '', subjectId: '' });
   };
 
-  // Filter subjects based on selected class
+  // --- Handlers ---
+
+  // Handle Class Change (Reset subject when class changes)
+  const handleClassChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ 
+        ...formData, 
+        classId: e.target.value as string, 
+        subjectId: '' 
+    });
+  };
+
+  // Handle Subject Change
+  const handleSubjectChange = (e: SelectChangeEvent<string | number>) => {
+    setFormData({ ...formData, subjectId: e.target.value as string });
+  };
+
+  // Handle Date Change
+  const handleDateChange = (date: Date | null) => {
+    if (date) {
+        setFormData({ ...formData, date: date.toISOString() });
+    } else {
+        setFormData({ ...formData, date: '' });
+    }
+  };
+
+  // --- Data Transformation for Custom Inputs ---
+
+  // 1. Map Classes to Options
+  const classOptions = classes.map(c => ({ 
+      value: c.id, 
+      label: c.name 
+  }));
+
+  // 2. Filter Subjects based on selected Class
   const filteredSubjects = subjects.filter(s => s.classId === formData.classId);
+  
+  // 3. Map Filtered Subjects to Options
+  const subjectOptions = filteredSubjects.map(s => ({
+      value: s.id,
+      label: s.name
+  }));
 
   return (
     <div className="modal-overlay">
@@ -55,45 +98,81 @@ export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, clas
           <h3><FaLaptopCode /> Create Online Test</h3>
           <button className="close-btn" onClick={onClose}><FaTimes /></button>
         </div>
+        
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            
+            {/* Title Input */}
             <div className="form-group">
-                <label>Title</label>
-                <input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g. Weekly Quiz 1" />
+                <label>Title <span className="required">*</span></label>
+                <input 
+                    required 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})} 
+                    placeholder="e.g. Weekly Quiz 1" 
+                />
             </div>
             
+            {/* Class & Subject Row */}
             <div className="form-row" style={{display:'flex', gap:'1rem'}}>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Class</label>
-                    <select required value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})} style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}>
-                        <option value="">Select Class</option>
-                        {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    <CustomSelect
+                        label="Class"
+                        placeholder="Select Class"
+                        value={formData.classId}
+                        onChange={handleClassChange}
+                        options={classOptions}
+                        required={true}
+                    />
                 </div>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Subject</label>
-                    <select required value={formData.subjectId} onChange={e => setFormData({...formData, subjectId: e.target.value})} disabled={!formData.classId} style={{padding:'0.75rem', borderRadius:'6px', border:'1px solid var(--form-input-border-color)', background:'var(--bg-color)', color:'var(--font-color)'}}>
-                        <option value="">Select Subject</option>
-                        {filteredSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
+                    <CustomSelect
+                        label="Subject"
+                        placeholder={formData.classId ? "Select Subject" : "Select Class First"}
+                        value={formData.subjectId}
+                        onChange={handleSubjectChange}
+                        options={subjectOptions}
+                        disabled={!formData.classId}
+                        required={true}
+                    />
                 </div>
             </div>
 
-            <div className="form-row" style={{display:'flex', gap:'1rem'}}>
+            {/* Date & Duration Row */}
+            <div className="form-row" style={{display:'flex', gap:'1rem', alignItems: 'flex-start'}}>
                 <div className="form-group" style={{flex:1}}>
-                    <label>Date & Time</label>
-                    <input type="datetime-local" required value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+                    <CustomDateTimePicker
+                        label="Date & Time"
+                        type="datetime"
+                        value={formData.date ? new Date(formData.date) : null}
+                        onChange={handleDateChange}
+                        required={true}
+                    />
                 </div>
-                <div className="form-group" style={{width:'100px'}}>
-                    <label>Duration (Min)</label>
-                    <input type="number" required min="5" value={formData.duration} onChange={e => setFormData({...formData, duration: Number(e.target.value)})} />
+                <div className="form-group" style={{width:'120px'}}>
+                    <label>Duration (Min) <span className="required">*</span></label>
+                    <input 
+                        type="number" 
+                        required 
+                        min="5" 
+                        value={formData.duration} 
+                        onChange={e => setFormData({...formData, duration: Number(e.target.value)})} 
+                    />
                 </div>
             </div>
+
+            {/* Description */}
             <div className="form-group">
                 <label>Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={2} />
+                <textarea 
+                    value={formData.description} 
+                    onChange={e => setFormData({...formData, description: e.target.value})} 
+                    rows={2} 
+                    placeholder="Instructions for students..."
+                />
             </div>
           </div>
+
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-save">Create</button>
