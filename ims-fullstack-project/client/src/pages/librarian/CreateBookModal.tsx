@@ -1,7 +1,7 @@
 // client/src/components/librarian/CreateBookModal.tsx
 import React, { useState } from 'react';
-import { FaTimes, FaBook } from 'react-icons/fa';
-import './CreateBookModal.scss'; 
+import { FaTimes, FaBook, FaCheck } from 'react-icons/fa';
+import './CreateBookModal.scss'; // Dedicated SCSS
 
 // 1. Define the Interface for New Book Data
 export interface NewBookData {
@@ -48,10 +48,17 @@ export const CreateBookModal: React.FC<CreateBookModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="book-modal-overlay">
+      <div className="book-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaBook /> Add New Book</h3>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaBook />
+            </div>
+            <h3>Add New Book</h3>
+          </div>
           <button className="close-btn" onClick={onClose} disabled={isLoading}>
             <FaTimes />
           </button>
@@ -59,6 +66,8 @@ export const CreateBookModal: React.FC<CreateBookModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Enter details to add a new book to the library inventory.</p>
+            
             <div className="form-group">
               <label>Book Title <span className="required">*</span></label>
               <input 
@@ -122,7 +131,7 @@ export const CreateBookModal: React.FC<CreateBookModalProps> = ({
                 Cancel
             </button>
             <button type="submit" className="btn-save" disabled={isLoading}>
-                {isLoading ? 'Adding...' : 'Add Book'}
+                {isLoading ? 'Adding...' : <><FaCheck /> Add Book</>}
             </button>
           </div>
         </form>

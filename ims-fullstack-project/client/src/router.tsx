@@ -17,7 +17,11 @@ import ExamManager from './pages/admin/academic/ExamManager';
 import InventoryManager from './pages/admin/inventory/InventoryManager';
 import OrderList from './pages/admin/inventory/OrderList';
 import AnnouncementManager from './pages/admin/communication/AnnouncementManager';
-// Corrected Paths for Admission Pages
+
+// Admin Admission Pages
+import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
+import AdmissionList from './pages/admin/admission/AdmissionList';
+import InquiryList from './pages/admin/admission/InquiryList';
 
 // Librarian Pages
 import BookList from './pages/librarian/BookList';
@@ -39,9 +43,8 @@ import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
 
 import LandingPage from './pages/LandingPage';
-import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
-import AdmissionList from './pages/admin/admission/AdmissionList';
-import InquiryList from './pages/admin/admission/InquiryList';
+import { AddQuestionsStepper } from './pages/teacher/AddQuestionsStepper';
+import NotFoundPage from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
   {
@@ -83,7 +86,6 @@ export const router = createBrowserRouter([
         path: '/staff',
         element: <StaffList />
       },
-      // Moved inside MainLayout so Sidebar shows
       {
         path: '/new-admission',
         element: <NewAdmissionPage />,
@@ -111,6 +113,18 @@ export const router = createBrowserRouter([
       { path: '/enter-marks', element: <EnterMarks /> },
       { path: '/online-tests', element: <OnlineTestManager /> },
       
+      // Added Route for Quiz Creator (Add Questions Page)
+      // Note: Ensure AddQuestionsStepper is updated to handle params as a page or wrapped appropriately
+      { 
+        path: '/teacher/tests/:id/questions', 
+        element: <AddQuestionsStepper
+                    isOpen={true} 
+                    onClose={() => window.history.back()} 
+                    examId={window.location.pathname.split('/')[3]} 
+                    onSave={async () => {}} // Placeholder until connected
+                  /> 
+      },
+      
       // --- STUDENT ROUTES ---
       { path: '/stationery', element: <StationeryStore /> },
       { path: '/admit-card', element: <AdmitCardPage /> },
@@ -127,6 +141,6 @@ export const router = createBrowserRouter([
   // 404 Route
   {
     path: '*',
-    element: <div>404 - Page Not Found</div>,
+    element: <NotFoundPage />, 
   }
 ]);

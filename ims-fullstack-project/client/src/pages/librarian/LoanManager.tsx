@@ -1,7 +1,10 @@
 // client/src/pages/librarian/LoanManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaClipboardList, FaUndo } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton'; 
+import { type AlertColor } from '@mui/material/Alert'; // Import Alert Type
+import FeedbackAlert from '../../components/common/FeedbackAlert'; // Import FeedbackAlert
+import { DeleteModal } from '../../components/common/DeleteModal'; // Reusing DeleteModal for confirmation
 import './LoanManager.scss'; 
 
 // 1. Define Interfaces
@@ -24,7 +27,17 @@ const LoanManager: React.FC = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const [issueData, setIssueData] = useState({ bookId: '', admissionNo: '', dueDate: '' });
   const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true); 
+  
+  // --- Feedback & Confirmation State ---
+  const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
+  const [confirmReturnModal, setConfirmReturnModal] = useState<{show: boolean, loanId: string | null}>({ show: false, loanId: null });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const showAlert = (type: AlertColor, msg: string) => {
+    setAlertInfo({ show: true, type, msg });
+    setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+  };
 
   // 2. Fetch Function
   const fetchData = useCallback(async () => {
@@ -39,6 +52,7 @@ const LoanManager: React.FC = () => {
       if (booksRes.ok) setBooks(await booksRes.json());
     } catch (error) {
       console.error("Failed to load library data", error);
+      showAlert('error', "Failed to load library data. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -51,9 +65,11 @@ const LoanManager: React.FC = () => {
 
   const handleIssue = async () => {
     if (!issueData.bookId || !issueData.admissionNo || !issueData.dueDate) {
-        alert("Please fill all fields");
+        showAlert('warning', "Please fill in all fields: Book, Student ID, and Due Date.");
         return;
     }
+    
+    setIsProcessing(true);
     try {
       const res = await fetch('http://localhost:5000/api/library/loans/issue', {
         method: 'POST',
@@ -62,29 +78,52 @@ const LoanManager: React.FC = () => {
       });
       
       if (res.ok) {
-        alert("Book Issued Successfully");
+        showAlert('success', "Book Issued Successfully");
         void fetchData(); 
         setIssueData({ bookId: '', admissionNo: '', dueDate: '' }); 
       } else {
         const err = await res.json();
-        alert(`Failed: ${err.message}`);
+        showAlert('error', `Failed to issue book: ${err.message || 'Unknown error'}`);
       }
     } catch (e) {
       console.error(e);
+      showAlert('error', "Network error occurred while issuing book.");
+    } finally {
+        setIsProcessing(false);
     }
   };
 
-  const handleReturn = async (loanId: string) => {
-    if (!window.confirm("Mark this book as returned?")) return;
+  // Trigger Modal
+  const requestReturn = (loanId: string) => {
+      setConfirmReturnModal({ show: true, loanId });
+  };
+
+  // Confirm Return Action
+  const handleConfirmReturn = async () => {
+    const loanId = confirmReturnModal.loanId;
+    if (!loanId) return;
+
+    setIsProcessing(true);
     try {
       const res = await fetch('http://localhost:5000/api/library/loans/return', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ loanId })
       });
-      if (res.ok) void fetchData();
+      
+      if (res.ok) {
+          showAlert('success', "Book marked as returned successfully.");
+          void fetchData();
+          setConfirmReturnModal({ show: false, loanId: null });
+      } else {
+          const err = await res.json();
+          showAlert('error', `Failed to return book: ${err.message}`);
+      }
     } catch (e) {
       console.error(e);
+      showAlert('error', "Network error occurred during return process.");
+    } finally {
+        setIsProcessing(false);
     }
   };
 
@@ -97,6 +136,25 @@ const LoanManager: React.FC = () => {
   return (
     <div className="loan-page"> 
       
+      {/* Feedback Alert Component */}
+      <FeedbackAlert 
+        isOpen={alertInfo.show} 
+        type={alertInfo.type} 
+        message={alertInfo.msg} 
+        onClose={() => setAlertInfo({ ...alertInfo, show: false })} 
+      />
+
+      {/* Reusing DeleteModal for Confirmation */}
+      <DeleteModal 
+        isOpen={confirmReturnModal.show}
+        onClose={() => setConfirmReturnModal({ show: false, loanId: null })}
+        onConfirm={handleConfirmReturn}
+        title="Confirm Return"
+        message="Are you sure you want to mark this book as returned?"
+        itemName="this loan record"
+        isLoading={isProcessing}
+      />
+
       <div className="page-header">
         <div className="header-content">
           <h2><FaClipboardList /> Manage Loans</h2>
@@ -106,6 +164,7 @@ const LoanManager: React.FC = () => {
           <select 
             value={issueData.bookId}
             onChange={e => setIssueData({...issueData, bookId: e.target.value})} 
+            disabled={isProcessing}
           >
             <option value="">Select Book...</option>
             {books.map((b) => (
@@ -119,15 +178,19 @@ const LoanManager: React.FC = () => {
             placeholder="Student ID (Adm No)" 
             value={issueData.admissionNo}
             onChange={e => setIssueData({...issueData, admissionNo: e.target.value})} 
+            disabled={isProcessing}
           />
           
           <input 
             type="date" 
             value={issueData.dueDate}
             onChange={e => setIssueData({...issueData, dueDate: e.target.value})} 
+            disabled={isProcessing}
           />
           
-          <button className="btn-issue" onClick={handleIssue}>Issue Book</button>
+          <button className="btn-issue" onClick={handleIssue} disabled={isProcessing}>
+            {isProcessing ? 'Processing...' : 'Issue Book'}
+          </button>
         </div>
       </div>
 
@@ -138,22 +201,14 @@ const LoanManager: React.FC = () => {
             Array.from(new Array(5)).map((_, index) => (
                 <div key={index} className="loan-card">
                     <div className="card-content">
-                        {/* Title Skeleton */}
                         <Skeleton variant="text" width="80%" height={30} style={{marginBottom: 8}} />
-                        
-                        {/* Student Info Skeleton */}
                         <div style={{marginBottom: 15}}>
                             <Skeleton variant="text" width="60%" height={20} />
                             <Skeleton variant="text" width="40%" height={16} />
                         </div>
-                        
-                        {/* Due Date Skeleton */}
                         <Skeleton variant="text" width="50%" height={20} />
-
-                        {/* Status Badge Skeleton */}
                         <Skeleton variant="rectangular" width={80} height={24} style={{borderRadius: 20, marginTop: 10}} />
                     </div>
-                    {/* Action Button Skeleton */}
                     <div className="card-actions">
                         <Skeleton variant="rectangular" width="100%" height={36} style={{borderRadius: 6}} />
                     </div>
@@ -182,7 +237,7 @@ const LoanManager: React.FC = () => {
 
                     {loan.status === 'ISSUED' && (
                       <div className="card-actions">
-                        <button className="return-btn" onClick={() => handleReturn(loan.id)}>
+                        <button className="return-btn" onClick={() => requestReturn(loan.id)}>
                           <FaUndo /> Return Book
                         </button>
                       </div>

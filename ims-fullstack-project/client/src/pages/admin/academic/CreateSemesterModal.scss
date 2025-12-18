@@ -1,6 +1,6 @@
-// client/src/components/librarian/CreateBookModal.scss
+// client/src/components/admin/CreateSemesterModal.scss
 
-.book-modal-overlay {
+.semester-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,10 +15,10 @@
     padding: 1rem;
     animation: fadeIn 0.2s ease-out forwards;
 
-    .book-modal-container {
+    .semester-modal-container {
         background-color: var(--card-bg-default);
         width: 100%;
-        max-width: 500px; // Slightly wider for double columns
+        max-width: 480px;
         border-radius: 12px;
         box-shadow: var(--box-shadow-3);
         border: 1px solid var(--card-border-color);

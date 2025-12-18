@@ -202,19 +202,35 @@
                     border-radius: 4px;
                 }
 
-                .btn-delete {
-                    background: none;
-                    border: none;
-                    color: var(--text-muted-color);
-                    cursor: pointer;
-                    font-size: 1rem;
-                    padding: 6px;
-                    border-radius: 4px;
-                    transition: all 0.2s;
+                // --- NEW ACTIONS GROUP ---
+                .actions {
+                    display: flex;
+                    gap: 0.5rem; // Space between buttons
 
-                    &:hover {
-                        background-color: #fee2e2;
-                        color: #dc2626;
+                    button {
+                        background: none;
+                        border: none;
+                        color: var(--text-muted-color);
+                        cursor: pointer;
+                        font-size: 1rem;
+                        padding: 7px;
+                        border-radius: 6px; // Slightly rounded
+                        transition: all 0.2s;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        // Hover effect for Edit
+                        &.btn-edit:hover {
+                            background-color: rgba(13, 110, 253, 0.1); // Light Blue bg
+                            color: var(--primary-color); // Blue text
+                        }
+
+                        // Hover effect for Delete
+                        &.btn-delete:hover {
+                            background-color: #fee2e2; // Light Red bg
+                            color: #dc2626; // Red text
+                        }
                     }
                 }
             }

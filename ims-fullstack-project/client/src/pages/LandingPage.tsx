@@ -1,18 +1,40 @@
 // client/src/pages/LandingPage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   FaGraduationCap, FaArrowRight, FaUser, 
   FaTicketAlt, FaShieldAlt, FaCreditCard, FaChevronRight 
 } from 'react-icons/fa';
+import InquiryModal from '../components/common/InquiryModal';
+import FeedbackAlert from '../components/common/FeedbackAlert'; 
+import { type AlertColor } from '@mui/material/Alert'; 
 import './LandingPage.scss';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+
+  // --- FEEDBACK ALERT STATE ---
+  const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
+    show: false, type: 'success', msg: '' 
+  });
+
+  const showAlert = (type: AlertColor, msg: string) => {
+    setAlertInfo({ show: true, type, msg });
+    setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+  };
 
   return (
     <div className="landing-page">
       
+      {/* === ALERT COMPONENT === */}
+      <FeedbackAlert 
+        isOpen={alertInfo.show} 
+        type={alertInfo.type} 
+        message={alertInfo.msg} 
+        onClose={() => setAlertInfo({ ...alertInfo, show: false })} 
+      />
+
       {/* === NAVBAR === */}
       <nav className="landing-nav">
         <div className="nav-container">
@@ -24,7 +46,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="nav-links">
-            <a href="#features">Campus Life</a>
+            <a href="#features">Inquiries</a>
             <a href="#about">Facilities</a>
             <a href="#contact">Support</a>
           </div>
@@ -33,21 +55,16 @@ const LandingPage: React.FC = () => {
             <button className="btn-signin" onClick={() => navigate('/login')}>
               Sign In
             </button>
-            <button className="btn-register" onClick={() => navigate('/new-admission')}>
-              Student Admission
-            </button>
           </div>
         </div>
       </nav>
 
       {/* === HERO SECTION === */}
       <section className="hero-section">
-        {/* Dynamic Background Blobs */}
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
 
         <div className="hero-container">
-          {/* Text Content */}
           <div className="hero-content">
             <div className="badge">
               <span className="dot"></span>
@@ -68,13 +85,12 @@ const LandingPage: React.FC = () => {
               <Link to="/login" className="btn-primary">
                 Login to Portal <FaArrowRight />
               </Link>
-              <button className="btn-outline">
-                Campus Tour
+              <button className="btn-outline" onClick={() => setIsInquiryOpen(true)}>
+                Inquiries
               </button>
             </div>
           </div>
 
-          {/* Visual Card (Mockup) */}
           <div className="hero-visual">
             <div className="glass-card">
                <div className="card-header">
@@ -174,11 +190,18 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* --- FIX: Added 'showAlert' prop here --- */}
+      <InquiryModal 
+        isOpen={isInquiryOpen} 
+        onClose={() => setIsInquiryOpen(false)} 
+        showAlert={showAlert} 
+      />
     </div>
   );
 };
 
-// --- HELPER COMPONENT (Internal) ---
+// --- HELPER COMPONENT ---
 const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
   <div className="feature-card">
     <div className="icon">

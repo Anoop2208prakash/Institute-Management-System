@@ -1,10 +1,10 @@
 // client/src/components/teacher/CreateTestModal.tsx
 import React, { useState } from 'react';
-import { FaTimes, FaLaptopCode } from 'react-icons/fa';
-import '../admin/CreateRoleModal.scss'; 
+import { FaTimes, FaLaptopCode, FaCheck } from 'react-icons/fa';
 import type { SelectChangeEvent } from '@mui/material';
 import CustomSelect from '../../components/common/CustomSelect';
 import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
+import './CreateTestModal.scss'; // Dedicated SCSS
 
 // 1. Interfaces
 interface TestFormData {
@@ -33,9 +33,12 @@ interface Props {
   onSave: (data: TestFormData) => Promise<void>;
   classes: ClassOption[]; 
   subjects: SubjectOption[]; 
+  isLoading?: boolean; // Added prop for loading state
 }
 
-export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, classes, subjects }) => {
+export const CreateTestModal: React.FC<Props> = ({ 
+    isOpen, onClose, onSave, classes, subjects, isLoading = false 
+}) => {
   const [formData, setFormData] = useState<TestFormData>({
     title: '', description: '', date: '', duration: 30, classId: '', subjectId: ''
   });
@@ -74,42 +77,44 @@ export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, clas
     }
   };
 
-  // --- Data Transformation for Custom Inputs ---
+  // --- Data Transformation ---
 
-  // 1. Map Classes to Options
-  const classOptions = classes.map(c => ({ 
-      value: c.id, 
-      label: c.name 
-  }));
-
-  // 2. Filter Subjects based on selected Class
+  const classOptions = classes.map(c => ({ value: c.id, label: c.name }));
+  
   const filteredSubjects = subjects.filter(s => s.classId === formData.classId);
   
-  // 3. Map Filtered Subjects to Options
-  const subjectOptions = filteredSubjects.map(s => ({
-      value: s.id,
-      label: s.name
-  }));
+  const subjectOptions = filteredSubjects.map(s => ({ value: s.id, label: s.name }));
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="test-modal-overlay">
+      <div className="test-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaLaptopCode /> Create Online Test</h3>
-          <button className="close-btn" onClick={onClose}><FaTimes /></button>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaLaptopCode />
+            </div>
+            <h3>Create Online Test</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}>
+            <FaTimes />
+          </button>
         </div>
         
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Set up a new quiz or assessment for your students.</p>
             
             {/* Title Input */}
             <div className="form-group">
-                <label>Title <span className="required">*</span></label>
+                <label>Test Title <span className="required">*</span></label>
                 <input 
                     required 
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})} 
                     placeholder="e.g. Weekly Quiz 1" 
+                    autoFocus
                 />
             </div>
             
@@ -149,7 +154,7 @@ export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, clas
                         required={true}
                     />
                 </div>
-                <div className="form-group" style={{width:'120px'}}>
+                <div className="form-group" style={{width:'130px'}}>
                     <label>Duration (Min) <span className="required">*</span></label>
                     <input 
                         type="number" 
@@ -174,8 +179,10 @@ export const CreateTestModal: React.FC<Props> = ({ isOpen, onClose, onSave, clas
           </div>
 
           <div className="modal-footer">
-            <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-save">Create</button>
+            <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>Cancel</button>
+            <button type="submit" className="btn-save" disabled={isLoading}>
+                {isLoading ? 'Creating...' : <><FaCheck /> Create Test</>}
+            </button>
           </div>
         </form>
       </div>

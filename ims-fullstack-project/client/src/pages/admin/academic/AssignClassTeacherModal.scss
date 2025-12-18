@@ -1,6 +1,6 @@
-// client/src/components/librarian/CreateBookModal.scss
+// client/src/components/admin/AssignClassTeacherModal.scss
 
-.book-modal-overlay {
+.assign-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -15,10 +15,10 @@
     padding: 1rem;
     animation: fadeIn 0.2s ease-out forwards;
 
-    .book-modal-container {
+    .assign-modal-container {
         background-color: var(--card-bg-default);
         width: 100%;
-        max-width: 500px; // Slightly wider for double columns
+        max-width: 450px;
         border-radius: 12px;
         box-shadow: var(--box-shadow-3);
         border: 1px solid var(--card-border-color);
@@ -119,14 +119,9 @@
                     color: var(--heading-color);
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-
-                    .required {
-                        color: var(--font-color-danger);
-                        margin-left: 3px;
-                    }
                 }
 
-                input {
+                .custom-select-input {
                     padding: 0.75rem;
                     border: 1px solid var(--form-input-border-color);
                     border-radius: 8px;
@@ -134,23 +129,25 @@
                     color: var(--font-color);
                     font-family: inherit;
                     font-size: 0.95rem;
-                    transition: border-color 0.2s, box-shadow 0.2s;
                     width: 100%;
                     outline: none;
-
-                    &::placeholder {
-                        color: var(--text-muted-color);
-                        opacity: 0.7;
-                    }
-
-                    &:hover {
-                        border-color: var(--text-muted-color);
-                    }
+                    cursor: pointer;
+                    appearance: none; // Removes default arrow in some browsers
+                    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2359636e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+                    background-repeat: no-repeat;
+                    background-position: right 1rem center;
+                    background-size: 1em;
 
                     &:focus {
                         border-color: var(--primary-color);
                         box-shadow: 0 0 0 3px var(--form-focus-outline);
                     }
+                }
+
+                .helper-text {
+                    font-size: 0.8rem;
+                    color: var(--text-muted-color);
+                    margin: 0;
                 }
             }
         }

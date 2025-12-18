@@ -1,7 +1,7 @@
 // client/src/components/admin/CreateClassModal.tsx
 import React, { useState } from 'react';
-import { FaTimes, FaLayerGroup } from 'react-icons/fa';
-import './CreateRoleModal.scss'; // Reuse styles
+import { FaTimes, FaLayerGroup, FaCheck } from 'react-icons/fa';
+import './CreateClassModal.scss'; 
 
 export interface ClassFormData {
   name: string;
@@ -29,29 +29,44 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="class-modal-overlay">
+      <div className="class-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaLayerGroup /> Add New Program</h3>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}><FaTimes /></button>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaLayerGroup />
+            </div>
+            <h3>New Program</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}>
+            <FaTimes />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Create a new academic program or class batch.</p>
+
+            {/* Program Name */}
             <div className="form-group">
                 <label>Program Name <span className="required">*</span></label>
                 <input 
-                    placeholder="e.g. Bachelor of Computer Science" 
+                    type="text"
+                    placeholder="e.g. B.Tech Computer Science 2025" 
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
-                    required autoFocus 
+                    required 
+                    autoFocus 
                 />
             </div>
             
+            {/* Description */}
             <div className="form-group">
-                <label>Description (Optional)</label>
+                <label>Description</label>
                 <textarea 
-                    placeholder="Short details about this program..." 
+                    placeholder="Brief details about the curriculum or batch..." 
                     value={formData.description} 
                     onChange={e => setFormData({...formData, description: e.target.value})} 
                     rows={3}
@@ -59,10 +74,11 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
             </div>
           </div>
 
+          {/* Footer */}
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-save" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Program'}
+                {isLoading ? 'Creating...' : <><FaCheck /> Create Program</>}
             </button>
           </div>
         </form>

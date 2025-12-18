@@ -1,6 +1,6 @@
 // client/src/components/teacher/AddQuestionsStepper.tsx
 import React, { useState } from 'react';
-import { FaQuestionCircle, FaCheck } from 'react-icons/fa';
+import { FaQuestionCircle, FaCheck, FaTrash, FaPlus } from 'react-icons/fa';
 import '../admin/CreateRoleModal.scss'; 
 import './AddQuestionsStepper.scss'; 
 
@@ -84,70 +84,98 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
 
   return (
     <div className="modal-overlay">
-      <div className="modal-container"> 
+      <div className="modal-container quiz-modal"> 
         
+        {/* Header */}
         <div className="stepper-header">
-            <h3><FaQuestionCircle /> Quiz Creator</h3>
+            <div className="title-section">
+                <h3><FaQuestionCircle /> Quiz Creator</h3>
+                <span className="subtitle">Add questions for your test</span>
+            </div>
+            <div className="progress-badge">
+                Question {activeStep + 1} / 10
+            </div>
         </div>
 
         <div className="stepper-body">
             {/* Sidebar (Desktop) */}
             <div className="step-sidebar">
-                {questions.map((q, idx) => (
-                    <div 
-                        key={idx} 
-                        className={`step-item ${idx === activeStep ? 'active' : ''} ${isQuestionFilled(idx) ? 'completed' : ''}`}
-                        onClick={() => jumpToStep(idx)}
-                    >
-                        <div className="circle">{isQuestionFilled(idx) ? <FaCheck /> : idx + 1}</div>
-                        <span>Question {idx + 1}</span>
-                    </div>
-                ))}
+                <div className="sidebar-title">Question List</div>
+                <div className="questions-list">
+                    {questions.map((q, idx) => (
+                        <div 
+                            key={idx} 
+                            className={`step-item ${idx === activeStep ? 'active' : ''} ${isQuestionFilled(idx) ? 'completed' : ''}`}
+                            onClick={() => jumpToStep(idx)}
+                        >
+                            <div className="step-indicator">
+                                {isQuestionFilled(idx) ? <FaCheck /> : `Q${idx + 1}`}
+                            </div>
+                            <div className="step-info">
+                                <span className="q-label">Question {idx + 1}</span>
+                                <span className="q-preview">
+                                    {q.questionText ? q.questionText.substring(0, 15) + '...' : 'Empty'}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             {/* Main Content */}
             <div className="step-content">
-                {/* Mobile Progress Indicator */}
-                <div className="mobile-progress">
-                    Step {activeStep + 1} of 10
-                </div>
-
                 <div className="question-editor">
-                    <div className="form-group">
-                        <label>Question Text (Q{activeStep+1})</label>
-                        <textarea 
-                            placeholder="Type your question here..." 
-                            value={currentQ.questionText} 
-                            onChange={e => handleChange('questionText', e.target.value)}
-                            autoFocus
-                        />
+                    
+                    {/* Question Header & Marks */}
+                    <div className="editor-top-row">
+                        <label className="section-label">Question Text</label>
+                        <div className="marks-wrapper">
+                            <label>Marks:</label>
+                            <input 
+                                type="number" 
+                                min="1" 
+                                max="100"
+                                value={currentQ.marks} 
+                                onChange={e => handleChange('marks', Number(e.target.value))} 
+                            />
+                        </div>
                     </div>
 
-                    <div className="options-container">
+                    <textarea 
+                        className="question-input"
+                        placeholder="Type your question here..." 
+                        value={currentQ.questionText} 
+                        onChange={e => handleChange('questionText', e.target.value)}
+                        autoFocus
+                    />
+
+                    <div className="divider"></div>
+
+                    <label className="section-label">Answer Options <span className="hint">(Click circle to mark correct answer)</span></label>
+                    
+                    <div className="options-grid">
                         {optionFields.map((opt) => (
-                            <div className="option-box" key={opt.key}>
-                                <div 
-                                    className={`radio-check ${currentQ.correctOption === opt.idx ? 'selected' : ''}`}
-                                    onClick={() => handleChange('correctOption', opt.idx)}
-                                    title="Mark as Correct Answer"
-                                ></div>
+                            <div 
+                                className={`option-card ${currentQ.correctOption === opt.idx ? 'correct' : ''}`} 
+                                key={opt.key}
+                            >
+                                <div className="card-header-row">
+                                    <span className="opt-badge">{String.fromCharCode(65 + opt.idx)}</span>
+                                    <div 
+                                        className="radio-check"
+                                        onClick={() => handleChange('correctOption', opt.idx)}
+                                        title="Mark as Correct Answer"
+                                    >
+                                        {currentQ.correctOption === opt.idx && <FaCheck />}
+                                    </div>
+                                </div>
                                 <input 
                                     value={currentQ[opt.key]} 
                                     onChange={e => handleChange(opt.key, e.target.value)} 
-                                    placeholder={opt.label}
-                                    className={currentQ.correctOption === opt.idx ? 'correct' : ''}
+                                    placeholder={`Type answer for ${opt.label}`}
                                 />
                             </div>
                         ))}
-                    </div>
-
-                    <div className="marks-input">
-                        <label>Points for this question:</label>
-                        <input 
-                            type="number" min="1" 
-                            value={currentQ.marks} 
-                            onChange={e => handleChange('marks', Number(e.target.value))} 
-                        />
                     </div>
                 </div>
             </div>
@@ -156,7 +184,7 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
         <div className="stepper-footer">
             <button className="btn-cancel" onClick={onClose}>Cancel</button>
 
-            <div className="nav-actions" style={{display:'flex', gap:'1rem'}}>
+            <div className="nav-actions">
                 <button className="btn-nav prev" onClick={handlePrev} disabled={activeStep === 0 || isSubmitting}>
                     Previous
                 </button>
@@ -167,7 +195,7 @@ export const AddQuestionsStepper: React.FC<Props> = ({ isOpen, onClose, examId, 
                     </button>
                 ) : (
                     <button className="btn-nav finish" onClick={handleFinish} disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Finish'}
+                        {isSubmitting ? 'Saving...' : 'Finish & Save'}
                     </button>
                 )}
             </div>
