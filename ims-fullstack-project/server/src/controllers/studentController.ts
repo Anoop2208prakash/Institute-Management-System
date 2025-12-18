@@ -1,7 +1,7 @@
 // server/src/controllers/studentController.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../utils/prisma'; // Ensure this path matches your project structure
+import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 
 // ------------------------------------------
@@ -9,78 +9,33 @@ import { AuthRequest } from '../middlewares/auth';
 // ------------------------------------------
 export const registerStudent = async (req: Request, res: Response): Promise<void> => {
   try {
-    // 1. Extract data from request body
     const { 
-      fullName, 
-      email, 
-      password, 
-      phone, 
-      // Handle both naming conventions (frontend might send dateOfBirth, DB uses dob)
-      dateOfBirth, 
-      dob, 
-      gender, 
-      address, 
-      bloodGroup, 
-      admissionNo, 
-      classId 
+      fullName, email, password, phone, dob, 
+      gender, address, bloodGroup, admissionNo, classId 
     } = req.body;
     
-    // 2. Handle Profile Image
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
 
-    // 3. Basic Validation
     if (!email || !password || !fullName || !admissionNo) {
-      res.status(400).json({ message: "Missing required fields: email, password, fullName, or admissionNo." });
+      res.status(400).json({ message: "Missing required fields" });
       return;
     }
 
-    // 4. Robust Date Parsing (Fixes "Invalid Date" Prisma Error)
-    const rawDate = dateOfBirth || dob;
-    if (!rawDate) {
-       res.status(400).json({ message: "Date of Birth is required." });
-       return;
-    }
-    const birthDate = new Date(rawDate);
-    if (isNaN(birthDate.getTime())) {
-       res.status(400).json({ message: "Invalid Date of Birth format. Expected YYYY-MM-DD." });
-       return;
-    }
-
-    // 5. Check if Class Exists
-    if (classId) {
-        const classExists = await prisma.class.findUnique({ where: { id: classId } });
-        if (!classExists) {
-            res.status(400).json({ message: "Invalid Class ID. Class does not exist." });
-            return;
-        }
-    }
-
-    // 6. Check duplicates
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: "Email already exists" });
       return;
     }
 
-    const existingStudent = await prisma.student.findUnique({ where: { admissionNo } });
-    if (existingStudent) {
-        res.status(400).json({ message: "Admission Number already exists." });
-        return;
-    }
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 7. Get Student Role
     const studentRole = await prisma.role.findUnique({ where: { name: 'student' } });
     if (!studentRole) {
-        res.status(500).json({ message: "System Error: Role 'student' not found. Please seed roles." });
+        res.status(500).json({ message: "System Error: Student role not defined" });
         return;
     }
 
-    // 8. DATABASE TRANSACTION
-    // Create User and Student Profile together. If one fails, both roll back.
     const result = await prisma.$transaction(async (tx) => {
-      // A. Create Login User
       const newUser = await tx.user.create({
         data: {
           email,
@@ -91,7 +46,6 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
         },
       });
 
-      // B. Determine Class ID (Fallback logic)
       let finalClassId = classId;
       if (!finalClassId) {
         let defaultClass = await tx.class.findFirst();
@@ -101,34 +55,30 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
         finalClassId = defaultClass.id;
       }
 
-      // C. Create Student Profile
-      const newStudent = await tx.student.create({
+      const birthDate = dob ? new Date(dob) : new Date();
+
+      await tx.student.create({
         data: {
           userId: newUser.id,
           fullName,
           admissionNo,
-          dob: birthDate, // Uses the validated Date object
+          dob: birthDate,
           gender: gender || 'MALE',
           address,
-          phone, // backend schema uses 'phone'
+          phone,
           bloodGroup,
           classId: finalClassId
         },
       });
 
-      return { user: newUser, student: newStudent };
+      return newUser;
     });
 
-    res.status(201).json({ 
-        message: "Student admitted successfully", 
-        studentId: result.student.id,
-        admissionNo: result.student.admissionNo 
-    });
+    res.status(201).json({ message: "Student admitted successfully", studentId: result.id });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Admission Error:", error);
-    // Return the specific error message if available
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -150,7 +100,8 @@ export const getStudents = async (req: Request, res: Response) => {
       admissionNo: s.admissionNo,
       name: s.fullName,
       email: s.user.email,
-      class: s.class ? s.class.name : 'Unassigned', 
+      class: s.class ? s.class.name : 'Unassigned',
+      classId: s.classId, // <--- ADDED: Required for Edit Modal
       phone: s.phone,
       avatar: s.user.avatar,
       gender: s.gender
@@ -163,7 +114,32 @@ export const getStudents = async (req: Request, res: Response) => {
 };
 
 // ------------------------------------------
-// 3. DELETE STUDENT (Admin)
+// 3. UPDATE STUDENT (Admin) - NEW FUNCTION
+// ------------------------------------------
+export const updateStudent = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // userId
+    const { name, phone, gender, classId } = req.body;
+
+    await prisma.student.update({
+      where: { userId: id },
+      data: {
+        fullName: name,
+        phone: phone,
+        gender: gender,
+        classId: classId
+      }
+    });
+
+    res.json({ message: "Student record updated successfully" });
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ message: "Failed to update student" });
+  }
+};
+
+// ------------------------------------------
+// 4. DELETE STUDENT (Admin)
 // ------------------------------------------
 export const deleteStudent = async (req: Request, res: Response) => {
   try {
@@ -176,6 +152,7 @@ export const deleteStudent = async (req: Request, res: Response) => {
   }
 };
 
+// ... (Keep the rest of the file: getMySubjects, getMyAttendance, etc.)
 // ==========================================
 // STUDENT PORTAL API (Self-Service)
 // ==========================================

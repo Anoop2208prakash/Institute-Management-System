@@ -1,9 +1,9 @@
 // client/src/components/admin/CreateSubjectModal.tsx
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaBook } from 'react-icons/fa';
-import './CreateRoleModal.scss'; // Reusing styles
+import { FaTimes, FaBook, FaCheck } from 'react-icons/fa';
 import type { SelectChangeEvent } from '@mui/material';
 import CustomSelect from '../../../components/common/CustomSelect';
+import './CreateSubjectModal.scss'; // Dedicated SCSS
 
 // 1. Define Interfaces
 export interface SubjectFormData {
@@ -33,7 +33,6 @@ interface SemesterOption {
   programName?: string;
 }
 
-// Helper interface for raw API response
 interface RawStaff {
     id: string;
     name: string;
@@ -73,7 +72,6 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
             if (Array.isArray(semesterData)) setSemesters(semesterData);
             
             if (Array.isArray(staffData)) {
-                // Filter only teachers
                 const teacherList = (staffData as RawStaff[])
                     .filter(s => s.role === 'Teacher')
                     .map(t => ({
@@ -96,55 +94,48 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
   };
 
   // --- Handlers ---
-  
-  // 1. Handle Class Change (Resets Semester)
   const handleClassChange = (e: SelectChangeEvent<string | number>) => {
     setFormData({
         ...formData,
         classId: e.target.value as string,
-        semesterId: '' // Reset semester when class changes
+        semesterId: '' 
     });
   };
 
-  // 2. Generic Select Change
   const handleSelectChange = (field: keyof SubjectFormData) => (e: SelectChangeEvent<string | number>) => {
     setFormData({ ...formData, [field]: e.target.value as string });
   };
 
-  // --- Transform Options ---
+  // --- Options ---
+  const classOptions = classes.map(cls => ({ value: cls.id, label: cls.name }));
+  const teacherOptions = teachers.map(t => ({ value: t.id, label: t.name }));
   
-  // A. Class Options
-  const classOptions = classes.map(cls => ({ 
-      value: cls.id, 
-      label: cls.name 
-  }));
-
-  // B. Teacher Options
-  const teacherOptions = teachers.map(t => ({ 
-      value: t.id, 
-      label: t.name 
-  }));
-
-  // C. Filtered Semester Options
   const filteredSemesters = formData.classId 
     ? semesters.filter(sem => sem.classId === formData.classId)
     : [];
 
-  const semesterOptions = filteredSemesters.map(sem => ({
-      value: sem.id,
-      label: sem.name
-  }));
+  const semesterOptions = filteredSemesters.map(sem => ({ value: sem.id, label: sem.name }));
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="subject-modal-overlay">
+      <div className="subject-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaBook /> Add New Subject</h3>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}><FaTimes /></button>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaBook />
+            </div>
+            <h3>Add New Subject</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}>
+            <FaTimes />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Define a new course or subject for a specific curriculum.</p>
             
             <div className="form-group">
                 <label>Subject Name <span className="required">*</span></label>
@@ -206,7 +197,9 @@ export const CreateSubjectModal: React.FC<CreateSubjectModalProps> = ({
 
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-save" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Subject'}</button>
+            <button type="submit" className="btn-save" disabled={isLoading}>
+                {isLoading ? 'Saving...' : <><FaCheck /> Save Subject</>}
+            </button>
           </div>
         </form>
       </div>

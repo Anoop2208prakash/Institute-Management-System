@@ -1,9 +1,9 @@
 // client/src/components/admin/CreateInventoryModal.tsx
 import React, { useState } from 'react';
-import { FaTimes, FaBoxOpen } from 'react-icons/fa';
-import '../academic/ClassManager.scss';
+import { FaTimes, FaBoxOpen, FaCheck } from 'react-icons/fa';
 import type { SelectChangeEvent } from '@mui/material';
 import CustomSelect from '../../../components/common/CustomSelect';
+import './CreateInventoryModal.scss'; // Dedicated SCSS
 
 // 1. Define Inventory Data Interface
 export interface InventoryFormData {
@@ -31,15 +31,12 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Basic Validation
     if (!formData.name || !formData.category) return;
     
     await onSave(formData);
-    // Reset
     setFormData({ name: '', category: '', quantity: 0, price: 0 });
   };
 
-  // Handle Select Change
   const handleCategoryChange = (e: SelectChangeEvent<string | number>) => {
     setFormData({ ...formData, category: e.target.value as 'Uniform' | 'Stationery' });
   };
@@ -50,10 +47,17 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
   ];
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="inventory-modal-overlay">
+      <div className="inventory-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaBoxOpen /> Add Inventory Item</h3>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaBoxOpen />
+            </div>
+            <h3>Add Inventory Item</h3>
+          </div>
           <button className="close-btn" onClick={onClose} disabled={isLoading}>
             <FaTimes />
           </button>
@@ -61,8 +65,9 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Add new stock to the school inventory system.</p>
             
-            {/* Custom Select for Category */}
+            {/* Category Select */}
             <div className="form-group">
                 <CustomSelect
                     label="Category"
@@ -74,13 +79,16 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
                 />
             </div>
 
+            {/* Item Name */}
             <div className="form-group">
                 <label>Item Name <span className="required">*</span></label>
                 <input 
+                    type="text"
                     placeholder={formData.category === 'Uniform' ? "e.g. White Shirt Size M" : "e.g. Blue Ballpoint Pen"}
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
                     required 
+                    autoFocus
                 />
             </div>
 
@@ -112,7 +120,7 @@ export const CreateInventoryModal: React.FC<CreateInventoryModalProps> = ({
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-save" disabled={isLoading}>
-                {isLoading ? 'Adding...' : 'Add Item'}
+                {isLoading ? 'Adding...' : <><FaCheck /> Add Item</>}
             </button>
           </div>
         </form>

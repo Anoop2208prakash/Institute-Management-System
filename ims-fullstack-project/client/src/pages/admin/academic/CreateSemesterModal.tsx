@@ -1,8 +1,8 @@
 // client/src/components/admin/CreateSemesterModal.tsx
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaCalendarAlt } from 'react-icons/fa';
-import './CreateRoleModal.scss'; 
+import { FaTimes, FaCalendarAlt, FaCheck } from 'react-icons/fa';
 import type { SelectChangeEvent } from '@mui/material';
+import './CreateSemesterModal.scss'; // New dedicated SCSS
 import CustomSelect from '../../../components/common/CustomSelect';
 
 // 1. Export Interface
@@ -65,17 +65,27 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="semester-modal-overlay">
+      <div className="semester-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaCalendarAlt /> Add New Semester</h3>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}><FaTimes /></button>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaCalendarAlt />
+            </div>
+            <h3>Add New Semester</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}>
+            <FaTimes />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Define a new academic term for a specific program.</p>
             
-            {/* Custom Select with Placeholder & Required */}
+            {/* Custom Select */}
             <div className="form-group">
                 <CustomSelect
                     label="Program / Class"
@@ -87,10 +97,12 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
                 />
             </div>
 
+            {/* Semester Name Input */}
             <div className="form-group">
                 <label>Semester Name <span className="required">*</span></label>
                 <input 
-                    placeholder="e.g. Semester 1" 
+                    type="text"
+                    placeholder="e.g. Semester 1 (Spring 2025)" 
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
                     required 
@@ -101,7 +113,7 @@ export const CreateSemesterModal: React.FC<CreateSemesterModalProps> = ({
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-save" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Semester'}
+                {isLoading ? 'Creating...' : <><FaCheck /> Create Semester</>}
             </button>
           </div>
         </form>

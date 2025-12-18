@@ -1,13 +1,12 @@
 // client/src/pages/teacher/OnlineTestManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom'; 
+import { useLocation, useNavigate } from 'react-router-dom'; // 1. Import useNavigate
 import { FaLaptopCode, FaPlus, FaTrash, FaQuestionCircle, FaClock, FaListOl, FaFilter } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton'; 
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../components/common/DeleteModal';
 import { type AlertColor } from '@mui/material/Alert';
 import './OnlineTestManager.scss';
-import { AddQuestionsStepper, type QuestionPayload } from './AddQuestionsStepper';
 import { CreateTestModal } from './CreateTestModal';
 
 interface OnlineTest {
@@ -46,6 +45,7 @@ interface SubjectOption {
 
 const OnlineTestManager: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // 2. Initialize Hook
   const { prefillClassId, prefillSubjectId } = location.state || {};
 
   const [tests, setTests] = useState<OnlineTest[]>([]);
@@ -55,15 +55,12 @@ const OnlineTestManager: React.FC = () => {
   
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState(false);
   
   // Delete Modal State
   const [deleteModal, setDeleteModal] = useState<{show: boolean, id: string, title: string}>({ 
     show: false, id: '', title: '' 
   });
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
 
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ 
     show: false, type: 'success', msg: '' 
@@ -125,26 +122,6 @@ const OnlineTestManager: React.FC = () => {
       }
   };
 
-  const handleAddBulkQuestions = async (payload: QuestionPayload[]) => {
-      const token = localStorage.getItem('token');
-      try {
-          const res = await fetch('http://localhost:5000/api/online-exams/questions/bulk', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify(payload)
-          });
-          if(res.ok) {
-              fetchTests(); 
-              setIsQuestionModalOpen(false);
-              showAlert('success', 'Questions Added Successfully!');
-          } else {
-              showAlert('error', 'Failed to add questions');
-          }
-      } catch(e) {
-          showAlert('error', 'Network error');
-      }
-  };
-
   const confirmDelete = async () => {
       setIsDeleting(true);
       const token = localStorage.getItem('token');
@@ -169,9 +146,10 @@ const OnlineTestManager: React.FC = () => {
       }
   };
 
+  // 3. Updated Handler: Redirect to Questions Page
   const openAddQuestions = (id: string) => {
-      setSelectedTestId(id);
-      setIsQuestionModalOpen(true);
+      // Navigate to the separate page route (ensure this route exists in your App.tsx)
+      navigate(`/teacher/tests/${id}/questions`);
   };
 
   const openDeleteModal = (id: string, title: string) => {
@@ -247,8 +225,9 @@ const OnlineTestManager: React.FC = () => {
                             </div>
                         </div>
                         <div className="card-footer">
+                             {/* Calls navigation function now */}
                              <button className="btn-add-qs" onClick={() => openAddQuestions(test.id)}>
-                                <FaListOl /> Add Qs
+                                <FaListOl /> Manage Qs
                              </button>
                              <button className="btn-delete" onClick={() => openDeleteModal(test.id, test.title)}>
                                 <FaTrash /> Delete
@@ -266,12 +245,7 @@ const OnlineTestManager: React.FC = () => {
             onSave={handleCreate} classes={classes} subjects={subjects} 
         />
 
-        <AddQuestionsStepper
-            isOpen={isQuestionModalOpen}
-            onClose={() => setIsQuestionModalOpen(false)}
-            examId={selectedTestId || ''}
-            onSave={handleAddBulkQuestions}
-        />
+        {/* Removed AddQuestionsStepper Modal */}
 
         <DeleteModal 
             isOpen={deleteModal.show}

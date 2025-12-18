@@ -1,12 +1,12 @@
-// client/src/components/librarian/CreateBookModal.scss
+// client/src/components/admin/CreateClassModal.scss
 
-.book-modal-overlay {
+.class-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.6); // Matches your dark overlay style
     backdrop-filter: blur(5px);
     z-index: 1050;
     display: flex;
@@ -15,10 +15,10 @@
     padding: 1rem;
     animation: fadeIn 0.2s ease-out forwards;
 
-    .book-modal-container {
+    .class-modal-container {
         background-color: var(--card-bg-default);
         width: 100%;
-        max-width: 500px; // Slightly wider for double columns
+        max-width: 480px;
         border-radius: 12px;
         box-shadow: var(--box-shadow-3);
         border: 1px solid var(--card-border-color);
@@ -39,7 +39,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: var(--bg-secondary-color);
+            background-color: var(--bg-color); // Clean white/dark background for header
             flex-shrink: 0;
 
             .header-title {
@@ -50,6 +50,7 @@
                 .icon-box {
                     width: 36px;
                     height: 36px;
+                    // Use theme variable for icon background
                     background-color: var(--dashboard-header-icon-bg-color);
                     color: var(--primary-color);
                     border-radius: 8px;
@@ -87,7 +88,7 @@
             }
         }
 
-        // --- Body ---
+        // --- Form & Body ---
         form {
             display: flex;
             flex-direction: column;
@@ -126,7 +127,8 @@
                     }
                 }
 
-                input {
+                input,
+                textarea {
                     padding: 0.75rem;
                     border: 1px solid var(--form-input-border-color);
                     border-radius: 8px;
@@ -151,6 +153,13 @@
                         border-color: var(--primary-color);
                         box-shadow: 0 0 0 3px var(--form-focus-outline);
                     }
+                }
+
+                textarea {
+                    resize: vertical;
+                    min-height: 80px;
+                    max-height: 200px;
+                    line-height: 1.5;
                 }
             }
         }

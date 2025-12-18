@@ -1,10 +1,10 @@
 // client/src/components/admin/CreateExamModal.tsx
 import React, { useState, useEffect } from 'react';
-import { FaTimes, FaClipboardList } from 'react-icons/fa';
-import './CreateRoleModal.scss'; 
+import { FaTimes, FaClipboardList, FaCheck } from 'react-icons/fa';
 import type { SelectChangeEvent } from '@mui/material';
 import CustomSelect from '../../../components/common/CustomSelect';
 import CustomDateTimePicker from '../../../components/common/CustomDateTimePicker';
+import './CreateExamModal.scss'; // Dedicated SCSS
 
 export interface ExamFormData {
   name: string;
@@ -79,8 +79,6 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
       }
   }, [formData.classId, formData.semesterId, allSubjects, allSemesters]); 
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSave(formData);
@@ -133,16 +131,28 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
       label: `${s.name} (${s.code})` 
   }));
 
+  if (!isOpen) return null;
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-container">
+    <div className="exam-modal-overlay">
+      <div className="exam-modal-container">
+        
+        {/* Header */}
         <div className="modal-header">
-          <h3><FaClipboardList /> Schedule Exam</h3>
-          <button className="close-btn" onClick={onClose} disabled={isLoading}><FaTimes /></button>
+          <div className="header-title">
+            <div className="icon-box">
+              <FaClipboardList />
+            </div>
+            <h3>Schedule Exam</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}>
+            <FaTimes />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
+            <p className="modal-subtitle">Create a new examination schedule for a specific class and subject.</p>
             
             {/* 1. Class Selection */}
             <div className="form-group">
@@ -164,6 +174,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
                     required 
+                    autoFocus
                 />
             </div>
             
@@ -208,7 +219,7 @@ export const CreateExamModal: React.FC<CreateExamModalProps> = ({
           <div className="modal-footer">
             <button type="button" className="btn-cancel" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn-save" disabled={isLoading}>
-                {isLoading ? 'Scheduling...' : 'Schedule Exam'}
+                {isLoading ? 'Scheduling...' : <><FaCheck /> Schedule Exam</>}
             </button>
           </div>
         </form>
