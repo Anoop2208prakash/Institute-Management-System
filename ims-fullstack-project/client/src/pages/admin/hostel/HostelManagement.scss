@@ -1,0 +1,352 @@
+// client/src/pages/admin/hostel/HostelManagement.scss
+
+.modern-hostel-container {
+    padding: 2.5rem;
+    background: #f8fafc;
+    min-height: 100vh;
+
+    .glass-header {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        padding: 2rem;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2.5rem;
+
+        .title-block {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+
+            .icon-badge {
+                font-size: 2rem;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: white;
+                padding: 1rem;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+                margin: 0;
+                color: #1e293b;
+            }
+
+            p {
+                color: #64748b;
+                margin: 0;
+            }
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+
+            .primary-action-btn {
+                background: #1e293b;
+                color: white;
+                border: none;
+                padding: 0.8rem 1.5rem;
+                border-radius: 12px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                    background: #334155;
+                    transform: translateY(-2px);
+                }
+            }
+
+            .refresh-btn {
+                background: white;
+                border: 1px solid #e2e8f0;
+                padding: 0.8rem;
+                border-radius: 12px;
+                cursor: pointer;
+                color: #64748b;
+
+                &:hover {
+                    color: #6366f1;
+                    border-color: #6366f1;
+                }
+            }
+        }
+    }
+
+    .dashboard-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .hostel-modern-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        border: 1px solid #f1f5f9;
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+
+            .block-name {
+                font-weight: 700;
+                color: #334155;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .add-room-inline {
+                background: #f1f5f9;
+                color: #6366f1;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 0.85rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+
+                &:hover {
+                    background: #e0e7ff;
+                    color: #4338ca;
+                }
+            }
+        }
+
+        .occupancy-circle {
+            width: 120px;
+            margin: 1.5rem auto;
+
+            .circular-chart {
+                display: block;
+                margin: 10px auto;
+                max-width: 100%;
+            }
+
+            .circle-bg {
+                fill: none;
+                stroke: #eee;
+                stroke-width: 3.8;
+            }
+
+            .circle {
+                fill: none;
+                stroke-width: 2.8;
+                stroke-linecap: round;
+                stroke: #6366f1;
+                transition: stroke-dasharray 1s ease;
+            }
+
+            .percentage {
+                fill: #334155;
+                font-size: 0.5rem;
+                text-anchor: middle;
+                font-weight: 700;
+            }
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+            color: #64748b;
+
+            .stat {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+        }
+    }
+
+    .allocation-panel {
+        background: white;
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+
+            .count-tag {
+                background: #f1f5f9;
+                padding: 4px 12px;
+                border-radius: 12px;
+                font-weight: 700;
+            }
+        }
+
+        .queue-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            border: 1px solid #f1f5f9;
+
+            &:hover {
+                border-color: #6366f1;
+                background: #f8fafc;
+            }
+
+            .student-profile {
+                display: flex;
+                gap: 1rem;
+
+                .avatar-initial {
+                    width: 45px;
+                    height: 45px;
+                    background: #6366f1;
+                    color: white;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                }
+
+                h4 {
+                    margin: 0;
+                    font-size: 1rem;
+                    color: #1e293b;
+                }
+
+                p {
+                    margin: 0;
+                    font-size: 0.8rem;
+                    color: #64748b;
+                }
+            }
+
+            .action-arrow {
+                background: none;
+                border: none;
+                color: #cbd5e1;
+                font-size: 1.2rem;
+                cursor: pointer;
+
+                &:hover {
+                    color: #6366f1;
+                }
+            }
+        }
+    }
+
+    // Modal Styles
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+
+        .glass-modal {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+
+                h3 {
+                    margin: 0;
+                    color: #1e293b;
+                    font-size: 1.4rem;
+                }
+
+                button {
+                    background: none;
+                    border: none;
+                    font-size: 1.2rem;
+                    color: #94a3b8;
+                    cursor: pointer;
+                }
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+
+                label {
+                    display: block;
+                    margin-bottom: 0.5rem;
+                    font-weight: 600;
+                    color: #475569;
+                    font-size: 0.9rem;
+                }
+
+                input,
+                select {
+                    width: 100%;
+                    padding: 0.8rem 1rem;
+                    border: 1.5px solid #e2e8f0;
+                    border-radius: 12px;
+                    font-size: 1rem;
+
+                    &:focus {
+                        outline: none;
+                        border-color: #6366f1;
+                        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+                    }
+                }
+            }
+
+            .form-row-dual {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .confirm-btn {
+                width: 100%;
+                background: #6366f1;
+                color: white;
+                border: none;
+                padding: 1rem;
+                border-radius: 12px;
+                font-weight: 700;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background 0.2s;
+
+                &:hover {
+                    background: #4f46e5;
+                }
+            }
+        }
+    }
+}

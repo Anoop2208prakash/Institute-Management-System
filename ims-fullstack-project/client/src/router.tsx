@@ -23,6 +23,9 @@ import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
 import AdmissionList from './pages/admin/admission/AdmissionList';
 import InquiryList from './pages/admin/admission/InquiryList';
 
+// NEW: Admin Hostel Management Pages
+import HostelManagement from './pages/admin/hostel/HostelManagement';
+
 // Librarian Pages
 import BookList from './pages/librarian/BookList';
 import LoanManager from './pages/librarian/LoanManager';
@@ -45,6 +48,7 @@ import MyOrders from './pages/student/MyOrders';
 import LandingPage from './pages/LandingPage';
 import { AddQuestionsStepper } from './pages/teacher/AddQuestionsStepper';
 import NotFoundPage from './pages/NotFoundPage';
+import RoomAllocation from './pages/admin/hostel/RoomAllocation';
 
 export const router = createBrowserRouter([
   {
@@ -102,6 +106,16 @@ export const router = createBrowserRouter([
       { path: '/orders', element: <OrderList /> },
       { path: '/announcements', element: <AnnouncementManager /> },
 
+      // --- NEW: HOSTEL MODULE ROUTES ---
+      { 
+        path: '/hostel-management', 
+        element: <HostelManagement /> 
+      },
+      { 
+        path: '/room-allocation', 
+        element: <RoomAllocation /> // Currently using same component for allocation logic
+      },
+
       // --- LIBRARIAN ROUTES ---
       { path: '/books', element: <BookList /> }, 
       { path: '/loans', element: <LoanManager /> },
@@ -113,15 +127,14 @@ export const router = createBrowserRouter([
       { path: '/enter-marks', element: <EnterMarks /> },
       { path: '/online-tests', element: <OnlineTestManager /> },
       
-      // Added Route for Quiz Creator (Add Questions Page)
-      // Note: Ensure AddQuestionsStepper is updated to handle params as a page or wrapped appropriately
+      // Quiz Creator (Add Questions Page)
       { 
         path: '/teacher/tests/:id/questions', 
         element: <AddQuestionsStepper
                     isOpen={true} 
                     onClose={() => window.history.back()} 
                     examId={window.location.pathname.split('/')[3]} 
-                    onSave={async () => {}} // Placeholder until connected
+                    onSave={async () => {}} 
                   /> 
       },
       
@@ -133,6 +146,7 @@ export const router = createBrowserRouter([
       { path: '/my-results', element: <MyResults /> },
       { path: '/my-invoices', element: <MyInvoices /> },
       { path: '/my-orders', element: <MyOrders /> },
+      { path: '/hostel-portal', element: <Dashboard /> }, // Placeholder for Student Residence view
 
       { path: '/inquiries', element: <InquiryList /> }
     ]

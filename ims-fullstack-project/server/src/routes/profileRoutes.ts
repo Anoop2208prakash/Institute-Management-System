@@ -1,14 +1,23 @@
 // server/src/routes/profileRoutes.ts
 import { Router } from 'express';
 import { getMyProfile, updateMyProfile } from '../controllers/profileController';
-import { authenticate } from '../middlewares/auth';
-import { upload } from '../middlewares/upload'; // Import upload
+import { protect } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
+import { upload } from '../middlewares/upload'; 
 
 const router = Router();
 
-router.get('/me', authenticate, getMyProfile);
+/**
+ * @route   GET /api/profile/me
+ * @desc    Fetch personal profile data for the logged-in user
+ * @access  Private
+ */
+router.get('/me', protect, getMyProfile);
 
-// PUT /api/profile/me (Allows file upload)
-router.put('/me', authenticate, upload.single('avatar'), updateMyProfile);
+/**
+ * @route   PUT /api/profile/me
+ * @desc    Update personal profile and upload a new avatar
+ * @access  Private
+ */
+router.put('/me', protect, upload.single('avatar'), updateMyProfile);
 
 export default router;

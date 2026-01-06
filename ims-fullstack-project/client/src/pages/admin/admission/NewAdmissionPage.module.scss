@@ -456,3 +456,111 @@
         }
     }
 }
+.hostelSection {
+    margin-top: 30px;
+    padding: 25px;
+    background-color: var(--bg-secondary-color);
+    border: 1px solid var(--border-light-color);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: var(--primary-color);
+        background-color: rgba(var(--primary-rgb), 0.02);
+    }
+
+    @media (max-width: 768px) {
+        padding: 15px;
+        margin-top: 20px;
+    }
+}
+
+.hostelCheckboxGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .checkboxLabel {
+        display: flex;
+        align-items: center;
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+        padding-left: 38px; // Space for the custom box
+        font-weight: 600;
+        color: var(--font-color);
+        min-height: 24px;
+
+        // Hide native browser checkbox
+        input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+
+            &:checked~.checkboxCustom {
+                background-color: var(--primary-color);
+                border-color: var(--primary-color);
+
+                &:after {
+                    display: block;
+                }
+            }
+        }
+
+        // Custom UI Box
+        .checkboxCustom {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 24px;
+            width: 24px;
+            background-color: var(--card-bg-default);
+            border: 2px solid var(--border-light-color);
+            border-radius: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+            // Checkmark (hidden by default)
+            &:after {
+                content: "";
+                position: absolute;
+                display: none;
+                left: 8px;
+                top: 4px;
+                width: 5px;
+                height: 10px;
+                border: solid white;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+            }
+        }
+
+        .labelText {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+
+            .hostelIcon {
+                color: var(--primary-color);
+                font-size: 1.3rem;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        &:hover .checkboxCustom {
+            border-color: var(--primary-color);
+        }
+    }
+
+    .helperText {
+        font-size: 0.85rem;
+        color: var(--text-muted-color);
+        margin: 0;
+        padding-left: 38px;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+}

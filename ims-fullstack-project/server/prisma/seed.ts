@@ -20,7 +20,7 @@ async function main() {
     const upsertedRole = await prisma.role.upsert({
       where: { name: role.name },
       update: {}, // If exists, do nothing
-      create: {
+      create: { 
         name: role.name,
         displayName: role.displayName,
       },

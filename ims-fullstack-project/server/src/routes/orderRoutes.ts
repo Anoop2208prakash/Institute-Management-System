@@ -1,12 +1,36 @@
+// server/src/routes/orderRoutes.ts
 import { Router } from 'express';
 import { getOrders, createOrder, updateOrderStatus, getMyOrders } from '../controllers/orderController';
-import { authenticate } from '../middlewares/auth';
+import { protect, authorize } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
-router.get('/', getOrders); // Admin view all
-router.post('/', authenticate, createOrder); // Anyone can order
-router.get('/my-orders', authenticate, getMyOrders); // View own orders
-router.put('/:id/status', updateOrderStatus);
+/**
+ * @route   GET /api/orders
+ * @desc    Admin Only: View all orders across the institution
+ * @access  Private (Admin/Super Admin)
+ */
+router.get('/', protect, authorize('super_admin', 'admin'), getOrders); 
+
+/**
+ * @route   POST /api/orders
+ * @desc    Logged-in users can place new orders (Inventory/Hostel supplies)
+ * @access  Private
+ */
+router.post('/', protect, createOrder); 
+
+/**
+ * @route   GET /api/orders/my-orders
+ * @desc    Fetch order history for the currently logged-in user
+ * @access  Private
+ */
+router.get('/my-orders', protect, getMyOrders); 
+
+/**
+ * @route   PUT /api/orders/:id/status
+ * @desc    Admin Only: Update the fulfillment status of an order
+ * @access  Private (Admin/Super Admin)
+ */
+router.put('/:id/status', protect, authorize('super_admin', 'admin'), updateOrderStatus);
 
 export default router;

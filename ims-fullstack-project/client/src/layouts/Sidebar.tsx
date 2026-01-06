@@ -5,7 +5,7 @@ import {
   FaHome, FaIdCard, FaUserPlus, FaUsers, 
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib,
-  FaEnvelopeOpenText
+  FaEnvelopeOpenText, FaHotel, FaBed, FaUserShield
 } from 'react-icons/fa';
 import './Sidebar.scss';
 import logo from '../assets/image/banner-logo.png'; 
@@ -44,26 +44,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
     {
         title: "Admission",
         items: [
-            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin'] },
-            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin'] },
-            { path: '/inquiries', label: 'Inquiries (Leads)', icon: <FaEnvelopeOpenText />, roles: ['administrator', 'super_admin'] },
+            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin', 'admin'] },
+            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin', 'admin'] },
+            { path: '/inquiries', label: 'Inquiries (Leads)', icon: <FaEnvelopeOpenText />, roles: ['administrator', 'super_admin', 'admin'] },
         ]
     },
     {
       title: "Academic Management",
       items: [
-        { path: '/programs', label: 'Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin'] },
-        { path: '/semesters', label: 'Semesters', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin'] },
-        { path: '/subjects', label: 'Subjects', icon: <FaBook />, roles: ['admin', 'super_admin'] },
-        { path: '/exams', label: 'Exams', icon: <FaClipboardList />, roles: ['admin', 'super_admin'] },
-        { path: '/staff', label: 'Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin'] },
+        { path: '/programs', label: 'Programs', icon: <FaLayerGroup />, roles: ['admin', 'super_admin', 'administrator'] },
+        { path: '/semesters', label: 'Semesters', icon: <FaCalendarAlt />, roles: ['admin', 'super_admin', 'administrator'] },
+        { path: '/subjects', label: 'Subjects', icon: <FaBook />, roles: ['admin', 'super_admin', 'administrator'] },
+        { path: '/exams', label: 'Exams', icon: <FaClipboardList />, roles: ['admin', 'super_admin', 'administrator'] },
+        { path: '/staff', label: 'Staff', icon: <FaChalkboardTeacher />, roles: ['admin', 'super_admin', 'administrator'] },
       ]
+    },
+    {
+        title: "Hostel & Residence", // NEW SECTION: Integrated for Hostel Module
+        items: [
+            { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin', 'administrator'] },
+            { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin', 'administrator'] },
+            { path: '/hostel-portal', label: 'My Residence', icon: <FaHome />, roles: ['student'] },
+        ]
     },
     {
       title: "Inventory & Store",
       items: [
-        { path: '/inventory', label: 'Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin'] },
-        { path: '/orders', label: 'Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin'] },
+        { path: '/inventory', label: 'Inventory', icon: <FaBoxOpen />, roles: ['admin', 'super_admin', 'administrator'] },
+        { path: '/orders', label: 'Orders', icon: <FaShoppingCart />, roles: ['admin', 'super_admin', 'administrator'] },
         { path: '/stationery', label: 'Stationery Store', icon: <FaBoxOpen />, roles: ['student', 'teacher'] },
         { path: '/my-orders', label: 'My Orders', icon: <FaShoppingCart />, roles: ['student', 'teacher'] },
       ]
@@ -99,6 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
         title: "System",
         items: [
             { path: '/roles', label: 'Roles & Permissions', icon: <FaIdBadge />, roles: ['super_admin'] },
+            { path: '/activity-logs', label: 'System Logs', icon: <FaUserShield />, roles: ['super_admin'] },
         ]
     }
   ];
@@ -113,7 +122,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       <div className="sidebar-header">
         <div className="logo-area">
              <img src={logo} alt="IMS" />
-             
         </div>
       </div>
 

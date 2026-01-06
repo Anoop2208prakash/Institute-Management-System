@@ -97,8 +97,8 @@ const LandingPage: React.FC = () => {
                  <div className="user">
                    <div className="avatar"><FaUser /></div>
                    <div>
-                     <p>Rahul Sharma</p>
-                     <p>B.Tech CSE • Room 204</p>
+                     <p>VIshnu Nair</p>
+                     <p>BCA</p>
                    </div>
                  </div>
                  <div className="status">Authorized</div>
@@ -106,8 +106,8 @@ const LandingPage: React.FC = () => {
 
                <div className="stats-row">
                  <div className="stat">
-                   <label>Gate Pass</label>
-                   <span>Approved</span>
+                   <label>Marks</label>
+                   <span>89%</span>
                  </div>
                  <div className="stat">
                    <label>Attendance</label>

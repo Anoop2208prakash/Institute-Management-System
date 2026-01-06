@@ -4,18 +4,46 @@ import {
     getBooks, createBook, deleteBook, 
     getLoans, issueBook, returnBook 
 } from '../controllers/libraryController';
-import { authenticate } from '../middlewares/auth';
+import { protect } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
-// Books
-router.get('/books', authenticate, getBooks); // All logged in users can view
-router.post('/books', authenticate, createBook); // Librarian Only (Checked in controller)
-router.delete('/books/:id', authenticate, deleteBook); // Librarian Only
+// --- Books Management ---
+/**
+ * @route   GET /api/library/books
+ * @desc    All logged-in users can view the library catalog
+ */
+router.get('/books', protect, getBooks); 
 
-// Loans
-router.get('/loans', authenticate, getLoans);
-router.post('/loans/issue', authenticate, issueBook);
-router.post('/loans/return', authenticate, returnBook);
+/**
+ * @route   POST /api/library/books
+ * @desc    Librarian Only: Add new books to the inventory
+ */
+router.post('/books', protect, createBook); 
+
+/**
+ * @route   DELETE /api/library/books/:id
+ * @desc    Librarian Only: Remove books from the inventory
+ */
+router.delete('/books/:id', protect, deleteBook); 
+
+// --- Loans & Circulation ---
+/**
+ * @route   GET /api/library/loans
+ * @desc    Fetch active and historical book loans
+ */
+router.get('/loans', protect, getLoans);
+
+/**
+ * @route   POST /api/library/loans/issue
+ * @desc    Issue a book to a student or teacher
+ */
+router.post('/loans/issue', protect, issueBook);
+
+/**
+ * @route   POST /api/library/loans/return
+ * @desc    Process a book return
+ */
+router.post('/loans/return', protect, returnBook);
 
 export default router;

@@ -51,7 +51,10 @@ const EditStudentModal: React.FC<EditModalProps> = ({ isOpen, onClose, student, 
 
     useEffect(() => {
         if (isOpen) {
-            fetch('http://localhost:5000/api/classes')
+            const token = localStorage.getItem('token'); // ADDED: Get Token
+            fetch('http://localhost:5000/api/classes', {
+                headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header
+            })
                 .then(res => res.json())
                 .then(data => { if(Array.isArray(data)) setClasses(data); })
                 .catch(console.error);
@@ -163,10 +166,15 @@ const AdmissionList: React.FC = () => {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/students');
+      const token = localStorage.getItem('token'); // ADDED: Get Token
+      const res = await fetch('http://localhost:5000/api/students', {
+        headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header to fix 401
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) setStudents(data);
+      } else if (res.status === 401) {
+        showAlert('error', 'Session expired. Please login again.');
       }
     } catch (error) {
       console.error(error);
@@ -187,9 +195,13 @@ const AdmissionList: React.FC = () => {
       if (!studentToEdit) return;
       setIsProcessing(true);
       try {
+          const token = localStorage.getItem('token'); // ADDED: Get Token
           const res = await fetch(`http://localhost:5000/api/students/${studentToEdit.id}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` // ADDED: Header
+              },
               body: JSON.stringify(updatedData)
           });
 
@@ -217,8 +229,10 @@ const AdmissionList: React.FC = () => {
     if (!studentToDelete) return;
     setIsProcessing(true);
     try {
+      const token = localStorage.getItem('token'); // ADDED: Get Token
       const res = await fetch(`http://localhost:5000/api/students/${studentToDelete.id}`, {
         method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header
       });
 
       if (res.ok) {
@@ -237,14 +251,13 @@ const AdmissionList: React.FC = () => {
     }
   };
 
-  // --- SORT LOGIC ADDED HERE ---
   const filteredStudents = students
     .filter(student => 
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.admissionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.class.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically by Name
+    .sort((a, b) => a.name.localeCompare(b.name)); 
 
   return (
     <div className="admission-page"> 

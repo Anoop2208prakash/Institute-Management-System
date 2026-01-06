@@ -11,7 +11,8 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
   try {
     const { 
       fullName, email, password, phone, dob, 
-      gender, address, bloodGroup, admissionNo, classId 
+      gender, address, bloodGroup, admissionNo, classId,
+      needsHostel 
     } = req.body;
     
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
@@ -35,6 +36,8 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
         return;
     }
 
+    const hostelRequired = needsHostel === 'true' || needsHostel === true;
+
     const result = await prisma.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
@@ -57,7 +60,7 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
 
       const birthDate = dob ? new Date(dob) : new Date();
 
-      await tx.student.create({
+      const newStudent = await tx.student.create({
         data: {
           userId: newUser.id,
           fullName,
@@ -67,14 +70,15 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
           address,
           phone,
           bloodGroup,
-          classId: finalClassId
+          classId: finalClassId,
+          needsHostel: hostelRequired 
         },
       });
 
-      return newUser;
+      return newStudent;
     });
 
-    res.status(201).json({ message: "Student admitted successfully", studentId: result.id });
+    res.status(201).json({ message: "Student admitted successfully", studentId: result.userId });
 
   } catch (error) {
     console.error("Admission Error:", error);
@@ -89,7 +93,9 @@ export const getStudents = async (req: Request, res: Response) => {
   try {
     const students = await prisma.student.findMany({
       include: {
-        user: true,
+        user: {
+          select: { email: true, avatar: true, isActive: true }
+        },
         class: true, 
       },
       orderBy: { admissionNo: 'asc' }
@@ -101,25 +107,27 @@ export const getStudents = async (req: Request, res: Response) => {
       name: s.fullName,
       email: s.user.email,
       class: s.class ? s.class.name : 'Unassigned',
-      classId: s.classId, // <--- ADDED: Required for Edit Modal
+      classId: s.classId,
       phone: s.phone,
       avatar: s.user.avatar,
-      gender: s.gender
+      gender: s.gender,
+      needsHostel: s.needsHostel
     }));
 
     res.json(formatted);
   } catch (error) {
+    console.error("Fetch Error:", error);
     res.status(500).json({ message: 'Failed to fetch students' });
   }
 };
 
 // ------------------------------------------
-// 3. UPDATE STUDENT (Admin) - NEW FUNCTION
+// 3. UPDATE STUDENT (Admin)
 // ------------------------------------------
 export const updateStudent = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params; // userId
-    const { name, phone, gender, classId } = req.body;
+    const { id } = req.params; 
+    const { name, phone, gender, classId, needsHostel } = req.body;
 
     await prisma.student.update({
       where: { userId: id },
@@ -127,7 +135,8 @@ export const updateStudent = async (req: Request, res: Response) => {
         fullName: name,
         phone: phone,
         gender: gender,
-        classId: classId
+        classId: classId,
+        needsHostel: needsHostel === 'true' || needsHostel === true 
       }
     });
 
@@ -152,12 +161,10 @@ export const deleteStudent = async (req: Request, res: Response) => {
   }
 };
 
-// ... (Keep the rest of the file: getMySubjects, getMyAttendance, etc.)
 // ==========================================
 // STUDENT PORTAL API (Self-Service)
 // ==========================================
 
-// 4. My Subjects
 export const getMySubjects = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -169,34 +176,26 @@ export const getMySubjects = async (req: AuthRequest, res: Response) => {
       include: { teacher: true, semester: true }
     });
 
-    const formatted = subjects.map(s => ({
+    res.json(subjects.map(s => ({
         id: s.id,
         name: s.name,
         code: s.code,
         teacher: s.teacher?.fullName || 'TBA',
         semester: s.semester?.name || 'General'
-    }));
-    res.json(formatted);
+    })));
   } catch (e) { res.status(500).json({ error: "Failed to fetch subjects" }); }
 };
 
-// 5. My Attendance (Updated with Filtering)
 export const getMyAttendance = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
-        // Get query parameter 'subjectId'
         const { subjectId } = req.query;
 
         const student = await prisma.student.findUnique({ where: { userId } });
         if (!student) return res.status(404).json({ message: "Student profile not found" });
 
-        // Build filter: Always filter by studentId
         const whereClause: any = { studentId: student.id };
-        
-        // If subjectId is provided in query, add it to filter
-        if (subjectId) {
-            whereClause.subjectId = String(subjectId);
-        }
+        if (subjectId) whereClause.subjectId = String(subjectId);
 
         const attendance = await prisma.attendance.findMany({
             where: whereClause,
@@ -204,16 +203,16 @@ export const getMyAttendance = async (req: AuthRequest, res: Response) => {
             include: { subject: true } 
         });
 
-        // Calculate Stats based on the filtered results
         const total = attendance.length;
         const present = attendance.filter(a => a.status === 'PRESENT').length;
-        const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
 
-        res.json({ stats: { total, present, percentage }, history: attendance });
+        res.json({ 
+          stats: { total, present, percentage: total > 0 ? ((present / total) * 100).toFixed(1) : 0 }, 
+          history: attendance 
+        });
     } catch (e) { res.status(500).json({ error: "Failed to fetch attendance" }); }
 };
 
-// 6. My Results
 export const getMyResults = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -222,13 +221,11 @@ export const getMyResults = async (req: AuthRequest, res: Response) => {
 
         const results = await prisma.result.findMany({
             where: { studentId: student.id },
-            include: { 
-                exam: { include: { subject: true, semester: true } } 
-            },
+            include: { exam: { include: { subject: true, semester: true } } },
             orderBy: { exam: { date: 'desc' } }
         });
         
-        const formatted = results.map(r => ({
+        res.json(results.map(r => ({
             id: r.id,
             examName: r.exam.name,
             subject: r.exam.subject.name,
@@ -237,12 +234,10 @@ export const getMyResults = async (req: AuthRequest, res: Response) => {
             marks: r.marksObtained,
             total: r.totalMarks,
             grade: (r.marksObtained / r.totalMarks) * 100 >= 40 ? 'PASS' : 'FAIL'
-        }));
-        res.json(formatted);
+        })));
     } catch (e) { res.status(500).json({ error: "Failed to fetch results" }); }
 };
 
-// 7. My Fee Invoices
 export const getMyInvoices = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -257,26 +252,18 @@ export const getMyInvoices = async (req: AuthRequest, res: Response) => {
     } catch (e) { res.status(500).json({ error: "Failed to fetch fees" }); }
 };
 
-// 8. Admit Card Generation
 export const getAdmitCard = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
-        
         const student = await prisma.student.findUnique({ 
             where: { userId },
-            include: { 
-                class: true,
-                user: true // CRITICAL for Avatar
-            }
+            include: { class: true, user: true }
         });
         
         if (!student) return res.status(404).json({ message: "Student not found" });
 
         const exams = await prisma.exam.findMany({
-            where: { 
-                classId: student.classId,
-                date: { gte: new Date() } // Future exams
-            },
+            where: { classId: student.classId, date: { gte: new Date() } },
             include: { subject: true, semester: true },
             orderBy: { date: 'asc' }
         });
@@ -298,6 +285,5 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
                 examName: e.name
             }))
         });
-
     } catch (e) { res.status(500).json({ error: "Failed to fetch admit card data" }); }
 };

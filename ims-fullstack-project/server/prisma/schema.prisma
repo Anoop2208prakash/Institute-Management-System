@@ -21,6 +21,7 @@ model Role {
   users       User[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
   @@map("roles")
 }
 
@@ -59,16 +60,15 @@ enum LoanStatus {
 // --------------------------------------
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  avatar    String?
-  roleId    String
-  role      Role     @relation(fields: [roleId], references: [id])
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  avatar        String?
+  roleId        String
+  role          Role           @relation(fields: [roleId], references: [id])
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   studentProfile Student?
   teacherProfile Teacher?
   adminProfile   Admin?
@@ -89,47 +89,50 @@ model Admin {
   phone      String?
   bloodGroup String?
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("admins")
 }
 
 model Teacher {
-  id            String   @id @default(uuid())
-  userId        String   @unique
+  id            String       @id @default(uuid())
+  userId        String       @unique
   fullName      String
   phone         String
   address       String?
   qualification String?
   bloodGroup    String?
-  joiningDate   DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  subjects    Subject[]
-  classes     Class[]      @relation("ClassTeacher")
-  attendance  Attendance[]
-  loans       Loan[]
-  onlineExams OnlineExam[]
+  joiningDate   DateTime     @default(now())
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects      Subject[]
+  classes       Class[]      @relation("ClassTeacher")
+  attendance    Attendance[]
+  loans         Loan[]
+  onlineExams   OnlineExam[]
+
   @@map("teachers")
 }
 
 model Student {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  admissionNo String   @unique
-  fullName    String
-  dob         DateTime
-  gender      Gender
-  address     String?
-  phone       String?
-  bloodGroup  String?
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  classId     String
-  class       Class    @relation(fields: [classId], references: [id])
-  
+  id              String            @id @default(uuid())
+  userId          String            @unique
+  admissionNo     String            @unique
+  fullName        String
+  dob             DateTime
+  gender          Gender
+  address         String?
+  phone           String?
+  bloodGroup      String?
+  needsHostel     Boolean           @default(false)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classId         String
+  class           Class             @relation(fields: [classId], references: [id])
   attendance      Attendance[]
   fees            FeeRecord[]
   results         Result[]
   loans           Loan[]
   testSubmissions TestSubmission[]
+  hostelRecord    HostelAdmission?
+
   @@index([classId])
   @@map("students")
 }
@@ -139,37 +142,37 @@ model Student {
 // --------------------------------------
 
 model Class {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id          String       @id @default(uuid())
+  name        String       @unique
   description String?
   teacherId   String?
-  teacher     Teacher? @relation("ClassTeacher", fields: [teacherId], references: [id])
-  
+  teacher     Teacher?     @relation("ClassTeacher", fields: [teacherId], references: [id])
   students    Student[]
   subjects    Subject[]
   exams       Exam[]
   semesters   Semester[]
   attendance  Attendance[]
   onlineExams OnlineExam[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
   @@map("classes")
 }
 
 model Subject {
-  id         String   @id @default(uuid())
-  name       String
-  code       String
-  classId    String
-  class      Class    @relation(fields: [classId], references: [id])
-  teacherId  String?
-  teacher    Teacher? @relation(fields: [teacherId], references: [id])
-  semesterId String?
-  semester   Semester? @relation(fields: [semesterId], references: [id])
-  
+  id          String       @id @default(uuid())
+  name        String
+  code        String
+  classId     String
+  class       Class        @relation(fields: [classId], references: [id])
+  teacherId   String?
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
+  semesterId  String?
+  semester    Semester?    @relation(fields: [semesterId], references: [id])
   exams       Exam[]
   attendance  Attendance[]
   onlineExams OnlineExam[]
+
   @@map("subjects")
 }
 
@@ -185,6 +188,7 @@ model Semester {
   exams     Exam[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
   @@map("semesters")
 }
 
@@ -201,6 +205,7 @@ model Exam {
   results    Result[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
   @@map("exams")
 }
 
@@ -220,6 +225,7 @@ model Attendance {
   subject   Subject?         @relation(fields: [subjectId], references: [id])
   markedBy  String
   teacher   Teacher          @relation(fields: [markedBy], references: [id])
+
   @@unique([date, studentId, subjectId])
   @@map("attendance")
 }
@@ -232,6 +238,7 @@ model Result {
   student       Student @relation(fields: [studentId], references: [id])
   examId        String
   exam          Exam    @relation(fields: [examId], references: [id])
+
   @@unique([examId, studentId])
   @@map("results")
 }
@@ -251,6 +258,7 @@ model FeeRecord {
   student   Student       @relation(fields: [studentId], references: [id])
   orderId   String?       @unique
   order     Order?        @relation(fields: [orderId], references: [id])
+
   @@map("fee_records")
 }
 
@@ -269,6 +277,7 @@ model Book {
   loans     Loan[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@map("books")
 }
 
@@ -284,6 +293,7 @@ model Loan {
   dueDate    DateTime
   returnDate DateTime?
   status     LoanStatus @default(ISSUED)
+
   @@map("loans")
 }
 
@@ -298,6 +308,7 @@ model InventoryItem {
   quantity   Int         @default(0)
   price      Float       @default(0.0)
   orderItems OrderItem[]
+
   @@map("inventory_items")
 }
 
@@ -309,6 +320,7 @@ model Order {
   total     Float       @default(0.0)
   items     OrderItem[]
   feeRecord FeeRecord?
+
   @@map("orders")
 }
 
@@ -320,11 +332,53 @@ model OrderItem {
   item     InventoryItem @relation(fields: [itemId], references: [id])
   quantity Int
   price    Float
+
   @@map("order_items")
 }
 
 // --------------------------------------
-// 10. COMMUNICATION
+// 10. HOSTEL MANAGEMENT (FIXED & MERGED)
+// --------------------------------------
+
+model Hostel {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  type      String   // e.g., "BOYS", "GIRLS"
+  capacity  Int
+  rooms     Room[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("hostels")
+}
+
+model Room {
+  id          String            @id @default(uuid())
+  roomNumber  String
+  floor       Int?
+  capacity    Int               @default(1)
+  hostelId    String
+  hostel      Hostel            @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  allocations HostelAdmission[]
+
+  @@map("rooms")
+}
+
+model HostelAdmission {
+  id            String    @id @default(uuid())
+  studentId     String    @unique
+  student       Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  roomId        String
+  room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  status        String    @default("OCCUPIED") // OCCUPIED, VACATED
+  admissionDate DateTime  @default(now())
+  checkoutDate  DateTime?
+
+  @@map("hostel_admissions")
+}
+
+// --------------------------------------
+// 11. COMMUNICATION
 // --------------------------------------
 
 model Announcement {
@@ -335,11 +389,12 @@ model Announcement {
   date     DateTime @default(now())
   authorId String
   author   User     @relation(fields: [authorId], references: [id])
+
   @@map("announcements")
 }
 
 // --------------------------------------
-// 11. ONLINE EXAMINATION
+// 12. ONLINE EXAMINATION
 // --------------------------------------
 
 model OnlineExam {
@@ -358,17 +413,19 @@ model OnlineExam {
   submissions TestSubmission[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+
   @@map("online_exams")
 }
 
 model Question {
   id            String     @id @default(uuid())
   questionText  String     @db.Text
-  options       String     @db.Text // JSON string for options
+  options       String     @db.Text
   correctOption Int
   marks         Int        @default(1)
   examId        String
   exam          OnlineExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
   @@map("questions")
 }
 
@@ -379,13 +436,14 @@ model TestSubmission {
   examId      String
   exam        OnlineExam @relation(fields: [examId], references: [id])
   score       Float
-  answers     String     @db.Text // JSON string for stored answers
+  answers     String     @db.Text
   submittedAt DateTime   @default(now())
+
   @@map("test_submissions")
 }
 
 // --------------------------------------
-// 12. SYSTEM LOGS (Recent Activity)
+// 13. SYSTEM LOGS
 // --------------------------------------
 
 model Activity {
@@ -393,11 +451,12 @@ model Activity {
   action    String
   message   String
   createdAt DateTime @default(now())
+
   @@map("activities")
 }
 
 // --------------------------------------
-// 13. PUBLIC INQUIRIES (Leads)
+// 14. PUBLIC INQUIRIES
 // --------------------------------------
 
 model Inquiry {
@@ -409,5 +468,6 @@ model Inquiry {
   message  String   @db.Text
   status   String   @default("PENDING")
   date     DateTime @default(now())
+
   @@map("inquiries")
 }

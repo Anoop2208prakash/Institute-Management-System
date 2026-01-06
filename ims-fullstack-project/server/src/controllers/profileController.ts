@@ -58,7 +58,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
         profileData.sID = "ADM-" + user.adminProfile.id.substring(0, 5);
         profileData.details = {
             phone: user.adminProfile.phone,
-            bloodGroup: user.adminProfile.bloodGroup, // <--- Now available for Admins too
+            bloodGroup: user.adminProfile.bloodGroup,
         };
     }
 
@@ -69,6 +69,12 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+/**
+ * ALIAS: getProfile
+ * Added to resolve 'undefined' errors in profileRoutes.ts
+ */
+export const getProfile = getMyProfile;
 
 // ------------------------------------------
 // 2. UPDATE PROFILE (Edit)
@@ -127,7 +133,6 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
         });
       } else {
         // Admin, Super Admin, Librarian, Finance etc.
-        // FIX: We now allow bloodGroup update for admins as well
         await tx.admin.update({
           where: { userId },
           data: profileUpdates,

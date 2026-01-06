@@ -1,13 +1,44 @@
+// server/src/routes/onlineExamRoutes.ts
 import { Router } from 'express';
-import { getTeacherTests, createTest, addQuestion, addBulkQuestions, deleteTest } from '../controllers/onlineExamController'; // Import new function
-import { authenticate } from '../middlewares/auth';
+import { 
+    getTeacherTests, 
+    createTest, 
+    addQuestion, 
+    addBulkQuestions, 
+    deleteTest 
+} from '../controllers/onlineExamController'; 
+import { protect } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
-router.get('/', authenticate, getTeacherTests);
-router.post('/', authenticate, createTest);
-router.post('/question', authenticate, addQuestion); // Single
-router.post('/questions/bulk', authenticate, addBulkQuestions); // <--- NEW BULK ROUTE
-router.delete('/:id', authenticate, deleteTest);
+/**
+ * @route   GET /api/online-exams
+ * @desc    Fetch all tests/exams created by the logged-in teacher
+ */
+router.get('/', protect, getTeacherTests);
+
+/**
+ * @route   POST /api/online-exams
+ * @desc    Initialize a new online exam session
+ */
+router.post('/', protect, createTest);
+
+/**
+ * @route   POST /api/online-exams/question
+ * @desc    Add a single question to an existing exam
+ */
+router.post('/question', protect, addQuestion); 
+
+/**
+ * @route   POST /api/online-exams/questions/bulk
+ * @desc    NEW: Add multiple questions at once via JSON/Array
+ */
+router.post('/questions/bulk', protect, addBulkQuestions);
+
+/**
+ * @route   DELETE /api/online-exams/:id
+ * @desc    Permanently remove an exam and its associated questions
+ */
+router.delete('/:id', protect, deleteTest);
 
 export default router;

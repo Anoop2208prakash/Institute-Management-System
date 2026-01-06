@@ -25,6 +25,7 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import inquiryRoutes from './routes/inquiryRoutes';
 import libraryRoutes from './routes/libraryRoutes';
 import activityRoutes from './routes/activityRoutes';
+import hostelRoutes from './routes/hostelRoutes'; // Correctly imported
 
 dotenv.config();
 
@@ -38,7 +39,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
-// Static Files (Images)
+// Static Files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Register Routes
@@ -62,6 +63,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/activity', activityRoutes);
+
+// CRITICAL FIX: Singular route to match frontend fetch calls
+app.use('/api/hostel', hostelRoutes); 
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

@@ -1,16 +1,21 @@
 // server/src/routes/classRoutes.ts
 import { Router } from 'express';
 import { getClasses, createClass, deleteClass, updateClass } from '../controllers/classController';
-import { authenticate } from '../middlewares/auth';
+import { protect, authorize } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
-// PUBLIC: Allow anyone (including Inquiry Form) to fetch the list of programs
+/**
+ * @route   GET /api/classes
+ * @desc    Public: Allow anyone (including Inquiry Form) to fetch the list of programs [cite: 14, 38]
+ */
 router.get('/', getClasses);
 
-// PROTECTED: Only Admins can modify programs
-router.post('/', authenticate, createClass);
-router.put('/:id', authenticate, updateClass);
-router.delete('/:id', authenticate, deleteClass);
+/**
+ * @route   ADMIN PROTECTED: Only Admins can modify programs [cite: 46, 47, 62]
+ */
+router.post('/', protect, authorize('super_admin', 'admin'), createClass);
+router.put('/:id', protect, authorize('super_admin', 'admin'), updateClass);
+router.delete('/:id', protect, authorize('super_admin', 'admin'), deleteClass);
 
 export default router;
