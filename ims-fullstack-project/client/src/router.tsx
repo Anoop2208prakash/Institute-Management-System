@@ -49,11 +49,14 @@ import LandingPage from './pages/LandingPage';
 import { AddQuestionsStepper } from './pages/teacher/AddQuestionsStepper';
 import NotFoundPage from './pages/NotFoundPage';
 import RoomAllocation from './pages/admin/hostel/RoomAllocation';
+import ViewHostelStudents from './pages/admin/hostel/ViewHostelStudents';
+import GatePassModal from './pages/admin/hostel/GatePassModal';
+import ViewComplaints from './pages/admin/hostel/ViewComplaints';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />, 
+    element: <LandingPage />,
   },
   {
     path: '/login',
@@ -63,7 +66,7 @@ export const router = createBrowserRouter([
     path: '/staff-register',
     element: <StaffRegister />,
   },
-  
+
   // PROTECTED ROUTES WRAPPED IN MAIN LAYOUT
   {
     element: <MainLayout />,
@@ -80,7 +83,7 @@ export const router = createBrowserRouter([
         path: '/id-card',
         element: <IDCardPage />
       },
-      
+
       // --- ADMIN MODULES ---
       {
         path: '/roles',
@@ -107,37 +110,49 @@ export const router = createBrowserRouter([
       { path: '/announcements', element: <AnnouncementManager /> },
 
       // --- NEW: HOSTEL MODULE ROUTES ---
-      { 
-        path: '/hostel-management', 
-        element: <HostelManagement /> 
+      {
+        path: '/hostel-management',
+        element: <HostelManagement />
       },
-      { 
-        path: '/room-allocation', 
+      {
+        path: '/room-allocation',
         element: <RoomAllocation /> // Currently using same component for allocation logic
+      },
+      {
+        path: '/view-students',
+        element: <ViewHostelStudents />
+      },
+      {
+        path: '/gate-passes',
+        element: <GatePassModal data={null} onClose={() => window.history.back()} />
+      },
+      {
+        path: '/view-complaints',
+        element: <ViewComplaints /> // Placeholder, replace with ViewComplaints component
       },
 
       // --- LIBRARIAN ROUTES ---
-      { path: '/books', element: <BookList /> }, 
+      { path: '/books', element: <BookList /> },
       { path: '/loans', element: <LoanManager /> },
-      { path: '/library-catalog', element: <BookList /> }, 
+      { path: '/library-catalog', element: <BookList /> },
 
       // --- TEACHER ROUTES ---
       { path: '/teacher-subjects', element: <TeacherSubjects /> },
       { path: '/attendance', element: <AttendanceManager /> },
       { path: '/enter-marks', element: <EnterMarks /> },
       { path: '/online-tests', element: <OnlineTestManager /> },
-      
+
       // Quiz Creator (Add Questions Page)
-      { 
-        path: '/teacher/tests/:id/questions', 
+      {
+        path: '/teacher/tests/:id/questions',
         element: <AddQuestionsStepper
-                    isOpen={true} 
-                    onClose={() => window.history.back()} 
-                    examId={window.location.pathname.split('/')[3]} 
-                    onSave={async () => {}} 
-                  /> 
+          isOpen={true}
+          onClose={() => window.history.back()}
+          examId={window.location.pathname.split('/')[3]}
+          onSave={async () => { }}
+        />
       },
-      
+
       // --- STUDENT ROUTES ---
       { path: '/stationery', element: <StationeryStore /> },
       { path: '/admit-card', element: <AdmitCardPage /> },
@@ -155,6 +170,6 @@ export const router = createBrowserRouter([
   // 404 Route
   {
     path: '*',
-    element: <NotFoundPage />, 
+    element: <NotFoundPage />,
   }
 ]);

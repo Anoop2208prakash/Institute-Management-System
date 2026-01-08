@@ -26,6 +26,7 @@ import inquiryRoutes from './routes/inquiryRoutes';
 import libraryRoutes from './routes/libraryRoutes';
 import activityRoutes from './routes/activityRoutes';
 import hostelRoutes from './routes/hostelRoutes'; // Correctly imported
+import communicationRoutes from './routes/communicationRoutes';
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ app.use('/api/activity', activityRoutes);
 
 // CRITICAL FIX: Singular route to match frontend fetch calls
 app.use('/api/hostel', hostelRoutes); 
+app.use('/api/communication', communicationRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {

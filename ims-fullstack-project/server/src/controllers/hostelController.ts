@@ -9,13 +9,15 @@ export const getHostelStats = async (req: Request, res: Response) => {
             include: {
                 _count: { select: { rooms: true } },
                 rooms: {
+                    orderBy: { roomNumber: 'asc' }, 
                     include: {
                         _count: { 
                             select: { allocations: { where: { status: 'OCCUPIED' } } } 
                         }
                     }
                 }
-            }
+            },
+            orderBy: { name: 'asc' } 
         });
 
         const formatted = hostels.map(h => {
@@ -47,10 +49,6 @@ export const getHostelStats = async (req: Request, res: Response) => {
 };
 
 // --- 2. GET AVAILABLE ROOMS (FOR WORKSPACE) ---
-/**
- * @desc Fetches rooms that have at least one vacant bed.
- * Resolves the 404 error on the Room Allocation page.
- */
 export const getAvailableRooms = async (req: Request, res: Response) => {
     try {
         const rooms = await prisma.room.findMany({
@@ -59,10 +57,10 @@ export const getAvailableRooms = async (req: Request, res: Response) => {
                 _count: {
                     select: { allocations: { where: { status: 'OCCUPIED' } } }
                 }
-            }
+            },
+            orderBy: { roomNumber: 'asc' } 
         });
 
-        // Filter rooms where occupied beds < total capacity
         const availableRooms = rooms
             .filter(room => room._count.allocations < room.capacity)
             .map(room => ({
@@ -81,7 +79,148 @@ export const getAvailableRooms = async (req: Request, res: Response) => {
     }
 };
 
-// --- 3. CREATE NEW HOSTEL BLOCK ---
+// --- 3. GET HOSTEL RESIDENTS (BY BLOCK) ---
+export const getHostelResidents = async (req: Request, res: Response) => {
+    try {
+        const { hostelId } = req.params;
+
+        if (!hostelId) {
+            return res.status(400).json({ message: "Hostel ID is required" });
+        }
+
+        const residents = await prisma.hostelAdmission.findMany({
+            where: {
+                room: { hostelId: hostelId },
+                status: 'OCCUPIED'
+            },
+            include: {
+                student: {
+                    include: { 
+                        class: { select: { name: true } },
+                        user: { select: { avatar: true, email: true } }
+                    }
+                },
+                room: { select: { roomNumber: true, floor: true } }
+            },
+            orderBy: {
+                room: { roomNumber: 'asc' } 
+            }
+        });
+
+        const formatted = residents.map(r => ({
+            id: r.student.id,
+            name: r.student.fullName,
+            admissionNo: r.student.admissionNo,
+            className: r.student.class?.name || 'N/A',
+            roomNumber: r.room.roomNumber,
+            floor: r.room.floor,
+            avatar: r.student.user.avatar,
+            admissionDate: r.admissionDate
+        }));
+
+        res.json(formatted);
+    } catch (error) {
+        console.error("Fetch Residents Error:", error);
+        res.status(500).json({ message: "Failed to fetch residents for this block" });
+    }
+};
+
+// --- 4. GET ALL HOSTEL RESIDENTS (FOR DIRECTORY PAGE) ---
+export const getAllResidents = async (req: Request, res: Response) => {
+  try {
+    const residents = await prisma.hostelAdmission.findMany({
+      where: { status: 'OCCUPIED' },
+      include: {
+        student: {
+            include: { 
+                class: true,
+                user: { select: { avatar: true } } 
+            }
+        },
+        room: {
+            include: { hostel: true }
+        }
+      },
+      orderBy: {
+        student: { fullName: 'asc' } 
+      }
+    });
+
+    const formatted = residents.map(r => ({
+      id: r.id,
+      name: r.student.fullName,
+      admissionNo: r.student.admissionNo,
+      className: r.student.class?.name || 'N/A',
+      hostelName: r.room.hostel.name,
+      roomNumber: r.room.roomNumber,
+      floor: r.room.floor,
+      phone: r.student.phone,
+      avatar: r.student.user.avatar, 
+      admissionDate: r.admissionDate 
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    console.error("Directory Fetch Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// --- 5. CHECK-OUT STUDENT ---
+export const checkoutStudent = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params; 
+
+        await prisma.hostelAdmission.update({
+            where: { id },
+            data: { status: 'COMPLETED' }
+        });
+
+        res.json({ message: "Student checked out successfully. Bed is now vacant." });
+    } catch (error) {
+        console.error("Checkout Error:", error);
+        res.status(500).json({ message: "Failed to process check-out" });
+    }
+};
+
+// --- 6. GET GATE PASS DATA ---
+export const getGatePassData = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params; // Using the Admission record ID
+
+        const record = await prisma.hostelAdmission.findUnique({
+            where: { id: id },
+            include: {
+                student: {
+                    include: { 
+                        class: { select: { name: true } },
+                        user: { select: { avatar: true } } 
+                    }
+                },
+                room: { include: { hostel: true } }
+            }
+        });
+
+        if (!record || record.status !== 'OCCUPIED') {
+            return res.status(404).json({ message: "No active hostel record found" });
+        }
+
+        res.json({
+            name: record.student.fullName,
+            id: record.student.admissionNo,
+            photo: record.student.user.avatar,
+            class: record.student.class?.name || 'N/A',
+            hostel: record.room.hostel.name,
+            room: record.room.roomNumber,
+            issueDate: new Date().toLocaleDateString('en-GB')
+        });
+    } catch (error) {
+        console.error("Gate Pass Error:", error);
+        res.status(500).json({ message: "Error generating gate pass data" });
+    }
+};
+
+// --- 7. CREATE NEW HOSTEL BLOCK ---
 export const createHostel = async (req: Request, res: Response) => {
     try {
         const { name, type, capacity } = req.body;
@@ -105,7 +244,7 @@ export const createHostel = async (req: Request, res: Response) => {
     }
 };
 
-// --- 4. CREATE NEW ROOM & FLOOR ---
+// --- 8. CREATE NEW ROOM & FLOOR ---
 export const createRoom = async (req: Request, res: Response) => {
     try {
         const { roomNumber, floor, capacity, hostelId } = req.body;
@@ -141,7 +280,7 @@ export const createRoom = async (req: Request, res: Response) => {
     }
 };
 
-// --- 5. GET PENDING ALLOCATIONS ---
+// --- 9. GET PENDING ALLOCATIONS ---
 export const getPendingAllocations = async (req: Request, res: Response) => {
     try {
         const pending = await prisma.student.findMany({
@@ -152,7 +291,8 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
             include: { 
                 class: true, 
                 user: { select: { email: true, avatar: true } } 
-            }
+            },
+            orderBy: { fullName: 'asc' } 
         });
         
         const formatted = pending.map(s => ({
@@ -171,7 +311,7 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
     }
 };
 
-// --- 6. ALLOCATE ROOM ---
+// --- 10. ALLOCATE ROOM ---
 export const allocateRoom = async (req: Request, res: Response) => {
     try {
         const { studentId, roomId } = req.body;
@@ -198,5 +338,33 @@ export const allocateRoom = async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Allocation Error:", error);
         res.status(500).json({ message: "Failed to allocate room" });
+    }
+};
+
+// --- 11. DELETE ROOM ---
+export const deleteRoom = async (req: Request, res: Response) => {
+    try {
+        const { roomId } = req.params;
+
+        if (!roomId) {
+            return res.status(400).json({ message: "Room ID is required" });
+        }
+
+        const activeAllocations = await prisma.hostelAdmission.count({
+            where: { roomId: roomId, status: 'OCCUPIED' }
+        });
+
+        if (activeAllocations > 0) {
+            return res.status(400).json({ 
+                message: "Safety Block: Cannot delete room while it has active residents. Please check-out students first." 
+            });
+        }
+
+        await prisma.room.delete({ where: { id: roomId } });
+
+        res.json({ message: "Room removed successfully from the block." });
+    } catch (error) {
+        console.error("Delete Room Error:", error);
+        res.status(500).json({ message: "Failed to remove room. It might be linked to historical records." });
     }
 };

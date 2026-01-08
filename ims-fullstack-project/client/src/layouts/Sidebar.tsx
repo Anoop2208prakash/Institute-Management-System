@@ -62,8 +62,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
     {
         title: "Hostel & Residence", // NEW SECTION: Integrated for Hostel Module
         items: [
-            { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin', 'administrator'] },
-            { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin', 'administrator'] },
+            { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin'] },
+            { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin'] },
+            { path: '/view-students', label: 'Hostel Students', icon: <FaUsers />, roles: ['super_admin', 'admin'] },
+            { path: '/gate-passes', label: 'Gate Passes', icon: <FaUserShield />, roles: ['super_admin', 'admin'] },
+            { path: '/view-complaints', label: 'View Complaints', icon: <FaEnvelopeOpenText />, roles: ['super_admin', 'admin'] },
             { path: '/hostel-portal', label: 'My Residence', icon: <FaHome />, roles: ['student'] },
         ]
     },

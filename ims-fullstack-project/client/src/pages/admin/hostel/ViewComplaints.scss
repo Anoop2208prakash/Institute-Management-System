@@ -1,0 +1,133 @@
+// client/src/pages/admin/communication/ViewComplaints.scss
+
+.view-complaints-container {
+    padding: 2.5rem;
+    background: #f8fafc;
+    min-height: 100vh;
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+
+            .back-btn {
+                background: white;
+                border: 1px solid #e2e8f0;
+                padding: 0.8rem;
+                border-radius: 12px;
+                cursor: pointer;
+            }
+
+            h1 {
+                margin: 0;
+                color: #1e293b;
+                font-weight: 800;
+            }
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+
+            .search-input-wrapper {
+                display: flex;
+                align-items: center;
+                background: white;
+                padding: 0.75rem 1.2rem;
+                border-radius: 14px;
+                border: 1px solid #e2e8f0;
+                gap: 0.8rem;
+
+                input {
+                    border: none;
+                    outline: none;
+                    font-weight: 600;
+                    min-width: 250px;
+                }
+            }
+        }
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+
+        .complaints-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+
+            thead {
+                background: #f8fafc;
+
+                th {
+                    padding: 1.25rem;
+                    font-size: 0.8rem;
+                    color: #64748b;
+                    text-transform: uppercase;
+                }
+            }
+
+            tbody td {
+                padding: 1.25rem;
+                border-bottom: 1px solid #f1f5f9;
+
+                &.user-info {
+                    display: flex;
+                    flex-direction: column;
+
+                    span {
+                        font-size: 0.8rem;
+                        color: #94a3b8;
+                    }
+                }
+            }
+        }
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 6px 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+
+        &.pending {
+            background: #fff7ed;
+            color: #ea580c;
+        }
+
+        &.in_progress {
+            background: #eef2ff;
+            color: #6366f1;
+        }
+
+        &.resolved {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+    }
+
+    .view-details-btn {
+        background: #f1f5f9;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            background: #e2e8f0;
+        }
+    }
+}
