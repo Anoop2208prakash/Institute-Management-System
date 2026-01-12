@@ -1,8 +1,8 @@
 // client/src/pages/admin/hostel/HostelManagement.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
+import {
   FaHotel, FaBuilding, FaBed, FaSearch,
-  FaDoorOpen, FaPlus, FaTimes, FaChevronRight, FaSync, FaUserFriends, FaTrash 
+  FaDoorOpen, FaPlus, FaTimes, FaChevronRight, FaSync, FaUserFriends, FaTrash
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './HostelManagement.scss';
@@ -17,11 +17,11 @@ interface HostelStats {
   totalCapacity: number;
   occupied: number;
   available: number;
-  rooms: Array<{ 
-    id: string; 
-    roomNumber: string; 
-    capacity: number; 
-    _count: { allocations: number } 
+  rooms: Array<{
+    id: string;
+    roomNumber: string;
+    capacity: number;
+    _count: { allocations: number }
   }>;
 }
 
@@ -48,22 +48,22 @@ const HostelManagement: React.FC = () => {
   const [pending, setPending] = useState<PendingStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState({ show: false, msg: '', type: 'success' as 'success' | 'error' });
-  
+
   // Modals Toggle State
   const [isHostelModalOpen, setIsHostelModalOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
-  const [isResidentModalOpen, setIsResidentModalOpen] = useState(false); 
-  const [isManageRoomsModalOpen, setIsManageRoomsModalOpen] = useState(false); 
+  const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
+  const [isManageRoomsModalOpen, setIsManageRoomsModalOpen] = useState(false);
 
   // Selection, Search & Form State
   const [selectedHostel, setSelectedHostel] = useState<HostelStats | null>(null);
-  const [residents, setResidents] = useState<Resident[]>([]); 
+  const [residents, setResidents] = useState<Resident[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<PendingStudent | null>(null);
   const [targetRoomId, setTargetRoomId] = useState('');
   const [roomSearchTerm, setRoomSearchTerm] = useState(''); // New Search Filter
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [hostelData, setHostelData] = useState({ name: '', type: 'BOYS', capacity: '50' });
   const [roomData, setRoomData] = useState({ roomNumber: '', floor: '', capacity: '1' });
 
@@ -74,11 +74,11 @@ const HostelManagement: React.FC = () => {
     if (!token) return;
     setLoading(true);
     try {
-      const headers = { 
+      const headers = {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' 
+        'Content-Type': 'application/json'
       };
-      
+
       const [statsRes, pendingRes] = await Promise.all([
         fetch('http://localhost:5000/api/hostel/stats', { headers }),
         fetch('http://localhost:5000/api/hostel/pending', { headers })
@@ -157,11 +157,11 @@ const HostelManagement: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/hostel/rooms', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            ...roomData, 
-            floor: parseInt(roomData.floor), 
-            capacity: parseInt(roomData.capacity), 
-            hostelId: selectedHostel?.id 
+        body: JSON.stringify({
+          ...roomData,
+          floor: parseInt(roomData.floor),
+          capacity: parseInt(roomData.capacity),
+          hostelId: selectedHostel?.id
         })
       });
       if (res.ok) {
@@ -174,7 +174,7 @@ const HostelManagement: React.FC = () => {
 
   const handleAllocate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!selectedStudent || !targetRoomId) return;
+    if (!selectedStudent || !targetRoomId) return;
     setIsSubmitting(true);
     try {
       const res = await fetch('http://localhost:5000/api/hostel/allocate', {
@@ -191,7 +191,7 @@ const HostelManagement: React.FC = () => {
   };
 
   // Filter Rooms for Manage Modal
-  const filteredRooms = selectedHostel?.rooms.filter(r => 
+  const filteredRooms = selectedHostel?.rooms.filter(r =>
     r.roomNumber.toLowerCase().includes(roomSearchTerm.toLowerCase())
   ) || [];
 
@@ -206,10 +206,10 @@ const HostelManagement: React.FC = () => {
           </div>
         </div>
         <div className="header-actions">
-           <button className="primary-action-btn" onClick={() => setIsHostelModalOpen(true)}>
-             <FaPlus /> New Block
-           </button>
-           <button className="refresh-btn" onClick={fetchData}><FaSync /></button>
+          <button className="primary-action-btn" onClick={() => setIsHostelModalOpen(true)}>
+            <FaPlus /> New Block
+          </button>
+          <button className="refresh-btn" onClick={fetchData}><FaSync /></button>
         </div>
       </header>
 
@@ -267,11 +267,11 @@ const HostelManagement: React.FC = () => {
             {pending.map(student => (
               <div key={student.studentId} className="queue-card">
                 <div className="student-profile">
-                   <div className="avatar-initial">{student.name.charAt(0)}</div>
-                   <div className="details">
-                      <h4>{student.name}</h4>
-                      <p>{student.className} • {student.gender}</p>
-                   </div>
+                  <div className="avatar-initial">{student.name.charAt(0)}</div>
+                  <div className="details">
+                    <h4>{student.name}</h4>
+                    <p>{student.className} • {student.gender}</p>
+                  </div>
                 </div>
                 <button className="action-arrow" onClick={() => { setSelectedStudent(student); setIsAllocationModalOpen(true); }}>
                   <FaChevronRight />
@@ -293,9 +293,9 @@ const HostelManagement: React.FC = () => {
 
             <div className="search-bar-container">
               <FaSearch className="search-icon" />
-              <input 
-                type="text" 
-                placeholder="Search room number..." 
+              <input
+                type="text"
+                placeholder="Search room number..."
                 value={roomSearchTerm}
                 onChange={(e) => setRoomSearchTerm(e.target.value)}
                 autoFocus
@@ -352,9 +352,9 @@ const HostelManagement: React.FC = () => {
           <div className="glass-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>New Hostel Block</h3><button onClick={() => setIsHostelModalOpen(false)}><FaTimes /></button></div>
             <form onSubmit={handleCreateHostel}>
-              <div className="form-group"><label>Block Name</label><input type="text" required onChange={e => setHostelData({...hostelData, name: e.target.value})} /></div>
+              <div className="form-group"><label>Block Name</label><input type="text" required onChange={e => setHostelData({ ...hostelData, name: e.target.value })} /></div>
               <div className="form-group"><label>Gender Type</label>
-                <select onChange={e => setHostelData({...hostelData, type: e.target.value})}><option value="BOYS">Boys</option><option value="GIRLS">Girls</option></select>
+                <select onChange={e => setHostelData({ ...hostelData, type: e.target.value })}><option value="BOYS">Boys</option><option value="GIRLS">Girls</option></select>
               </div>
               <button type="submit" className="confirm-btn" disabled={isSubmitting}>Create Block</button>
             </form>
@@ -368,10 +368,10 @@ const HostelManagement: React.FC = () => {
           <div className="glass-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>Add Room to {selectedHostel?.name}</h3><button onClick={() => setIsRoomModalOpen(false)}><FaTimes /></button></div>
             <form onSubmit={handleAddRoom}>
-              <div className="form-group"><label>Room Number / Name</label><input type="text" required onChange={e => setRoomData({...roomData, roomNumber: e.target.value})} /></div>
-              <div className="form-row-dual" style={{display:'flex', gap:'1rem'}}>
-                <div className="form-group" style={{flex:1}}><label>Floor</label><input type="number" required onChange={e => setRoomData({...roomData, floor: e.target.value})} /></div>
-                <div className="form-group" style={{flex:1}}><label>Total Beds</label><input type="number" required onChange={e => setRoomData({...roomData, capacity: e.target.value})} /></div>
+              <div className="form-group"><label>Room Number / Name</label><input type="text" required onChange={e => setRoomData({ ...roomData, roomNumber: e.target.value })} /></div>
+              <div className="form-row-dual" style={{ display: 'flex', gap: '1rem' }}>
+                <div className="form-group" style={{ flex: 1 }}><label>Floor</label><input type="number" required onChange={e => setRoomData({ ...roomData, floor: e.target.value })} /></div>
+                <div className="form-group" style={{ flex: 1 }}><label>Total Beds</label><input type="number" required onChange={e => setRoomData({ ...roomData, capacity: e.target.value })} /></div>
               </div>
               <button type="submit" className="confirm-btn" disabled={isSubmitting}>Add Room</button>
             </form>
@@ -405,7 +405,7 @@ const HostelManagement: React.FC = () => {
         </div>
       )}
 
-      <FeedbackAlert isOpen={alert.show} message={alert.msg} type={alert.type} onClose={() => setAlert(p => ({...p, show: false}))} />
+      <FeedbackAlert isOpen={alert.show} message={alert.msg} type={alert.type} onClose={() => setAlert(p => ({ ...p, show: false }))} />
     </div>
   );
 };

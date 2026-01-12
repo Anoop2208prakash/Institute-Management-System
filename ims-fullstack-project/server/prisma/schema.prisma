@@ -1,4 +1,3 @@
-update the code schema.prisma
 // server/prisma/schema.prisma
 
 generator client {

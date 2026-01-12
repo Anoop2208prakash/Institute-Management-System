@@ -1,13 +1,15 @@
 // client/src/pages/admin/hostel/RoomAllocation.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
-    FaBed, FaUserGraduate, FaArrowRight, FaSearch, 
-    FaBuilding, FaDoorOpen, FaCheckCircle, FaLayerGroup, FaTimes
+import {
+  FaUserGraduate, FaArrowRight, FaSearch,
+  FaBuilding, FaDoorOpen, FaCheckCircle, FaLayerGroup, FaTimes, FaSyncAlt
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './RoomAllocation.scss';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
+import CommonPagination from '../../../components/common/CommonPagination';
 
+// Interfaces defined before the component to ensure scope
 interface Room {
   id: string;
   roomNumber: string;
@@ -26,20 +28,27 @@ interface Student {
 }
 
 const RoomAllocation: React.FC = () => {
+  // --- State Management ---
   const [rooms, setRooms] = useState<Room[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [alert, setAlert] = useState({ show: false, msg: '', type: 'success' as 'success' | 'error' });
+
+  // --- PAGINATION STATE ---
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 4; // Constant now since the UI selector was removed
 
   const token = localStorage.getItem('token');
 
-  // 1. Fetch data from API
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isManualSync = false) => {
     if (!token) return;
-    setLoading(true);
+    if (isManualSync) setIsSyncing(true);
+    else setLoading(true);
+
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [roomRes, studentRes] = await Promise.all([
@@ -47,9 +56,7 @@ const RoomAllocation: React.FC = () => {
         fetch('http://localhost:5000/api/hostel/pending', { headers })
       ]);
 
-      if (!roomRes.ok || !studentRes.ok) {
-          throw new Error(`Sync Error: Status ${roomRes.status}`);
-      }
+      if (!roomRes.ok || !studentRes.ok) throw new Error(`Sync Error: ${roomRes.status}`);
 
       const roomsData = await roomRes.json();
       const studentsData = await studentRes.json();
@@ -57,26 +64,36 @@ const RoomAllocation: React.FC = () => {
       setRooms(roomsData);
       setFilteredRooms(roomsData);
       setStudents(studentsData);
+      setPage(1);
+
     } catch (error: any) {
       setAlert({ show: true, msg: error.message || 'Connectivity issue', type: 'error' });
     } finally {
       setLoading(false);
+      setIsSyncing(false);
     }
   }, [token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // 2. Search Filter Logic
+  // Search Filter Logic
   useEffect(() => {
-      const query = searchTerm.toLowerCase();
-      const filtered = rooms.filter(room => 
-        room.roomNumber.toLowerCase().includes(query) || 
-        room.hostelName.toLowerCase().includes(query)
-      );
-      setFilteredRooms(filtered);
+    const query = searchTerm.toLowerCase();
+    const filtered = rooms.filter(room =>
+      room.roomNumber.toLowerCase().includes(query) ||
+      room.hostelName.toLowerCase().includes(query)
+    );
+    setFilteredRooms(filtered);
+    setPage(1);
   }, [searchTerm, rooms]);
 
-  // 3. Allocation Action
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value);
+  };
+
+  // Slicing logic for the 2x2 grid
+  const currentRooms = filteredRooms.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   const handleAllocate = async (roomId: string) => {
     if (!selectedStudent) return;
     try {
@@ -91,8 +108,8 @@ const RoomAllocation: React.FC = () => {
         setSelectedStudent(null);
         fetchData();
       } else {
-          const err = await res.json();
-          throw new Error(err.message || 'Allocation failed.');
+        const err = await res.json();
+        throw new Error(err.message || 'Allocation failed.');
       }
     } catch (error: any) {
       setAlert({ show: true, msg: error.message, type: 'error' });
@@ -101,10 +118,19 @@ const RoomAllocation: React.FC = () => {
 
   return (
     <div className="modern-allocation-container">
-      <div className="allocation-header">
-        <h2><FaLayerGroup /> Room Allocation Workspace</h2>
-        <p>Assigning residential spaces to {students.length} pending students.</p>
-      </div>
+      <header className="allocation-header">
+        <div className="header-info">
+          <h2><FaLayerGroup /> Room Allocation Workspace</h2>
+          <p>Assigning residential spaces to {students.length} pending students.</p>
+        </div>
+        <button
+          className={`refresh-data-btn ${isSyncing ? 'spinning' : ''}`}
+          onClick={() => fetchData(true)}
+          disabled={isSyncing || loading}
+        >
+          <FaSyncAlt /> {isSyncing ? 'Syncing...' : 'Refresh Data'}
+        </button>
+      </header>
 
       <div className="allocation-grid">
         <aside className="student-sidebar">
@@ -114,23 +140,21 @@ const RoomAllocation: React.FC = () => {
           </div>
           <div className="student-list">
             {loading ? (
-                [1, 2].map(i => <Skeleton key={i} variant="rectangular" height={70} sx={{ borderRadius: '1rem', mb: 1 }} />)
-            ) : students.length === 0 ? (
-                <div className="empty-list">All residential requests processed.</div>
+              [1, 2, 3, 4].map(i => <Skeleton key={i} variant="rectangular" height={70} sx={{ borderRadius: '1rem', mb: 1.5 }} />)
             ) : (
-                students.map(student => (
-                <div 
-                    key={student.studentId} 
-                    className={`student-item ${selectedStudent?.studentId === student.studentId ? 'selected' : ''}`}
-                    onClick={() => setSelectedStudent(student)}
+              students.map(student => (
+                <div
+                  key={student.studentId}
+                  className={`student-item ${selectedStudent?.studentId === student.studentId ? 'selected' : ''}`}
+                  onClick={() => setSelectedStudent(student)}
                 >
-                    <div className="info">
-                      <strong>{student.name}</strong>
-                      <span>{student.admissionNo} • {student.gender}</span>
-                    </div>
-                    {selectedStudent?.studentId === student.studentId ? <FaTimes className="deselect-icon" /> : <FaCheckCircle className="active-icon" />}
+                  <div className="info">
+                    <strong>{student.name}</strong>
+                    <span>{student.admissionNo} • {student.gender}</span>
+                  </div>
+                  {selectedStudent?.studentId === student.studentId ? <FaTimes className="deselect-icon" /> : <FaCheckCircle className="active-icon" />}
                 </div>
-                ))
+              ))
             )}
           </div>
         </aside>
@@ -139,69 +163,85 @@ const RoomAllocation: React.FC = () => {
           <div className="explorer-header">
             <h3><FaBuilding /> Available Rooms</h3>
             <div className="search-box">
-                <FaSearch />
-                <input 
-                    placeholder="Search rooms or wings..." 
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                />
+              <FaSearch />
+              <input
+                placeholder="Search rooms or wings..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="workspace-wrapper">
-            {/* GLASS OVERLAY: Fixes the layout push issue */}
             {!selectedStudent && !loading && (
               <div className="glass-overlay">
                 <div className="overlay-content">
-                  <FaUserGraduate className="bounce-icon" />
+                  <div className="icon-circle">
+                    <FaUserGraduate className="bounce-icon" />
+                  </div>
                   <h4>Select a Student First</h4>
                   <p>Choose a student from the sidebar to activate the room assignment grid.</p>
                 </div>
               </div>
             )}
 
-            <div className={`rooms-container ${loading ? 'loading' : ''}`}>
+            <div className={`rooms-container ${loading || !selectedStudent ? 'dimmed' : ''}`}>
               {loading ? (
-                  [1, 2, 3].map(i => <Skeleton key={i} variant="rectangular" height={220} sx={{ borderRadius: '1rem' }} />)
-              ) : filteredRooms.map(room => {
+                [1, 2, 3, 4].map(i => <Skeleton key={i} variant="rectangular" height={220} sx={{ borderRadius: '1.5rem' }} />)
+              ) : (
+                currentRooms.map(room => {
                   const occupancyRate = (room.occupiedCount / room.capacity) * 100;
                   const isFull = room.occupiedCount >= room.capacity;
-                  
+
                   return (
-                  <div key={room.id} className={`room-card ${isFull ? 'room-full' : ''}`}>
+                    <div key={room.id} className="room-card glass-style">
                       <div className="room-header">
                         <span className="room-no"><FaDoorOpen /> {room.roomNumber}</span>
                         <span className="floor-tag">Floor {room.floor}</span>
                       </div>
                       <div className="hostel-ref"><FaBuilding /> {room.hostelName}</div>
-                      
+
                       <div className="occupancy-info">
-                          <div className="occupancy-header">
-                              <span>Beds: {room.occupiedCount} / {room.capacity}</span>
-                              <span className={`status ${isFull ? 'full' : 'available'}`}>
-                                  {isFull ? 'Full' : 'Available'}
-                              </span>
-                          </div>
-                          <div className="progress-bar">
-                              <div className="fill" style={{ width: `${occupancyRate}%` }}></div>
-                          </div>
+                        <div className="occupancy-header">
+                          <span>Beds: {room.occupiedCount} / {room.capacity}</span>
+                          <span className={`status ${isFull ? 'full' : 'available'}`}>
+                            {isFull ? 'Full' : 'Available'}
+                          </span>
+                        </div>
+                        <div className="progress-bar">
+                          <div className="fill" style={{ width: `${occupancyRate}%` }}></div>
+                        </div>
                       </div>
 
-                      <button 
+                      <button
                         disabled={!selectedStudent || isFull}
                         onClick={() => handleAllocate(room.id)}
                         className="btn-assign"
                       >
                         {isFull ? 'Room Full' : 'Assign to Student'} <FaArrowRight />
                       </button>
-                  </div>
-              )})}
+                    </div>
+                  )
+                })
+              )}
             </div>
+
+            {!loading && filteredRooms.length > 0 && (
+              <div className="pagination-wrapper">
+                {/* FIXED: Removed onRowsPerPageChange and rowsPerPageOptions to match the new component */}
+                <CommonPagination
+                  totalCount={filteredRooms.length}
+                  pageSize={rowsPerPage}
+                  currentPage={page}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </div>
         </main>
       </div>
 
-      <FeedbackAlert isOpen={alert.show} message={alert.msg} type={alert.type} onClose={() => setAlert(p => ({...p, show: false}))} />
+      <FeedbackAlert isOpen={alert.show} message={alert.msg} type={alert.type} onClose={() => setAlert(p => ({ ...p, show: false }))} />
     </div>
   );
 };

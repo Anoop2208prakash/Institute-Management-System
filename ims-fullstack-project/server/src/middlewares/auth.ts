@@ -9,7 +9,7 @@ export interface AuthRequest extends Request {
 
 /**
  * NAMED EXPORT: protect
- * This MUST be named 'protect' to match your route imports.
+ * Verifies the JWT token and attaches the user payload to the request object.
  */
 export const protect = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -29,8 +29,23 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction): vo
 };
 
 /**
+ * NAMED EXPORT: adminOnly
+ * Specific middleware to restrict access to Admins or Wardens.
+ * Resolves the "Cannot find name 'adminOnly'" error in routes.
+ */
+export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  // Ensure 'WARDEN' is included if that is the role of your logged-in user
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'warden')) {
+    next();
+  } else {
+    // This is the source of your 403 error
+    res.status(403).json({ message: "Access denied. Admin or Warden privileges required." });
+  }
+};
+
+/**
  * NAMED EXPORT: authorize
- * Handles Role-Based Access Control (RBAC).
+ * Generic handler for Role-Based Access Control (RBAC).
  */
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {

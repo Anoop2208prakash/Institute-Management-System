@@ -52,6 +52,8 @@ import RoomAllocation from './pages/admin/hostel/RoomAllocation';
 import ViewHostelStudents from './pages/admin/hostel/ViewHostelStudents';
 import GatePassModal from './pages/admin/hostel/GatePassModal';
 import ViewComplaints from './pages/admin/hostel/ViewComplaints';
+import HostelPortal from './pages/student/HostelPortal';
+import MyComplaints from './pages/student/MyComplaints';
 
 export const router = createBrowserRouter([
   {
@@ -130,6 +132,10 @@ export const router = createBrowserRouter([
         path: '/view-complaints',
         element: <ViewComplaints /> // Placeholder, replace with ViewComplaints component
       },
+      {
+        path: '/my-complaints',
+        element: <MyComplaints /> // Placeholder for Student Complaints view
+      },
 
       // --- LIBRARIAN ROUTES ---
       { path: '/books', element: <BookList /> },
@@ -161,7 +167,7 @@ export const router = createBrowserRouter([
       { path: '/my-results', element: <MyResults /> },
       { path: '/my-invoices', element: <MyInvoices /> },
       { path: '/my-orders', element: <MyOrders /> },
-      { path: '/hostel-portal', element: <Dashboard /> }, // Placeholder for Student Residence view
+      { path: '/hostel-portal', element: <HostelPortal /> }, // Placeholder for Student Residence view
 
       { path: '/inquiries', element: <InquiryList /> }
     ]

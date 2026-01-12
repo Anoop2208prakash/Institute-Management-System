@@ -17,28 +17,27 @@ interface CustomSelectProps {
   onChange: (event: SelectChangeEvent<string | number>) => void;
   options: Option[];
   width?: string | number;
-  placeholder?: string; // New Prop for "Select Class first..."
+  placeholder?: string;
   disabled?: boolean;
   required?: boolean;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ 
-  label, 
-  value, 
-  onChange, 
+const CustomSelect: React.FC<CustomSelectProps> = ({
+  label,
+  value,
+  onChange,
   options,
   width = '100%',
   placeholder = "Select...",
   disabled = false,
   required = false
 }) => {
-  
+
   return (
     <Box className="custom-select-container" sx={{ width: width }}>
-      
-      {/* 1. Detached Label (Matches Image) */}
+
       <label className="custom-label">
-        {label} 
+        {label}
         {required && <span className="required">*</span>}
       </label>
 
@@ -47,12 +46,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           value={value}
           onChange={onChange}
           displayEmpty
-          // This logic ensures placeholder is gray, selected value is normal
           renderValue={(selected) => {
             if (!selected || selected === "") {
               return <span className="placeholder-text">{placeholder}</span>;
             }
-            // Find label for the selected value
             const selectedOption = options.find(opt => opt.value === selected);
             return selectedOption ? selectedOption.label : selected;
           }}
@@ -63,7 +60,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
             }
           }}
         >
-          {/* Placeholder Option (Hidden from list, visible as placeholder) */}
+          {/* Placeholder Option */}
           <MenuItem value="" disabled style={{ display: 'none' }}>
             {placeholder}
           </MenuItem>

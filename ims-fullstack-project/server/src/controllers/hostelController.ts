@@ -2,6 +2,14 @@
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 
+// 1. Custom interface to fix 'req.user' property error
+interface AuthenticatedRequest extends Request {
+    user?: {
+        id: string;
+        role: string;
+    };
+}
+
 // --- 1. GET ALL HOSTELS (Analytics & Allocation Data) ---
 export const getHostelStats = async (req: Request, res: Response) => {
     try {
@@ -36,6 +44,7 @@ export const getHostelStats = async (req: Request, res: Response) => {
                     id: r.id,
                     roomNumber: r.roomNumber,
                     capacity: r.capacity,
+                    floor: r.floor,
                     _count: r._count
                 }))
             };
@@ -43,7 +52,6 @@ export const getHostelStats = async (req: Request, res: Response) => {
 
         res.json(formatted);
     } catch (error) {
-        console.error("Fetch Stats Error:", error);
         res.status(500).json({ message: "Failed to fetch hostel statistics" });
     }
 };
@@ -74,7 +82,6 @@ export const getAvailableRooms = async (req: Request, res: Response) => {
 
         res.json(availableRooms);
     } catch (error) {
-        console.error("Fetch Available Rooms Error:", error);
         res.status(500).json({ message: "Failed to fetch available rooms" });
     }
 };
@@ -83,11 +90,6 @@ export const getAvailableRooms = async (req: Request, res: Response) => {
 export const getHostelResidents = async (req: Request, res: Response) => {
     try {
         const { hostelId } = req.params;
-
-        if (!hostelId) {
-            return res.status(400).json({ message: "Hostel ID is required" });
-        }
-
         const residents = await prisma.hostelAdmission.findMany({
             where: {
                 room: { hostelId: hostelId },
@@ -102,9 +104,7 @@ export const getHostelResidents = async (req: Request, res: Response) => {
                 },
                 room: { select: { roomNumber: true, floor: true } }
             },
-            orderBy: {
-                room: { roomNumber: 'asc' } 
-            }
+            orderBy: { room: { roomNumber: 'asc' } }
         });
 
         const formatted = residents.map(r => ({
@@ -114,14 +114,13 @@ export const getHostelResidents = async (req: Request, res: Response) => {
             className: r.student.class?.name || 'N/A',
             roomNumber: r.room.roomNumber,
             floor: r.room.floor,
-            avatar: r.student.user.avatar,
+            avatar: r.student.user?.avatar,
             admissionDate: r.admissionDate
         }));
 
         res.json(formatted);
     } catch (error) {
-        console.error("Fetch Residents Error:", error);
-        res.status(500).json({ message: "Failed to fetch residents for this block" });
+        res.status(500).json({ message: "Failed to fetch residents" });
     }
 };
 
@@ -137,13 +136,9 @@ export const getAllResidents = async (req: Request, res: Response) => {
                 user: { select: { avatar: true } } 
             }
         },
-        room: {
-            include: { hostel: true }
-        }
+        room: { include: { hostel: true } }
       },
-      orderBy: {
-        student: { fullName: 'asc' } 
-      }
+      orderBy: { student: { fullName: 'asc' } }
     });
 
     const formatted = residents.map(r => ({
@@ -155,39 +150,160 @@ export const getAllResidents = async (req: Request, res: Response) => {
       roomNumber: r.room.roomNumber,
       floor: r.room.floor,
       phone: r.student.phone,
-      avatar: r.student.user.avatar, 
+      avatar: r.student.user?.avatar, 
       admissionDate: r.admissionDate 
     }));
 
     res.json(formatted);
   } catch (error) {
-    console.error("Directory Fetch Error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-// --- 5. CHECK-OUT STUDENT ---
+// --- 5. UPDATE ROOM DETAILS ---
+export const updateRoom = async (req: Request, res: Response) => {
+    try {
+        const { roomId } = req.params;
+        const { roomNumber, floor, capacity } = req.body;
+
+        const currentOccupancy = await prisma.hostelAdmission.count({
+            where: { roomId, status: 'OCCUPIED' }
+        });
+
+        if (parseInt(capacity) < currentOccupancy) {
+            return res.status(400).json({ 
+                message: `Cannot reduce capacity below current occupancy of ${currentOccupancy} residents.` 
+            });
+        }
+
+        const updatedRoom = await prisma.room.update({
+            where: { id: roomId },
+            data: {
+                roomNumber,
+                floor: floor ? parseInt(floor) : null,
+                capacity: parseInt(capacity)
+            }
+        });
+
+        res.json({ message: "Room details updated", updatedRoom });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to update room" });
+    }
+};
+
+// --- 6. GET STUDENT'S OWN ALLOCATION (STUDENT PORTAL) ---
+export const getMyAllocation = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+
+        const student = await prisma.student.findUnique({
+            where: { userId },
+            include: {
+                hostelRecord: {
+                    include: {
+                        room: {
+                            include: {
+                                hostel: true,
+                                allocations: {
+                                    where: { status: 'OCCUPIED' },
+                                    include: { student: { select: { id: true, fullName: true, class: { select: { name: true } } } } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!student || !student.hostelRecord || student.hostelRecord.status !== 'OCCUPIED') {
+            return res.status(404).json({ message: "No active room assignment found." });
+        }
+
+        const room = student.hostelRecord.room;
+
+        const roommates = room.allocations
+            .filter(a => a.student.id !== student.id)
+            .map(a => ({
+                id: a.student.id,
+                name: a.student.fullName,
+                className: a.student.class?.name || 'N/A'
+            }));
+
+        res.json({
+            hostelName: room.hostel.name,
+            roomNumber: room.roomNumber,
+            floor: room.floor,
+            capacity: room.capacity,
+            occupants: room.allocations.length,
+            roommates: roommates
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch allocation details" });
+    }
+};
+
+// --- 7. SUBMIT COMPLAINT (STUDENT - NEW) ---
+export const submitComplaint = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const student = await prisma.student.findUnique({ where: { userId } });
+        
+        if (!student) return res.status(404).json({ message: "Student record not found" });
+
+        const { subject, category, description } = req.body;
+        const complaint = await prisma.complaint.create({
+            data: {
+                subject,
+                category,
+                description,
+                studentId: student.id,
+                status: 'PENDING'
+            }
+        });
+
+        res.status(201).json(complaint);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to submit grievance" });
+    }
+};
+
+// --- 8. GET MY COMPLAINTS (STUDENT - NEW) ---
+export const getMyComplaints = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+        const student = await prisma.student.findUnique({ where: { userId } });
+        
+        if (!student) return res.status(404).json({ message: "Student record not found" });
+
+        const history = await prisma.complaint.findMany({
+            where: { studentId: student.id },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(history);
+    } catch (error) {
+        res.status(500).json({ message: "Failed to load complaint history" });
+    }
+};
+
+// --- 9. CHECK-OUT STUDENT ---
 export const checkoutStudent = async (req: Request, res: Response) => {
     try {
         const { id } = req.params; 
-
         await prisma.hostelAdmission.update({
             where: { id },
-            data: { status: 'COMPLETED' }
+            data: { status: 'VACATED', checkoutDate: new Date() }
         });
-
-        res.json({ message: "Student checked out successfully. Bed is now vacant." });
+        res.json({ message: "Student checked out successfully." });
     } catch (error) {
-        console.error("Checkout Error:", error);
         res.status(500).json({ message: "Failed to process check-out" });
     }
 };
 
-// --- 6. GET GATE PASS DATA ---
+// --- 10. GET GATE PASS DATA ---
 export const getGatePassData = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params; // Using the Admission record ID
-
+        const { id } = req.params;
         const record = await prisma.hostelAdmission.findUnique({
             where: { id: id },
             include: {
@@ -208,85 +324,59 @@ export const getGatePassData = async (req: Request, res: Response) => {
         res.json({
             name: record.student.fullName,
             id: record.student.admissionNo,
-            photo: record.student.user.avatar,
+            photo: record.student.user?.avatar,
             class: record.student.class?.name || 'N/A',
             hostel: record.room.hostel.name,
             room: record.room.roomNumber,
             issueDate: new Date().toLocaleDateString('en-GB')
         });
     } catch (error) {
-        console.error("Gate Pass Error:", error);
         res.status(500).json({ message: "Error generating gate pass data" });
     }
 };
 
-// --- 7. CREATE NEW HOSTEL BLOCK ---
+// --- 11. CREATE NEW HOSTEL BLOCK ---
 export const createHostel = async (req: Request, res: Response) => {
     try {
         const { name, type, capacity } = req.body;
-
-        if (!name || !type) {
-            return res.status(400).json({ message: "Name and Type are required" });
-        }
-
         const newHostel = await prisma.hostel.create({
-            data: {
-                name,
-                type,
-                capacity: parseInt(capacity) || 0
-            }
+            data: { name, type, capacity: parseInt(capacity) || 0 }
         });
-
         res.status(201).json(newHostel);
     } catch (error) {
-        console.error("Create Hostel Error:", error);
         res.status(500).json({ message: "Failed to create hostel block" });
     }
 };
 
-// --- 8. CREATE NEW ROOM & FLOOR ---
+// --- 12. CREATE NEW ROOM ---
 export const createRoom = async (req: Request, res: Response) => {
     try {
         const { roomNumber, floor, capacity, hostelId } = req.body;
+        const existingRoom = await prisma.room.findFirst({ where: { roomNumber, hostelId } });
 
-        if (!roomNumber || floor === undefined || !capacity || !hostelId) {
-            return res.status(400).json({ message: "Missing required room details" });
-        }
-
-        const existingRoom = await prisma.room.findFirst({
-            where: { roomNumber, hostelId }
-        });
-
-        if (existingRoom) {
-            return res.status(400).json({ message: "Room number already exists in this block" });
-        }
+        if (existingRoom) return res.status(400).json({ message: "Room already exists" });
 
         const newRoom = await prisma.room.create({
-            data: {
-                roomNumber,
-                floor: parseInt(floor),
-                capacity: parseInt(capacity),
-                hostelId
+            data: { 
+                roomNumber, 
+                floor: floor ? parseInt(floor) : null, 
+                capacity: parseInt(capacity), 
+                hostelId 
             }
         });
-
-        res.status(201).json({ 
-            message: `Room ${roomNumber} created on floor ${floor}`, 
-            room: newRoom 
-        });
+        res.status(201).json({ message: "Room created", room: newRoom });
     } catch (error) {
-        console.error("Create Room Error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
-// --- 9. GET PENDING ALLOCATIONS ---
+// --- 13. GET PENDING REQUESTS ---
 export const getPendingAllocations = async (req: Request, res: Response) => {
     try {
         const pending = await prisma.student.findMany({
-            where: {
-                needsHostel: true,
-                hostelRecord: null
+            where: { 
+                needsHostel: true, 
+                hostelRecord: null 
             },
             include: { 
                 class: true, 
@@ -301,7 +391,7 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
             admissionNo: s.admissionNo,
             email: s.user.email,
             avatar: s.user.avatar,
-            className: s.class.name,
+            className: s.class?.name || 'N/A',
             gender: s.gender
         }));
 
@@ -311,60 +401,44 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
     }
 };
 
-// --- 10. ALLOCATE ROOM ---
+// --- 14. ALLOCATE ROOM ---
 export const allocateRoom = async (req: Request, res: Response) => {
     try {
         const { studentId, roomId } = req.body;
-
         const room = await prisma.room.findUnique({
             where: { id: roomId },
             include: { _count: { select: { allocations: { where: { status: 'OCCUPIED' } } } } }
         });
 
         if (!room || room._count.allocations >= room.capacity) {
-            return res.status(400).json({ message: "Room is at full capacity" });
+            return res.status(400).json({ message: "Room is full" });
         }
 
         const allocation = await prisma.hostelAdmission.create({
-            data: {
-                studentId,
-                roomId,
-                status: 'OCCUPIED',
-                admissionDate: new Date()
-            }
+            data: { studentId, roomId, status: 'OCCUPIED', admissionDate: new Date() }
         });
 
-        res.status(201).json({ message: "Room allocated successfully", allocation });
+        res.status(201).json({ message: "Room allocated", allocation });
     } catch (error) {
-        console.error("Allocation Error:", error);
         res.status(500).json({ message: "Failed to allocate room" });
     }
 };
 
-// --- 11. DELETE ROOM ---
+// --- 15. DELETE ROOM ---
 export const deleteRoom = async (req: Request, res: Response) => {
     try {
         const { roomId } = req.params;
-
-        if (!roomId) {
-            return res.status(400).json({ message: "Room ID is required" });
-        }
-
         const activeAllocations = await prisma.hostelAdmission.count({
             where: { roomId: roomId, status: 'OCCUPIED' }
         });
 
         if (activeAllocations > 0) {
-            return res.status(400).json({ 
-                message: "Safety Block: Cannot delete room while it has active residents. Please check-out students first." 
-            });
+            return res.status(400).json({ message: "Cannot delete room with active residents." });
         }
 
         await prisma.room.delete({ where: { id: roomId } });
-
-        res.json({ message: "Room removed successfully from the block." });
+        res.json({ message: "Room removed successfully." });
     } catch (error) {
-        console.error("Delete Room Error:", error);
-        res.status(500).json({ message: "Failed to remove room. It might be linked to historical records." });
+        res.status(500).json({ message: "Failed to remove room." });
     }
 };

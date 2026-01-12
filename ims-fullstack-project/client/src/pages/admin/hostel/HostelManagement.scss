@@ -2,20 +2,22 @@
 
 .modern-hostel-container {
     padding: 2.5rem;
-    background: #f8fafc;
+    background: var(--bg-secondary-color);
     min-height: 100vh;
     font-family: 'Inter', system-ui, sans-serif;
 
+    /* --- HEADER SECTION --- */
     .glass-header {
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--card-bg-default);
+        opacity: 0.95;
         backdrop-filter: blur(10px);
         padding: 2rem;
         border-radius: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border-light-color);
+        box-shadow: var(--box-shadow-2);
         margin-bottom: 2.5rem;
 
         .title-block {
@@ -25,8 +27,8 @@
 
             .icon-badge {
                 font-size: 2rem;
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: white;
+                background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+                color: #fff;
                 padding: 1rem;
                 border-radius: 16px;
             }
@@ -34,12 +36,12 @@
             h1 {
                 font-size: 1.8rem;
                 margin: 0;
-                color: #1e293b;
+                color: var(--heading-color);
                 font-weight: 800;
             }
 
             p {
-                color: #64748b;
+                color: var(--text-muted-color);
                 margin: 0;
                 font-size: 0.95rem;
             }
@@ -51,7 +53,7 @@
             align-items: center;
 
             .primary-action-btn {
-                background: #1e293b;
+                background: var(--btn-primary-bg);
                 color: white;
                 border: none;
                 padding: 0.8rem 1.5rem;
@@ -64,29 +66,30 @@
                 transition: all 0.2s;
 
                 &:hover {
-                    background: #334155;
+                    background: var(--btn-primary-hover-bg);
                     transform: translateY(-2px);
                 }
             }
 
             .refresh-btn {
-                background: white;
-                border: 1px solid #e2e8f0;
+                background: var(--bg-color);
+                border: 1px solid var(--border-light-color);
                 padding: 0.8rem;
                 border-radius: 12px;
                 cursor: pointer;
-                color: #64748b;
+                color: var(--secondary-color);
                 transition: all 0.2s;
 
                 &:hover {
-                    color: #6366f1;
-                    border-color: #6366f1;
-                    background: #f8fafc;
+                    color: var(--primary-color);
+                    border-color: var(--primary-color);
+                    background: var(--active-menu-bg-color);
                 }
             }
         }
     }
 
+    /* --- MAIN CONTENT LAYOUT --- */
     .dashboard-content {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -97,13 +100,13 @@
         }
     }
 
-    // --- HOSTEL CARD STYLES ---
+    /* --- HOSTEL CARD STYLES --- */
     .hostel-modern-card {
-        background: white;
+        background: var(--card-bg-default);
         border-radius: 24px;
         padding: 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f1f5f9;
+        box-shadow: var(--box-shadow-1);
+        border: 1px solid var(--card-border-color);
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
@@ -111,7 +114,7 @@
 
         &:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow-3);
         }
 
         .card-top {
@@ -121,18 +124,17 @@
 
             .block-name {
                 font-weight: 700;
-                color: #334155;
+                color: var(--font-color);
                 font-size: 1.1rem;
                 display: flex;
                 align-items: center;
                 gap: 0.6rem;
 
                 svg {
-                    color: #6366f1;
+                    color: var(--primary-color);
                 }
             }
 
-            // Grouped Room Actions (Manage + Add)
             .room-action-group {
                 display: flex;
                 gap: 0.5rem;
@@ -151,21 +153,21 @@
                 }
 
                 .add-room-inline {
-                    background: #f1f5f9;
-                    color: #6366f1;
+                    background: var(--active-menu-bg-color);
+                    color: var(--primary-color);
 
                     &:hover {
-                        background: #6366f1;
-                        color: white;
+                        background: var(--primary-color);
+                        color: #fff;
                     }
                 }
 
                 .manage-rooms-inline {
-                    background: #fff1f2;
-                    color: #e11d48;
+                    background: var(--toast-danger-bg);
+                    color: var(--font-color-danger);
 
                     &:hover {
-                        background: #e11d48;
+                        background: var(--btn-danger-bg);
                         color: white;
                     }
                 }
@@ -176,14 +178,9 @@
             width: 120px;
             margin: 0 auto;
 
-            .circular-chart {
-                display: block;
-                max-width: 100%;
-            }
-
             .circle-bg {
                 fill: none;
-                stroke: #f1f5f9;
+                stroke: var(--bg-secondary-color);
                 stroke-width: 3.8;
             }
 
@@ -191,12 +188,12 @@
                 fill: none;
                 stroke-width: 2.8;
                 stroke-linecap: round;
-                stroke: #6366f1;
+                stroke: var(--primary-color);
                 transition: stroke-dasharray 1s ease;
             }
 
             .percentage {
-                fill: #334155;
+                fill: var(--font-color);
                 font-size: 0.55rem;
                 text-anchor: middle;
                 font-weight: 800;
@@ -207,9 +204,9 @@
             display: flex;
             justify-content: space-between;
             padding-top: 1rem;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--border-light-color);
             font-size: 0.9rem;
-            color: #64748b;
+            color: var(--text-muted-color);
 
             .stat {
                 display: flex;
@@ -224,7 +221,7 @@
 
             .view-residents-btn {
                 width: 100%;
-                background: #1e293b;
+                background: var(--btn-primary-bg);
                 color: white;
                 border: none;
                 padding: 0.85rem;
@@ -238,19 +235,20 @@
                 transition: all 0.2s;
 
                 &:hover {
-                    background: #334155;
-                    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+                    background: var(--btn-primary-hover-bg);
+                    box-shadow: var(--box-shadow-2);
                 }
             }
         }
     }
 
-    // --- PENDING ALLOCATION PANEL ---
+    /* --- PENDING ALLOCATION PANEL --- */
     .allocation-panel {
-        background: white;
+        background: var(--card-bg-default);
         border-radius: 24px;
         padding: 2rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        box-shadow: var(--box-shadow-1);
+        border: 1px solid var(--card-border-color);
         height: fit-content;
 
         .panel-header {
@@ -262,12 +260,12 @@
             h3 {
                 margin: 0;
                 font-weight: 700;
-                color: #1e293b;
+                color: var(--heading-color);
             }
 
             .count-tag {
-                background: #eef2ff;
-                color: #6366f1;
+                background: var(--active-menu-bg-color);
+                color: var(--primary-color);
                 padding: 4px 12px;
                 border-radius: 12px;
                 font-weight: 700;
@@ -281,12 +279,12 @@
             padding: 1.25rem;
             border-radius: 16px;
             margin-bottom: 1rem;
-            border: 1px solid #f1f5f9;
+            border: 1px solid var(--border-light-color);
             transition: all 0.2s;
 
             &:hover {
-                border-color: #6366f1;
-                background: #f8fafc;
+                border-color: var(--primary-color);
+                background: var(--active-menu-bg-color);
             }
 
             .student-profile {
@@ -296,7 +294,7 @@
                 .avatar-initial {
                     width: 45px;
                     height: 45px;
-                    background: #6366f1;
+                    background: var(--primary-color);
                     color: white;
                     border-radius: 12px;
                     display: flex;
@@ -309,13 +307,13 @@
                     h4 {
                         margin: 0 0 2px 0;
                         font-size: 0.95rem;
-                        color: #1e293b;
+                        color: var(--font-color);
                     }
 
                     p {
                         margin: 0;
                         font-size: 0.8rem;
-                        color: #64748b;
+                        color: var(--text-muted-color);
                     }
                 }
             }
@@ -323,25 +321,25 @@
             .action-arrow {
                 background: none;
                 border: none;
-                color: #cbd5e1;
+                color: var(--disabled-text-color);
                 cursor: pointer;
                 transition: color 0.2s;
             }
 
             &:hover .action-arrow {
-                color: #6366f1;
+                color: var(--primary-color);
             }
         }
     }
 
-    // --- MODAL & DIRECTORY STYLES ---
+    /* --- MODAL & DIRECTORY STYLES --- */
     .modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(15, 23, 42, 0.5);
+        background: rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(6px);
         display: flex;
         justify-content: center;
@@ -349,19 +347,80 @@
         z-index: 1000;
 
         .glass-modal {
-            background: white;
+            background: var(--card-bg-default);
             width: 100%;
             max-width: 480px;
             padding: 2.5rem;
             border-radius: 28px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-
-            &.resident-list-modal {
-                max-width: 800px;
-            }
+            box-shadow: var(--dropdown-box-shadow);
+            border: 1px solid var(--modal-border-color);
 
             &.manage-rooms-modal {
                 max-width: 550px;
+            }
+
+            /* --- RESIDENT LIST TABLE MODAL --- */
+            &.resident-list-modal {
+                max-width: 800px;
+
+                .resident-table-wrapper {
+                    margin-top: 1.5rem;
+                    background: var(--bg-secondary-color);
+                    border-radius: 18px;
+                    border: 1px solid var(--border-light-color);
+                    overflow: hidden;
+                    max-height: 500px;
+                    overflow-y: auto;
+
+                    .modern-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        text-align: left;
+
+                        thead {
+                            background: var(--card-bg-default);
+                            position: sticky;
+                            top: 0;
+                            z-index: 10;
+
+                            th {
+                                padding: 1.2rem 1.5rem;
+                                color: var(--text-muted-color);
+                                font-size: 0.8rem;
+                                text-transform: uppercase;
+                                font-weight: 800;
+                                border-bottom: 2px solid var(--border-light-color);
+                            }
+                        }
+
+                        tbody tr {
+                            border-bottom: 1px solid var(--border-light-color);
+
+                            &:hover {
+                                background: var(--active-menu-bg-color);
+                            }
+
+                            td {
+                                padding: 1.2rem 1.5rem;
+                                color: var(--font-color);
+                                font-size: 0.95rem;
+
+                                strong {
+                                    color: var(--heading-color);
+                                    font-weight: 700;
+                                }
+
+                                code {
+                                    background: var(--card-bg-default);
+                                    padding: 4px 8px;
+                                    border-radius: 6px;
+                                    color: var(--primary-color);
+                                    border: 1px solid var(--border-light-color);
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             .modal-header {
@@ -372,7 +431,7 @@
 
                 h3 {
                     margin: 0;
-                    color: #1e293b;
+                    color: var(--heading-color);
                     font-size: 1.4rem;
                     font-weight: 800;
                     display: flex;
@@ -380,38 +439,44 @@
                     gap: 0.8rem;
                 }
 
+                // Stylized 'X' Button
                 button {
-                    background: none;
-                    border: none;
-                    font-size: 1.2rem;
-                    color: #94a3b8;
+                    background: var(--active-menu-bg-color);
+                    border: 1px solid var(--border-light-color);
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     cursor: pointer;
+                    color: var(--text-muted-color);
+                    transition: all 0.2s ease;
 
                     &:hover {
-                        color: #e11d48;
+                        background: #fee2e2;
+                        color: #ef4444;
+                        transform: rotate(90deg);
                     }
                 }
             }
 
-            // Search Bar for Manage Rooms Modal
             .search-bar-container {
                 display: flex;
                 align-items: center;
-                background: #f1f5f9;
+                background: var(--bg-secondary-color);
                 padding: 0.85rem 1.2rem;
                 border-radius: 14px;
                 margin-bottom: 1.5rem;
-                border: 1.5px solid transparent;
-                transition: all 0.2s;
+                border: 1.5px solid var(--border-light-color);
 
                 &:focus-within {
-                    border-color: #6366f1;
-                    background: white;
-                    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+                    border-color: var(--primary-color);
+                    background: var(--bg-color);
                 }
 
                 .search-icon {
-                    color: #94a3b8;
+                    color: var(--text-muted-color);
                     margin-right: 0.8rem;
                 }
 
@@ -421,16 +486,15 @@
                     outline: none;
                     width: 100%;
                     font-size: 0.95rem;
-                    color: #1e293b;
+                    color: var(--font-color);
                     font-weight: 600;
 
                     &::placeholder {
-                        color: #94a3b8;
+                        color: var(--form-placeholder-text-color);
                     }
                 }
             }
 
-            // Room List Directory Styles
             .room-list-container {
                 max-height: 400px;
                 overflow-y: auto;
@@ -439,130 +503,42 @@
                 gap: 1rem;
                 padding-right: 0.5rem;
 
-                // Custom Scrollbar
-                &::-webkit-scrollbar {
-                    width: 6px;
-                }
-
-                &::-webkit-scrollbar-track {
-                    background: #f1f5f9;
-                }
-
-                &::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
-                    border-radius: 10px;
-                }
-
                 .room-item-row {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     padding: 1.25rem;
-                    background: #f8fafc;
+                    background: var(--card-bg-muted);
                     border-radius: 16px;
-                    border: 1px solid #f1f5f9;
-                    transition: border-color 0.2s;
-
-                    &:hover {
-                        border-color: #e2e8f0;
-                    }
+                    border: 1px solid var(--border-light-color);
 
                     .info {
                         strong {
                             display: block;
-                            color: #1e293b;
-                            font-size: 1rem;
-                            margin-bottom: 2px;
+                            color: var(--font-color);
                         }
 
                         span {
-                            color: #64748b;
-                            font-size: 0.85rem;
-                            font-weight: 500;
+                            color: var(--text-muted-color);
                         }
                     }
 
                     .delete-btn {
-                        background: #fff1f2;
-                        color: #e11d48;
+                        background: var(--toast-danger-bg);
+                        color: var(--font-color-danger);
                         border: none;
                         padding: 0.6rem;
                         border-radius: 10px;
                         cursor: pointer;
-                        transition: all 0.2s;
 
                         &:hover {
-                            background: #e11d48;
+                            background: var(--btn-danger-bg);
                             color: white;
                         }
                     }
                 }
-
-                .empty-state {
-                    padding: 3rem;
-                    text-align: center;
-                    color: #94a3b8;
-                    font-style: italic;
-                    background: #f8fafc;
-                    border-radius: 16px;
-                }
             }
 
-            // Table Styles for Residents
-            .resident-table-wrapper {
-                max-height: 500px;
-                overflow-y: auto;
-                border: 1px solid #f1f5f9;
-                border-radius: 16px;
-
-                .modern-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    text-align: left;
-
-                    thead {
-                        background: #f8fafc;
-                        position: sticky;
-                        top: 0;
-                        z-index: 10;
-
-                        th {
-                            padding: 1.2rem 1rem;
-                            color: #64748b;
-                            font-size: 0.8rem;
-                            text-transform: uppercase;
-                            font-weight: 700;
-                            border-bottom: 2px solid #e2e8f0;
-                        }
-                    }
-
-                    tbody td {
-                        padding: 1.2rem 1rem;
-                        color: #334155;
-                        font-size: 0.95rem;
-                        border-bottom: 1px solid #f1f5f9;
-
-                        strong {
-                            color: #1e293b;
-                        }
-                    }
-
-                    tbody tr:hover {
-                        background: #f8fafc;
-                    }
-
-                    code {
-                        background: #eef2ff;
-                        padding: 4px 8px;
-                        border-radius: 6px;
-                        color: #6366f1;
-                        font-family: 'JetBrains Mono', monospace;
-                        font-size: 0.85rem;
-                    }
-                }
-            }
-
-            // General Form Elements inside modals
             .form-group {
                 margin-bottom: 1.5rem;
 
@@ -570,49 +546,187 @@
                     display: block;
                     margin-bottom: 0.6rem;
                     font-weight: 600;
-                    color: #475569;
+                    color: var(--form-label-color);
                     font-size: 0.9rem;
                 }
 
                 input,
                 select {
                     width: 100%;
+                    background: var(--bg-color);
                     padding: 0.85rem 1rem;
-                    border: 1.5px solid #e2e8f0;
+                    border: 1.5px solid var(--form-input-border-color);
                     border-radius: 12px;
-                    font-size: 1rem;
+                    color: var(--form-input-field-color);
                     transition: all 0.2s;
 
                     &:focus {
                         outline: none;
-                        border-color: #6366f1;
-                        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+                        border-color: var(--primary-color);
                     }
                 }
             }
 
             .confirm-btn {
                 width: 100%;
-                background: #6366f1;
+                background: var(--btn-primary-bg);
                 color: white;
                 border: none;
                 padding: 1.1rem;
                 border-radius: 16px;
                 font-weight: 700;
-                font-size: 1rem;
                 cursor: pointer;
-                transition: background 0.2s;
-                margin-top: 1rem;
 
                 &:hover {
-                    background: #4f46e5;
+                    background: var(--btn-primary-hover-bg);
                 }
 
                 &:disabled {
-                    background: #cbd5e1;
+                    background: var(--disabled-text-color);
                     cursor: not-allowed;
                 }
             }
+        }
+    }
+}
+
+/* --- MOBILE & RESPONSIVE UPDATES --- */
+
+@media (max-width: 992px) {
+    .modern-hostel-container {
+        padding: 1.5rem;
+
+        .glass-header {
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+            padding: 1.5rem;
+
+            .title-block {
+                flex-direction: column;
+                gap: 0.8rem;
+
+                .icon-badge {
+                    padding: 0.8rem;
+                    font-size: 1.5rem;
+                }
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+
+                button {
+                    flex: 1;
+                    justify-content: center;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .modern-hostel-container {
+        padding: 1rem;
+
+        .dashboard-content {
+            gap: 1.5rem;
+        }
+
+        .hostel-modern-card {
+            padding: 1.5rem;
+
+            .card-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+
+                .room-action-group {
+                    width: 100%;
+
+                    button {
+                        flex: 1;
+                        justify-content: center;
+                    }
+                }
+            }
+
+            .stats-row {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: flex-start;
+            }
+        }
+
+        .allocation-panel {
+            padding: 1.5rem;
+
+            .queue-card {
+                padding: 1rem;
+
+                .student-profile {
+                    gap: 0.8rem;
+
+                    .avatar-initial {
+                        width: 38px;
+                        height: 38px;
+                        font-size: 0.9rem;
+                    }
+                }
+            }
+        }
+
+        .modal-overlay {
+            padding: 1rem;
+
+            .glass-modal {
+                padding: 1.5rem;
+                max-width: 95%;
+                border-radius: 20px;
+
+                .modal-header h3 {
+                    font-size: 1.2rem;
+                }
+
+                .room-item-row {
+                    padding: 1rem;
+
+                    .info strong {
+                        font-size: 0.9rem;
+                    }
+                }
+
+                /* Mobile Resident Table Fix */
+                &.resident-list-modal {
+                    .resident-table-wrapper {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+
+                        .modern-table {
+                            min-width: 500px; // Forces horizontal scroll
+
+                            thead th,
+                            tbody td {
+                                padding: 0.8rem;
+                                font-size: 0.8rem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .modern-hostel-container {
+        .glass-header .header-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .hostel-modern-card .occupancy-circle {
+            width: 100px;
         }
     }
 }

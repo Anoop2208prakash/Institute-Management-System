@@ -25,25 +25,27 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import inquiryRoutes from './routes/inquiryRoutes';
 import libraryRoutes from './routes/libraryRoutes';
 import activityRoutes from './routes/activityRoutes';
-import hostelRoutes from './routes/hostelRoutes'; // Correctly imported
+import hostelRoutes from './routes/hostelRoutes'; 
 import communicationRoutes from './routes/communicationRoutes';
 
 dotenv.config();
 
 const app: Application = express();
 
-// Middlewares
+// --- MIDDLEWARES ---
 app.use(express.json());
+
+// FIXED: Added 'PATCH' and 'OPTIONS' to resolve CORS preflight errors
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'] 
 }));
 
 // Static Files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Register Routes
+// --- REGISTER ROUTES ---
 app.use('/api/roles', roleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/staff', staffRoutes);
@@ -64,8 +66,6 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/activity', activityRoutes);
-
-// CRITICAL FIX: Singular route to match frontend fetch calls
 app.use('/api/hostel', hostelRoutes); 
 app.use('/api/communication', communicationRoutes);
 

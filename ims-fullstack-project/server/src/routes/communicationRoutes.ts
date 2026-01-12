@@ -1,25 +1,16 @@
-// server/src/routes/communicationRoutes.ts
-import express from 'express';
+import { Router } from 'express';
 import { 
     getComplaints, 
     updateComplaintStatus 
 } from '../controllers/communicationController';
-import { protect } from '../middlewares/auth';
 
-const router = express.Router();
+// FIXED: Add adminOnly to the import statement
+import { protect, adminOnly } from '../middlewares/auth'; 
 
-/**
- * @route   GET /api/communication/complaints
- * @desc    Fetch all student grievances for the admin dashboard
- * @access  Private (Admin/Staff)
- */
-router.get('/complaints', protect, getComplaints);
+const router = Router();
 
-/**
- * @route   PATCH /api/communication/complaints/:id/status
- * @desc    Update the resolution status of a specific complaint
- * @access  Private (Admin/Staff)
- */
-router.patch('/complaints/:id/status', protect, updateComplaintStatus);
+// Routes will now correctly find the 'adminOnly' function
+router.get('/complaints', protect, adminOnly, getComplaints);
+router.patch('/complaints/:id/status', protect, adminOnly, updateComplaintStatus);
 
 export default router;

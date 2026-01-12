@@ -1,0 +1,122 @@
+/* client/src/components/common/CommonPagination.scss */
+
+.custom-pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg-default);
+    border-radius: 16px;
+    border: 1px solid var(--border-light-color);
+    box-shadow: var(--box-shadow-1);
+    backdrop-filter: blur(10px);
+    flex-wrap: wrap;
+    gap: 1.5rem;
+
+    .entries-info {
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        color: var(--text-muted-color);
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+
+        .rows-per-page {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+
+            span {
+                font-size: 0.875rem;
+                color: var(--text-muted-color);
+                font-weight: 600;
+            }
+
+            .MuiSelect-select {
+                font-weight: 700;
+                color: var(--primary-color);
+            }
+        }
+
+        /* Styling the MUI Pagination Buttons */
+        .MuiPagination-ul {
+            .MuiPaginationItem-root {
+                font-family: 'Inter', sans-serif;
+                font-weight: 600;
+                border-radius: 8px;
+                transition: all 0.2s ease;
+                color: var(--font-color);
+
+                &.Mui-selected {
+                    background: linear-gradient(135deg, var(--primary-color), #8b5cf6) !important;
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+                }
+
+                &:hover:not(.Mui-selected) {
+                    background: var(--active-menu-bg-color);
+                    color: var(--primary-color);
+                }
+            }
+        }
+    }
+}
+
+/* --- MOBILE RESPONSIVE VIEW --- */
+@media (max-width: 768px) {
+    .custom-pagination-container {
+        flex-direction: column;
+        padding: 1.5rem;
+        text-align: center;
+        gap: 1.25rem;
+
+        .entries-info {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        .pagination-controls {
+            flex-direction: column;
+            width: 100%;
+            gap: 1.25rem;
+
+            .rows-per-page {
+                justify-content: center;
+                width: 100%;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--border-light-color);
+            }
+
+            .MuiPagination-root {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+
+                .MuiPaginationItem-root {
+                    /* Smaller buttons for mobile screens */
+                    min-width: 32px;
+                    height: 32px;
+                    margin: 0 2px;
+                    font-size: 0.8rem;
+                }
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .custom-pagination-container {
+        .MuiPaginationItem-root {
+
+            &.MuiPaginationItem-firstButton,
+            &.MuiPaginationItem-lastButton {
+                display: none;
+                /* Hide jump-to buttons on very small screens to save space */
+            }
+        }
+    }
+}

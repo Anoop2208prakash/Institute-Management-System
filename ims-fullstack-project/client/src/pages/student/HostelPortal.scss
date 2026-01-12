@@ -1,0 +1,283 @@
+// client/src/pages/student/hostel/HostelPortal.scss
+
+.hostel-portal-container {
+    padding: 2.5rem;
+    background-color: var(--bg-secondary-color); //
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+
+    .portal-header {
+        background: linear-gradient(135deg, var(--primary-color), #8b5cf6); //
+        padding: 3rem;
+        border-radius: 2rem;
+        color: #ffffff;
+        margin-bottom: 2.5rem;
+        box-shadow: var(--box-shadow-2); //
+
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+
+            .icon-box {
+                font-size: 3rem;
+                background: rgba(255, 255, 255, 0.2);
+                padding: 1.5rem;
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+            }
+
+            h1 {
+                font-size: 2.2rem;
+                margin: 0;
+                font-weight: 800;
+            }
+
+            p {
+                font-size: 1.1rem;
+                opacity: 0.9;
+                margin-top: 5px;
+            }
+        }
+    }
+
+    .no-allocation-card {
+        text-align: center;
+        padding: 5rem;
+        background: var(--card-bg-default); //
+        border-radius: 2rem;
+        border: 1px solid var(--border-light-color); //
+
+        .warning-icon {
+            font-size: 4rem;
+            color: var(--toast-warning-text); //
+            margin-bottom: 1.5rem;
+        }
+
+        h2 {
+            color: var(--heading-color); //
+            font-weight: 800;
+        }
+
+        p {
+            color: var(--text-muted-color); //
+            max-width: 500px;
+            margin: 10px auto;
+        }
+    }
+
+    .portal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2.5rem;
+    }
+
+    .glass-card {
+        background: rgba(var(--card-bg-default-rgb, 255, 255, 255), 0.7);
+        backdrop-filter: blur(12px); // Professional frosted glass effect
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 2rem;
+        padding: 2.5rem;
+        box-shadow: var(--box-shadow-1); //
+
+        [data-theme="dark"] & {
+            background: rgba(21, 27, 35, 0.8); // Dark mode glass
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h3 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--heading-color); //
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+
+            svg {
+                color: var(--primary-color); //
+            }
+        }
+    }
+
+    .room-details {
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+
+            .detail-item {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+
+                label {
+                    color: var(--text-muted-color); //
+                    font-weight: 700;
+                    font-size: 0.8rem;
+                    text-transform: uppercase;
+                }
+
+                span {
+                    color: var(--font-color); //
+                    font-weight: 800;
+                    font-size: 1.2rem;
+                }
+            }
+        }
+
+        .location-tag {
+            margin-top: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--active-menu-bg-color); //
+            color: var(--primary-color); //
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+    }
+
+    .roommate-section {
+        .buddy-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1rem;
+            background: var(--bg-secondary-color); //
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-light-color); //
+
+            .buddy-avatar {
+                width: 45px;
+                height: 45px;
+                background: var(--primary-color); //
+                color: white;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+            }
+
+            .buddy-info {
+                strong {
+                    display: block;
+                    color: var(--font-color); //
+                }
+
+                span {
+                    font-size: 0.85rem;
+                    color: var(--text-muted-color); //
+                }
+            }
+        }
+    }
+
+    .rules-card.full-width {
+        grid-column: span 2;
+
+        ul {
+            padding: 0;
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+
+            li {
+                background: var(--active-menu-bg-color); //
+                padding: 12px 20px;
+                border-radius: 12px;
+                color: var(--paragraph-text-color); //
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+
+                &::before {
+                    content: '•';
+                    color: var(--primary-color); //
+                    font-weight: 900;
+                }
+            }
+        }
+    }
+
+    // --- MOBILE RESPONSIVE STYLES ---
+
+    @media (max-width: 900px) {
+        .portal-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .rules-card.full-width {
+            grid-column: span 1;
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding: 1rem;
+
+        .portal-header {
+            padding: 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 1.5rem;
+
+            .title-section {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+
+                .icon-box {
+                    font-size: 2.5rem;
+                    padding: 1rem;
+                }
+
+                h1 {
+                    font-size: 1.6rem;
+                }
+
+                p {
+                    font-size: 0.95rem;
+                }
+            }
+        }
+
+        .glass-card {
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+
+            h3 {
+                font-size: 1.2rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        .room-details {
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+
+                .detail-item {
+                    span {
+                        font-size: 1.1rem;
+                    }
+                }
+            }
+
+            .location-tag {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .rules-card.full-width {
+            ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    }
+}

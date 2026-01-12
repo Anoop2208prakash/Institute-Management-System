@@ -1,21 +1,22 @@
 // client/src/layouts/Sidebar.tsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  FaHome, FaIdCard, FaUserPlus, FaUsers, 
+import {
+  FaHome, FaIdCard, FaUserPlus, FaUsers,
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib,
   FaEnvelopeOpenText, FaHotel, FaBed, FaUserShield
 } from 'react-icons/fa';
 import './Sidebar.scss';
-import logo from '../assets/image/banner-logo.png'; 
+import logo from '../assets/image/banner-logo.png';
 
-// 1. Define Interfaces for Menu Structure
 interface MenuItem {
   path: string;
   label: string;
   icon: React.ReactNode;
   roles: string[];
+  // NEW: Optional flag to hide items based on logic other than role
+  hideIf?: boolean;
 }
 
 interface MenuGroup {
@@ -27,11 +28,12 @@ interface SidebarProps {
   isOpen: boolean;
   toggle: () => void;
   role: string;
+  // NEW PROP: Pass 'true' if the student has an active hostel allocation
+  isHostelResident?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, isHostelResident = false }) => {
 
-  // 2. Menu Groups
   const menuGroups: MenuGroup[] = [
     {
       title: "General",
@@ -42,12 +44,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       ]
     },
     {
-        title: "Admission",
-        items: [
-            { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin', 'admin'] },
-            { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin', 'admin'] },
-            { path: '/inquiries', label: 'Inquiries (Leads)', icon: <FaEnvelopeOpenText />, roles: ['administrator', 'super_admin', 'admin'] },
-        ]
+      title: "Admission",
+      items: [
+        { path: '/new-admission', label: 'New Admission', icon: <FaUserPlus />, roles: ['administrator', 'super_admin', 'admin'] },
+        { path: '/view-admission', label: 'View Admission', icon: <FaUsers />, roles: ['administrator', 'super_admin', 'admin'] },
+        { path: '/inquiries', label: 'Inquiries (Leads)', icon: <FaEnvelopeOpenText />, roles: ['administrator', 'super_admin', 'admin'] },
+      ]
     },
     {
       title: "Academic Management",
@@ -60,15 +62,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       ]
     },
     {
-        title: "Hostel & Residence", // NEW SECTION: Integrated for Hostel Module
-        items: [
-            { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin'] },
-            { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin'] },
-            { path: '/view-students', label: 'Hostel Students', icon: <FaUsers />, roles: ['super_admin', 'admin'] },
-            { path: '/gate-passes', label: 'Gate Passes', icon: <FaUserShield />, roles: ['super_admin', 'admin'] },
-            { path: '/view-complaints', label: 'View Complaints', icon: <FaEnvelopeOpenText />, roles: ['super_admin', 'admin'] },
-            { path: '/hostel-portal', label: 'My Residence', icon: <FaHome />, roles: ['student'] },
-        ]
+      title: "Hostel & Residence",
+      items: [
+        { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin', 'warden'] },
+        { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin', 'warden'] },
+        { path: '/view-students', label: 'Hostel Students', icon: <FaUsers />, roles: ['super_admin', 'admin', 'warden'] },
+        { path: '/gate-passes', label: 'Gate Passes', icon: <FaUserShield />, roles: ['super_admin', 'admin', 'warden'] },
+        { path: '/view-complaints', label: 'View Complaints', icon: <FaEnvelopeOpenText />, roles: ['super_admin', 'admin', 'warden'] },
+        // UPDATED LOGIC: Only show 'My Residence' if role is student AND they are a resident
+        {
+          path: '/hostel-portal',
+          label: 'My Residence',
+          icon: <FaHotel />,
+          roles: ['student'],
+          hideIf: role === 'student' && !isHostelResident
+        },
+        { path: '/my-complaints', label: 'My Complaints', icon: <FaEnvelopeOpenText />, roles: ['student'] },
+      ]
     },
     {
       title: "Inventory & Store",
@@ -99,55 +109,56 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role }) => {
       ]
     },
     {
-        title: "Library",
-        items: [
-            { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
-            { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
-            { path: '/library-catalog', label: 'Catalog', icon: <FaBook />, roles: ['teacher', 'student'] },
-        ]
+      title: "Library",
+      items: [
+        { path: '/books', label: 'Manage Books', icon: <FaBook />, roles: ['librarian', 'super_admin'] },
+        { path: '/loans', label: 'Manage Loans', icon: <FaClipboardList />, roles: ['librarian', 'super_admin'] },
+        { path: '/library-catalog', label: 'Catalog', icon: <FaBook />, roles: ['teacher', 'student'] },
+      ]
     },
     {
-        title: "System",
-        items: [
-            { path: '/roles', label: 'Roles & Permissions', icon: <FaIdBadge />, roles: ['super_admin'] },
-            { path: '/activity-logs', label: 'System Logs', icon: <FaUserShield />, roles: ['super_admin'] },
-        ]
+      title: "System",
+      items: [
+        { path: '/roles', label: 'Roles & Permissions', icon: <FaIdBadge />, roles: ['super_admin'] },
+        { path: '/activity-logs', label: 'System Logs', icon: <FaUserShield />, roles: ['super_admin'] },
+      ]
     }
   ];
 
   const hasVisibleItems = (groupItems: MenuItem[]) => {
-      return groupItems.some(item => item.roles.includes('all') || item.roles.includes(role));
+    // Check if any item in the group is visible based on role AND not hidden by logic
+    return groupItems.some(item => (item.roles.includes('all') || item.roles.includes(role)) && !item.hideIf);
   };
 
   return (
     <aside className={`sidebar ${!isOpen ? 'collapsed' : ''}`}>
-      {/* Header */}
       <div className="sidebar-header">
         <div className="logo-area">
-             <img src={logo} alt="IMS" />
+          <img src={logo} alt="IMS" />
         </div>
       </div>
 
-      {/* Menu List */}
       <nav className="sidebar-nav">
-          {menuGroups.map((group, idx) => (
-              hasVisibleItems(group.items) && (
-                  <div key={idx} className="menu-group">
-                      <div className="menu-group-title">{group.title}</div>
-                      {group.items.filter(item => item.roles.includes('all') || item.roles.includes(role)).map(item => (
-                          <NavLink 
-                              key={item.path} 
-                              to={item.path} 
-                              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                              title={!isOpen ? item.label : ''}
-                          >
-                              {item.icon}
-                              <span>{item.label}</span>
-                          </NavLink>
-                      ))}
-                  </div>
-              )
-          ))}
+        {menuGroups.map((group, idx) => (
+          hasVisibleItems(group.items) && (
+            <div key={idx} className="menu-group">
+              <div className="menu-group-title">{group.title}</div>
+              {group.items
+                .filter(item => (item.roles.includes('all') || item.roles.includes(role)) && !item.hideIf)
+                .map(item => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                    title={!isOpen ? item.label : ''}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+            </div>
+          )
+        ))}
       </nav>
     </aside>
   );
