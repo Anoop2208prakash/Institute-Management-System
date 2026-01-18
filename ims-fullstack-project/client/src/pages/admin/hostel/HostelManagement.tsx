@@ -1,5 +1,5 @@
 // client/src/pages/admin/hostel/HostelManagement.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   FaHotel, FaBuilding, FaBed, FaSearch,
   FaDoorOpen, FaPlus, FaTimes, FaChevronRight, FaSync, FaUserFriends, FaTrash
@@ -7,6 +7,7 @@ import {
 import Skeleton from '@mui/material/Skeleton';
 import './HostelManagement.scss';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
+import CustomSelect from '../../../components/common/CustomSelect'; // Integrated
 
 // --- DATA INTERFACES ---
 interface HostelStats {
@@ -61,7 +62,7 @@ const HostelManagement: React.FC = () => {
   const [residents, setResidents] = useState<Resident[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<PendingStudent | null>(null);
   const [targetRoomId, setTargetRoomId] = useState('');
-  const [roomSearchTerm, setRoomSearchTerm] = useState(''); // New Search Filter
+  const [roomSearchTerm, setRoomSearchTerm] = useState(''); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [hostelData, setHostelData] = useState({ name: '', type: 'BOYS', capacity: '50' });
@@ -96,6 +97,26 @@ const HostelManagement: React.FC = () => {
   }, [token]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // --- Memoized Options for CustomSelect ---
+  const genderOptions = [
+    { value: 'BOYS', label: 'Boys Hostel' },
+    { value: 'GIRLS', label: 'Girls Hostel' },
+    { value: 'MIXED', label: 'Mixed' }
+  ];
+
+  const availableRoomOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = [];
+    stats.forEach(hostel => {
+      hostel.rooms?.filter(r => r._count.allocations < r.capacity).forEach(room => {
+        options.push({
+          value: room.id,
+          label: `${hostel.name} - Room ${room.roomNumber} (${room.capacity - room._count.allocations} vacant)`
+        });
+      });
+    });
+    return options;
+  }, [stats]);
 
   // --- Handlers ---
   const handleViewResidents = async (hostel: HostelStats) => {
@@ -190,7 +211,6 @@ const HostelManagement: React.FC = () => {
     } finally { setIsSubmitting(false); }
   };
 
-  // Filter Rooms for Manage Modal
   const filteredRooms = selectedHostel?.rooms.filter(r =>
     r.roomNumber.toLowerCase().includes(roomSearchTerm.toLowerCase())
   ) || [];
@@ -282,7 +302,7 @@ const HostelManagement: React.FC = () => {
         </section>
       </div>
 
-      {/* MODAL: MANAGE ROOMS (With Search Filter) */}
+      {/* MODAL: MANAGE ROOMS */}
       {isManageRoomsModalOpen && (
         <div className="modal-overlay" onClick={() => { setIsManageRoomsModalOpen(false); setRoomSearchTerm(''); }}>
           <div className="glass-modal manage-rooms-modal" onClick={e => e.stopPropagation()}>
@@ -290,7 +310,6 @@ const HostelManagement: React.FC = () => {
               <h3><FaDoorOpen /> {selectedHostel?.name} Rooms</h3>
               <button onClick={() => { setIsManageRoomsModalOpen(false); setRoomSearchTerm(''); }}><FaTimes /></button>
             </div>
-
             <div className="search-bar-container">
               <FaSearch className="search-icon" />
               <input
@@ -301,7 +320,6 @@ const HostelManagement: React.FC = () => {
                 autoFocus
               />
             </div>
-
             <div className="room-list-container">
               {filteredRooms.length === 0 ? (
                 <div className="empty-state">No rooms found.</div>
@@ -353,9 +371,14 @@ const HostelManagement: React.FC = () => {
             <div className="modal-header"><h3>New Hostel Block</h3><button onClick={() => setIsHostelModalOpen(false)}><FaTimes /></button></div>
             <form onSubmit={handleCreateHostel}>
               <div className="form-group"><label>Block Name</label><input type="text" required onChange={e => setHostelData({ ...hostelData, name: e.target.value })} /></div>
-              <div className="form-group"><label>Gender Type</label>
-                <select onChange={e => setHostelData({ ...hostelData, type: e.target.value })}><option value="BOYS">Boys</option><option value="GIRLS">Girls</option></select>
-              </div>
+              
+              <CustomSelect 
+                label="Gender Type"
+                value={hostelData.type}
+                options={genderOptions}
+                onChange={(e) => setHostelData({ ...hostelData, type: e.target.value as string })}
+              />
+
               <button type="submit" className="confirm-btn" disabled={isSubmitting}>Create Block</button>
             </form>
           </div>
@@ -386,20 +409,17 @@ const HostelManagement: React.FC = () => {
             <div className="modal-header"><h3>Allocate Room</h3><button onClick={() => setIsAllocationModalOpen(false)}><FaTimes /></button></div>
             <p>Assigning <strong>{selectedStudent?.name}</strong></p>
             <form onSubmit={handleAllocate}>
-              <div className="form-group">
-                <label>Select Available Room</label>
-                <select required value={targetRoomId} onChange={e => setTargetRoomId(e.target.value)}>
-                  <option value="">Choose room...</option>
-                  {stats.map(hostel => (
-                    <optgroup key={hostel.id} label={hostel.name}>
-                      {hostel.rooms?.filter(r => r._count.allocations < r.capacity).map(room => (
-                        <option key={room.id} value={room.id}>Room {room.roomNumber} ({room.capacity - room._count.allocations} vacant)</option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className="confirm-btn" disabled={isSubmitting}>Confirm Placement</button>
+              
+              <CustomSelect 
+                label="Select Available Room"
+                placeholder="Choose an empty bed..."
+                value={targetRoomId}
+                options={availableRoomOptions}
+                onChange={(e) => setTargetRoomId(e.target.value as string)}
+                required={true}
+              />
+
+              <button type="submit" className="confirm-btn" disabled={isSubmitting || !targetRoomId}>Confirm Placement</button>
             </form>
           </div>
         </div>

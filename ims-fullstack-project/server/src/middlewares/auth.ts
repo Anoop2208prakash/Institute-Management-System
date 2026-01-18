@@ -24,39 +24,58 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction): vo
     req.user = verified;
     next();
   } catch (err) {
+    // FIXED: Corrected catch variable logic for linting
+    console.error("Token verification failed:", err);
     res.status(400).json({ message: 'Invalid Token' });
   }
 };
 
 /**
  * NAMED EXPORT: adminOnly
- * Specific middleware to restrict access to Admins or Wardens.
- * Resolves the "Cannot find name 'adminOnly'" error in routes.
+ * Restricts access to Admins, Wardens, or Super Admins using normalized role checks.
  */
 export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  // Ensure 'WARDEN' is included if that is the role of your logged-in user
-  if (req.user && (req.user.role === 'admin' || req.user.role === 'warden')) {
+  if (!req.user || !req.user.role) {
+    res.status(403).json({ message: "Access denied. Authentication required." });
+    return;
+  }
+
+  // FIXED: Normalize role to handle spaces and underscores
+  // Converts "super_admin" or "SUPER ADMIN" into "SUPER ADMIN"
+  const userRole = req.user.role.toUpperCase().replace(/_/g, ' ').trim();
+
+  // Define allowed admin roles in normalized format
+  const allowedAdmins = ['ADMIN', 'WARDEN', 'SUPER ADMIN', 'ADMINISTRATOR'];
+
+  if (allowedAdmins.includes(userRole)) {
     next();
   } else {
-    // This is the source of your 403 error
-    res.status(403).json({ message: "Access denied. Admin or Warden privileges required." });
+    // Log the attempted role to help debug future console errors
+    console.warn(`Unauthorized role attempted admin route: ${userRole}`);
+    res.status(403).json({ message: `Forbidden: ${userRole} does not have administrative privileges.` });
   }
 };
 
 /**
  * NAMED EXPORT: authorize
- * Generic handler for Role-Based Access Control (RBAC).
+ * Generic handler for Role-Based Access Control (RBAC) with string normalization.
  */
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
+    if (!req.user || !req.user.role) {
       res.status(401).json({ message: 'User not authenticated' });
       return;
     }
 
-    if (!roles.includes(req.user.role)) {
+    // FIXED: Normalize user role
+    const userRole = req.user.role.toUpperCase().replace(/_/g, ' ').trim();
+
+    // FIXED: Normalize all allowed roles provided in the arguments
+    const normalizedAllowedRoles = roles.map(r => r.toUpperCase().replace(/_/g, ' ').trim());
+
+    if (!normalizedAllowedRoles.includes(userRole)) {
       res.status(403).json({ 
-        message: `Forbidden: Access restricted to [${roles.join(', ')}]` 
+        message: `Forbidden: Access restricted. Your role: ${userRole}` 
       });
       return;
     }

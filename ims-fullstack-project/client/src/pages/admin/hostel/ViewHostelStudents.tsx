@@ -1,9 +1,10 @@
 // client/src/pages/admin/hostel/ViewHostelStudents.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { FaSearch, FaBuilding, FaBed, FaPhoneAlt, FaCalendarAlt, FaLayerGroup } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './ViewHostelStudents.scss'; 
 import CustomSelect from '../../../components/common/CustomSelect';
+import CommonPagination from '../../../components/common/CommonPagination';
 
 interface HostelResident {
   id: string;
@@ -12,10 +13,10 @@ interface HostelResident {
   className: string;
   hostelName: string;
   roomNumber: string;
-  floor: number;
+  floor: number | null;
   phone: string;
   admissionDate: string;
-  avatar?: string; // Field for student image
+  avatar?: string;
 }
 
 const ViewHostelStudents: React.FC = () => {
@@ -23,8 +24,12 @@ const ViewHostelStudents: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBlock, setFilterBlock] = useState('ALL');
-  const [filterFloor, setFilterFloor] = useState('ALL'); // New Floor filter
+  const [filterFloor, setFilterFloor] = useState('ALL');
   
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
   const token = localStorage.getItem('token');
 
   const fetchResidents = useCallback(async () => {
@@ -50,29 +55,38 @@ const ViewHostelStudents: React.FC = () => {
 
   useEffect(() => { fetchResidents(); }, [fetchResidents]);
 
-  // Combined Filtering Logic
-  const filteredData = residents.filter(r => {
-    const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         r.admissionNo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesBlock = filterBlock === 'ALL' || r.hostelName === filterBlock;
-    const matchesFloor = filterFloor === 'ALL' || r.floor.toString() === filterFloor;
-    return matchesSearch && matchesBlock && matchesFloor;
-  });
+  // Combined Filtering Logic with Null Safety
+  const filteredData = useMemo(() => {
+    return residents.filter(r => {
+      const matchesSearch = (r.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
+                           (r.admissionNo?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      const matchesBlock = filterBlock === 'ALL' || r.hostelName === filterBlock;
+      // Fixed toString() error by checking for null/undefined
+      const matchesFloor = filterFloor === 'ALL' || (r.floor?.toString() === filterFloor);
+      return matchesSearch && matchesBlock && matchesFloor;
+    });
+  }, [residents, searchTerm, filterBlock, filterFloor]);
 
-  const blockOptions = [
+  // Paginated View
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  }, [filteredData, page]);
+
+  // Derived Filter Options
+  const blockOptions = useMemo(() => [
     { value: 'ALL', label: 'All Blocks' },
-    ...Array.from(new Set(residents.map(r => r.hostelName))).map(block => ({
+    ...Array.from(new Set(residents.map(r => r.hostelName))).filter(Boolean).map(block => ({
       value: block, label: block
     }))
-  ];
+  ], [residents]);
 
-  // Floor options derived from data
-  const floorOptions = [
+  const floorOptions = useMemo(() => [
     { value: 'ALL', label: 'All Floors' },
-    ...Array.from(new Set(residents.map(r => r.floor.toString()))).sort().map(f => ({
-      value: f, label: `Floor ${f}`
+    ...Array.from(new Set(residents.map(r => r.floor?.toString()))).filter(Boolean).sort().map(f => ({
+      value: f!, label: `Floor ${f}`
     }))
-  ];
+  ], [residents]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -86,10 +100,8 @@ const ViewHostelStudents: React.FC = () => {
     <div className="view-hostel-container">
       <header className="page-header">
         <div className="title-section">
-          <div>
-            <h1>Hostel Student Directory</h1>
-            <p>Institutional Housing Registry • {residents.length} Total Residents</p>
-          </div>
+          <h1>Hostel Student Directory</h1>
+          <p>Institutional Housing Registry • {residents.length} Total Residents</p>
         </div>
 
         <div className="action-bar">
@@ -99,7 +111,7 @@ const ViewHostelStudents: React.FC = () => {
               type="text" 
               placeholder="Search name or ID..." 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
             />
           </div>
           
@@ -107,7 +119,6 @@ const ViewHostelStudents: React.FC = () => {
             <div className="custom-filter-wrapper">
               <CustomSelect
                 label=""
-                placeholder="Filter Block"
                 value={filterBlock}
                 onChange={(e) => setFilterBlock(e.target.value as string)}
                 options={blockOptions}
@@ -116,7 +127,6 @@ const ViewHostelStudents: React.FC = () => {
             <div className="custom-filter-wrapper">
               <CustomSelect
                 label=""
-                placeholder="Filter Floor"
                 value={filterFloor}
                 onChange={(e) => setFilterFloor(e.target.value as string)}
                 options={floorOptions}
@@ -129,72 +139,115 @@ const ViewHostelStudents: React.FC = () => {
       <div className="table-card">
         {loading ? (
           <div style={{ padding: '2rem' }}>
-            <Skeleton variant="rectangular" height={400} />
+            <Skeleton variant="rectangular" height={400} sx={{ borderRadius: '16px' }} />
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="empty-results">
-            No students found matching your criteria.
-          </div>
+          <div className="empty-results">No students found matching your criteria.</div>
         ) : (
-          <div className="table-responsive">
-            <table className="residents-table">
-              <thead>
-                <tr>
-                  <th>Student Name</th>
-                  <th>Admission ID</th>
-                  <th>Class</th>
-                  <th>Hostel Block</th>
-                  <th>Allocation</th>
-                  <th>Joined Date</th>
-                  <th>Contact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.map((student) => (
-                  <tr key={student.id}>
-                    <td className="student-info-cell">
-                      <div className="avatar-small">
-                        {/* Render image if available, else show initial */}
-                        {student.avatar ? (
-                          <img 
-                            src={`http://localhost:5000${student.avatar}`} 
-                            alt={student.name} 
-                            onError={(e) => { (e.target as HTMLImageElement).src = ''; }} // Fallback on error
-                          />
-                        ) : (
-                          student.name.charAt(0)
-                        )}
-                      </div>
-                      <strong>{student.name}</strong>
-                    </td>
-                    <td><code>{student.admissionNo}</code></td>
-                    <td>{student.className}</td>
-                    <td>
-                      <span className="badge-hostel">
-                        <FaBuilding /> {student.hostelName}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="allocation-info">
-                        <span className="badge-room"><FaBed /> Room {student.roomNumber}</span>
-                        <span className="floor-label"><FaLayerGroup /> Floor {student.floor}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="date-text">
-                        <FaCalendarAlt /> {formatDate(student.admissionDate)}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="contact-link">
-                        <FaPhoneAlt /> {student.phone || 'N/A'}
-                      </span>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="table-responsive desktop-only">
+              <table className="residents-table">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Admission ID</th>
+                    <th>Class</th>
+                    <th>Hostel Block</th>
+                    <th>Allocation</th>
+                    <th>Joined Date</th>
+                    <th>Contact</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedData.map((student) => (
+                    <tr key={student.id}>
+                      <td className="student-info-cell">
+                        <div className="avatar-small">
+                          {student.avatar ? (
+                            <img 
+                              src={`http://localhost:5000${student.avatar}`} 
+                              alt={student.name} 
+                              onError={(e) => { (e.target as HTMLImageElement).src = ''; }}
+                            />
+                          ) : (
+                            student.name?.charAt(0) || '?'
+                          )}
+                        </div>
+                        <strong>{student.name}</strong>
+                      </td>
+                      <td><code>{student.admissionNo}</code></td>
+                      <td>{student.className}</td>
+                      <td>
+                        <span className="badge-hostel">
+                          <FaBuilding /> {student.hostelName}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="allocation-info">
+                          <span className="badge-room"><FaBed /> Room {student.roomNumber || 'N/A'}</span>
+                          <span className="floor-label"><FaLayerGroup /> Floor {student.floor ?? 'N/A'}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="date-text">
+                          <FaCalendarAlt /> {formatDate(student.admissionDate)}
+                        </span>
+                      </td>
+                      <td>
+                        <a href={`tel:${student.phone}`} className="contact-link">
+                          <FaPhoneAlt /> {student.phone || 'N/A'}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View to fix squashed layout */}
+            <div className="mobile-resident-grid">
+              {paginatedData.map((student) => (
+                <div key={student.id} className="resident-mobile-card">
+                  <div className="card-header">
+                    <div className="avatar-small">
+                      {student.avatar ? (
+                        <img src={`http://localhost:5000${student.avatar}`} alt={student.name} />
+                      ) : (student.name?.charAt(0) || '?')}
+                    </div>
+                    <div className="name-meta">
+                      <strong>{student.name}</strong>
+                      <span>{student.className} • {student.admissionNo}</span>
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <div className="info-row">
+                      <span className="label"><FaBuilding /> Block:</span>
+                      <span className="value">{student.hostelName}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="label"><FaBed /> Room:</span>
+                      <span className="value">{student.roomNumber || 'N/A'} (Floor {student.floor ?? 'N/A'})</span>
+                    </div>
+                  </div>
+                  <div className="card-footer">
+                    <a href={`tel:${student.phone}`} className="contact-btn">
+                      <FaPhoneAlt /> Call Student
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pagination-footer">
+              <CommonPagination 
+                totalCount={filteredData.length}
+                pageSize={pageSize}
+                currentPage={page}
+                onPageChange={(_, val) => setPage(val)}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

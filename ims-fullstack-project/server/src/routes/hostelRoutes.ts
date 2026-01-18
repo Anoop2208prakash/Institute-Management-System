@@ -36,12 +36,12 @@ router.get('/:hostelId/residents', protect, getHostelResidents);
 router.get('/gate-pass/:id', protect, getGatePassData);
 
 // --- Management Endpoints (Admin/Super Admin only) ---
-router.post('/allocate', protect, authorize('super_admin', 'admin'), allocateRoom);
-router.post('/rooms', protect, authorize('super_admin', 'admin'), createRoom);
-router.put('/room/:roomId', protect, authorize('super_admin', 'admin'), updateRoom); // NEW: Edit Room Route
-router.post('/create-hostel', protect, authorize('super_admin', 'admin'), createHostel);
-router.patch('/checkout/:id', protect, authorize('super_admin', 'admin'), checkoutStudent); // NEW: Checkout Route
-router.delete('/room/:roomId', protect, authorize('super_admin', 'admin'), deleteRoom);
+router.post('/allocate', protect, authorize('super_admin', 'admin','warden'), allocateRoom);
+router.post('/rooms', protect, authorize('super_admin', 'admin','warden'), createRoom);
+router.put('/room/:roomId', protect, authorize('super_admin', 'admin','warden'), updateRoom); // NEW: Edit Room Route
+router.post('/create-hostel', protect, authorize('super_admin', 'admin','warden'), createHostel);
+router.patch('/checkout/:id', protect, authorize('super_admin', 'admin','warden'), checkoutStudent); // NEW: Checkout Route
+router.delete('/room/:roomId', protect, authorize('super_admin', 'admin','warden'), deleteRoom);
 router.get('/my-complaints', protect, getMyComplaints);
 router.post('/submit-complaint', protect, submitComplaint);
 

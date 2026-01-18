@@ -18,6 +18,10 @@ Since you are using a relational database (**MySQL**), you need to push these ar
 ```bash
 npx prisma migrate dev --name add_hostel_management
 
+Run the seed.ts
+
+npx prisma db seed
+
 ```
 
 > 

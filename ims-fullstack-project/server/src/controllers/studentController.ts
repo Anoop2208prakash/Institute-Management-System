@@ -5,15 +5,23 @@ import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 
 // ------------------------------------------
-// 1. REGISTER STUDENT (Admin)
+// 1. REGISTER STUDENT (Admin/Super Admin only)
 // ------------------------------------------
-export const registerStudent = async (req: Request, res: Response): Promise<void> => {
+export const registerStudent = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { 
       fullName, email, password, phone, dob, 
       gender, address, bloodGroup, admissionNo, classId,
       needsHostel 
     } = req.body;
+
+    // --- ROLE AUTHORIZATION CHECK ---
+    const userRole = req.user?.role?.toUpperCase().replace(/_/g, ' ');
+    
+    if (userRole !== 'SUPER ADMIN' && userRole !== 'ADMINISTRATOR') {
+      res.status(403).json({ message: "Access Denied: Only Super Admins or Administrators can admit students" });
+      return;
+    }
     
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
 
@@ -73,6 +81,14 @@ export const registerStudent = async (req: Request, res: Response): Promise<void
           classId: finalClassId,
           needsHostel: hostelRequired 
         },
+      });
+
+      // --- LOG ACTIVITY ---
+      await tx.activity.create({
+        data: {
+          action: "CREATE",
+          message: `Admitted student: ${fullName} (${admissionNo})`
+        }
       });
 
       return newStudent;
@@ -153,7 +169,19 @@ export const updateStudent = async (req: Request, res: Response) => {
 export const deleteStudent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    await prisma.user.delete({ where: { id } });
+    
+    await prisma.$transaction(async (tx) => {
+        const student = await tx.student.findUnique({ where: { userId: id } });
+        await tx.user.delete({ where: { id } });
+        
+        await tx.activity.create({
+            data: {
+                action: "DELETE",
+                message: `Removed student record for: ${student?.fullName || id}`
+            }
+        });
+    });
+
     res.json({ message: 'Student record deleted successfully' });
   } catch (error) {
     console.error("Delete Error:", error);
@@ -183,7 +211,10 @@ export const getMySubjects = async (req: AuthRequest, res: Response) => {
         teacher: s.teacher?.fullName || 'TBA',
         semester: s.semester?.name || 'General'
     })));
-  } catch (e) { res.status(500).json({ error: "Failed to fetch subjects" }); }
+  } catch (e) { 
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch subjects" }); 
+  }
 };
 
 export const getMyAttendance = async (req: AuthRequest, res: Response) => {
@@ -210,7 +241,10 @@ export const getMyAttendance = async (req: AuthRequest, res: Response) => {
           stats: { total, present, percentage: total > 0 ? ((present / total) * 100).toFixed(1) : 0 }, 
           history: attendance 
         });
-    } catch (e) { res.status(500).json({ error: "Failed to fetch attendance" }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: "Failed to fetch attendance" }); 
+    }
 };
 
 export const getMyResults = async (req: AuthRequest, res: Response) => {
@@ -227,15 +261,18 @@ export const getMyResults = async (req: AuthRequest, res: Response) => {
         
         res.json(results.map(r => ({
             id: r.id,
-            examName: r.exam.name,
-            subject: r.exam.subject.name,
-            semester: r.exam.semester.name,
-            date: r.exam.date,
+            examName: r.exam?.name || "Exam",
+            subject: r.exam?.subject?.name || "N/A",
+            semester: r.exam?.semester?.name || "N/A",
+            date: r.exam?.date,
             marks: r.marksObtained,
             total: r.totalMarks,
             grade: (r.marksObtained / r.totalMarks) * 100 >= 40 ? 'PASS' : 'FAIL'
         })));
-    } catch (e) { res.status(500).json({ error: "Failed to fetch results" }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: "Failed to fetch results" }); 
+    }
 };
 
 export const getMyInvoices = async (req: AuthRequest, res: Response) => {
@@ -249,7 +286,10 @@ export const getMyInvoices = async (req: AuthRequest, res: Response) => {
             orderBy: { dueDate: 'desc' }
         });
         res.json(fees);
-    } catch (e) { res.status(500).json({ error: "Failed to fetch fees" }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: "Failed to fetch fees" }); 
+    }
 };
 
 export const getAdmitCard = async (req: AuthRequest, res: Response) => {
@@ -263,7 +303,10 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
         if (!student) return res.status(404).json({ message: "Student not found" });
 
         const exams = await prisma.exam.findMany({
-            where: { classId: student.classId, date: { gte: new Date() } },
+            where: { 
+                classId: student.classId, 
+                date: { gte: new Date() } 
+            },
             include: { subject: true, semester: true },
             orderBy: { date: 'asc' }
         });
@@ -272,18 +315,21 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
             student: {
                 name: student.fullName,
                 admissionNo: student.admissionNo,
-                class: student.class.name,
-                section: student.class.description,
-                avatar: student.user.avatar 
+                class: student.class?.name || "Unassigned",
+                section: student.class?.description || "N/A",
+                avatar: student.user?.avatar || null
             },
             exams: exams.map(e => ({
                 id: e.id,
-                subject: e.subject.name,
-                code: e.subject.code,
+                subject: e.subject?.name || "Unknown",
+                code: e.subject?.code || "N/A",
                 date: e.date,
-                semester: e.semester.name,
+                semester: e.semester?.name || "N/A",
                 examName: e.name
             }))
         });
-    } catch (e) { res.status(500).json({ error: "Failed to fetch admit card data" }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: "Failed to fetch admit card data" }); 
+    }
 };

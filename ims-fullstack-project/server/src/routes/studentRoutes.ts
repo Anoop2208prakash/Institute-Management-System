@@ -17,26 +17,52 @@ import { upload } from '../middlewares/upload';
 const router = Router();
 
 /**
- * --- ADMIN ROUTES ---
+ * --- ADMIN & SUPER ADMIN ROUTES ---
  * Access restricted to Administrative roles. 
- * 'getStudents' is the critical endpoint for your directory view.
+ * Updated role strings to handle variations seen in your screenshots.
  */
-router.post('/register', protect, authorize('super_admin', 'admin'), upload.single('profileImage'), registerStudent);
 
-// Check: Ensure the frontend is hitting this exact endpoint
-router.get('/', protect, authorize('super_admin', 'admin'), getStudents);
+// POST: Student Registration
+router.post(
+    '/register', 
+    protect, 
+    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    upload.single('profileImage'), 
+    registerStudent
+);
 
-router.put('/:id', protect, authorize('super_admin', 'admin'), updateStudent);
-router.delete('/:id', protect, authorize('super_admin', 'admin'), deleteStudent);
+// GET: Fetch Student Directory
+router.get(
+    '/', 
+    protect, 
+    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'  ), 
+    getStudents
+);
+
+// PUT: Update Student Record
+router.put(
+    '/:id', 
+    protect, 
+    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    updateStudent
+);
+
+// DELETE: Remove Student
+router.delete(
+    '/:id', 
+    protect, 
+    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    deleteStudent
+);
 
 /**
  * --- STUDENT PORTAL ROUTES ---
  * Access restricted to students for viewing their own data.
  */
-router.get('/my-subjects', protect, authorize('student'), getMySubjects);
-router.get('/my-attendance', protect, authorize('student'), getMyAttendance);
-router.get('/my-results', protect, authorize('student'), getMyResults);
-router.get('/my-invoices', protect, authorize('student'), getMyInvoices);
-router.get('/admit-card', protect, authorize('student'), getAdmitCard);
+router.get('/my-subjects', protect, authorize('student', 'STUDENT'), getMySubjects);
+router.get('/my-attendance', protect, authorize('student', 'STUDENT'), getMyAttendance);
+router.get('/my-results', protect, authorize('student', 'STUDENT'), getMyResults);
+router.get('/my-invoices', protect, authorize('student', 'STUDENT'), getMyInvoices);
+router.get('/admit-card', protect, authorize('student', 'STUDENT'), getAdmitCard);
 
 export default router;
