@@ -146,6 +146,9 @@
             box-shadow: 0 30px 60px -12px rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.2);
             animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: visible !important; // FIX: Allows the dropdown to pop out of the modal
+    position: relative;
+    z-index: 1000;
 
             .modal-header {
                 display: flex;
@@ -216,4 +219,8 @@
         .complaints-list { grid-template-columns: 1fr; }
         .modal-overlay .glass-modal { padding: 2rem; border-radius: 2rem; }
     }
+}
+
+.MuiPopover-root, .MuiMenu-root {
+    z-index: 99999 !important; 
 }

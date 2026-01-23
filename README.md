@@ -101,3 +101,6 @@ For system logs verification or troubleshooting 403 Forbidden errors, please ref
 ---
 
 Would you like me to add a section for **API Documentation** detailing the specific endpoints for the Student Portal?
+
+
+npm install qrcode.react

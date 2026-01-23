@@ -6,14 +6,13 @@ import { AuthRequest } from '../middlewares/auth';
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    const role = req.user?.role; // 'admin', 'teacher', 'student', 'librarian', 'administrator'
+    const role = req.user?.role; // 'admin', 'teacher', 'student', 'librarian', 'administrator', 'warden'
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    let stats: any = { type: 'UNKNOWN', cards: [] }; // Default init to prevent frontend crash
+    let stats: any = { type: 'UNKNOWN', cards: [] }; 
 
     // --- ADMIN / SUPER ADMIN / ADMINISTRATOR ---
-    // Update: Added 'administrator' to this check
     if (role === 'admin' || role === 'super_admin' || role === 'administrator') {
         const studentCount = await prisma.student.count();
         const teacherCount = await prisma.teacher.count();
@@ -31,6 +30,32 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         };
     } 
     
+    // --- WARDEN (NEW LOGIC) ---
+    else if (role === 'warden') {
+        const adminProfile = await prisma.admin.findUnique({
+            where: { userId }
+        });
+
+        // FETCH REAL WARDEN METRICS
+        const [pendingPasses, openComplaints, occupiedRooms, totalRooms] = await Promise.all([
+            prisma.gatePass.count({ where: { status: 'PENDING' } }),
+            prisma.complaint.count({ where: { status: 'PENDING' } }),
+            prisma.hostelAdmission.count({ where: { status: 'OCCUPIED' } }),
+            prisma.room.count()
+        ]);
+
+        stats = {
+            type: 'WARDEN',
+            name: adminProfile?.fullName || 'Warden',
+            cards: [
+                { label: 'Pending Gate Passes', value: pendingPasses, icon: 'gate-pass', color: '#f59e0b' },
+                { label: 'Open Complaints', value: openComplaints, icon: 'tools', color: '#cf222e' },
+                { label: 'Current Residents', value: occupiedRooms, icon: 'users', color: '#1a7f37' },
+                { label: 'Total Hostel Rooms', value: totalRooms, icon: 'bed', color: '#0969da' }
+            ]
+        };
+    }
+
     // --- TEACHER ---
     else if (role === 'teacher') {
         const teacher = await prisma.teacher.findUnique({
@@ -100,12 +125,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     
     // --- FINANCE ---
     else if (role === 'finance') {
-         // Add finance logic here if needed
          stats = { type: 'FINANCE', cards: [] };
     }
 
     // --- DEFAULT FALLBACK ---
-    // If no stats were generated (e.g. role not found or profile missing)
     if (!stats.cards) {
         stats.cards = [];
     }
