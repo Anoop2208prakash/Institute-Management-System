@@ -15,7 +15,12 @@ import {
     getGatePassData,   // NEW: Import
     getMyAllocation,    // NEW: Student Portal Import
     getMyComplaints,
-    submitComplaint
+    submitComplaint,
+    transferResident,
+    applyGatePass,
+    getMyGatePasses,
+    getAllGatePasses,
+    updateGatePassStatus
 } from '../controllers/hostelController';
 import { protect, authorize } from '../middlewares/auth';
 
@@ -42,7 +47,14 @@ router.put('/room/:roomId', protect, authorize('super_admin', 'admin','warden'),
 router.post('/create-hostel', protect, authorize('super_admin', 'admin','warden'), createHostel);
 router.patch('/checkout/:id', protect, authorize('super_admin', 'admin','warden'), checkoutStudent); // NEW: Checkout Route
 router.delete('/room/:roomId', protect, authorize('super_admin', 'admin','warden'), deleteRoom);
+router.post('/transfer', protect, authorize('super_admin', 'admin','warden'), transferResident);
 router.get('/my-complaints', protect, getMyComplaints);
 router.post('/submit-complaint', protect, submitComplaint);
+router.post('/gatepass/apply', protect, applyGatePass);
+router.get('/gatepass/my-requests', protect, getMyGatePasses);
+router.get('/gatepass/all', protect, authorize('super_admin', 'admin', 'warden'), getAllGatePasses);
+
+// Warden/Admin access to update status
+router.patch('/gatepass/:id/status', protect, authorize('super_admin', 'admin', 'warden'), updateGatePassStatus);
 
 export default router;

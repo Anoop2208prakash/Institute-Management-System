@@ -1,6 +1,9 @@
 // client/src/pages/admin/hostel/ViewHostelStudents.tsx
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { FaSearch, FaBuilding, FaBed, FaPhoneAlt, FaCalendarAlt, FaLayerGroup } from 'react-icons/fa';
+import { 
+  FaSearch, FaBuilding, FaBed, FaPhoneAlt, 
+  FaCalendarAlt, FaLayerGroup, FaUserGraduate 
+} from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './ViewHostelStudents.scss'; 
 import CustomSelect from '../../../components/common/CustomSelect';
@@ -58,11 +61,17 @@ const ViewHostelStudents: React.FC = () => {
   // Combined Filtering Logic with Null Safety
   const filteredData = useMemo(() => {
     return residents.filter(r => {
-      const matchesSearch = (r.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) || 
-                           (r.admissionNo?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+      const name = r.name?.toLowerCase() || '';
+      const id = r.admissionNo?.toLowerCase() || '';
+      const search = searchTerm.toLowerCase();
+      
+      const matchesSearch = name.includes(search) || id.includes(search);
       const matchesBlock = filterBlock === 'ALL' || r.hostelName === filterBlock;
-      // Fixed toString() error by checking for null/undefined
-      const matchesFloor = filterFloor === 'ALL' || (r.floor?.toString() === filterFloor);
+      
+      // FIXED: Null-safe check to prevent toString() of null error
+      const currentFloorStr = r.floor !== null && r.floor !== undefined ? r.floor.toString() : 'N/A';
+      const matchesFloor = filterFloor === 'ALL' || currentFloorStr === filterFloor;
+      
       return matchesSearch && matchesBlock && matchesFloor;
     });
   }, [residents, searchTerm, filterBlock, filterFloor]);
@@ -83,7 +92,7 @@ const ViewHostelStudents: React.FC = () => {
 
   const floorOptions = useMemo(() => [
     { value: 'ALL', label: 'All Floors' },
-    ...Array.from(new Set(residents.map(r => r.floor?.toString()))).filter(Boolean).sort().map(f => ({
+    ...Array.from(new Set(residents.map(r => r.floor?.toString()))).filter(f => f !== "undefined" && f !== "null").sort().map(f => ({
       value: f!, label: `Floor ${f}`
     }))
   ], [residents]);
@@ -96,12 +105,18 @@ const ViewHostelStudents: React.FC = () => {
     });
   };
 
+  // Pagination reset helper
+  const handleFilterChange = (setter: (val: string) => void, value: string) => {
+    setter(value);
+    setPage(1); // Always reset to page 1 on filter change
+  };
+
   return (
     <div className="view-hostel-container">
       <header className="page-header">
         <div className="title-section">
           <h1>Hostel Student Directory</h1>
-          <p>Institutional Housing Registry • {residents.length} Total Residents</p>
+          <p>Institutional Housing Registry • {filteredData.length} Residents Found</p>
         </div>
 
         <div className="action-bar">
@@ -116,22 +131,18 @@ const ViewHostelStudents: React.FC = () => {
           </div>
           
           <div className="filters-group">
-            <div className="custom-filter-wrapper">
-              <CustomSelect
-                label=""
-                value={filterBlock}
-                onChange={(e) => setFilterBlock(e.target.value as string)}
-                options={blockOptions}
-              />
-            </div>
-            <div className="custom-filter-wrapper">
-              <CustomSelect
-                label=""
-                value={filterFloor}
-                onChange={(e) => setFilterFloor(e.target.value as string)}
-                options={floorOptions}
-              />
-            </div>
+            <CustomSelect
+              label=""
+              value={filterBlock}
+              onChange={(e) => handleFilterChange(setFilterBlock, e.target.value as string)}
+              options={blockOptions}
+            />
+            <CustomSelect
+              label=""
+              value={filterFloor}
+              onChange={(e) => handleFilterChange(setFilterFloor, e.target.value as string)}
+              options={floorOptions}
+            />
           </div>
         </div>
       </header>
@@ -142,10 +153,13 @@ const ViewHostelStudents: React.FC = () => {
             <Skeleton variant="rectangular" height={400} sx={{ borderRadius: '16px' }} />
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="empty-results">No students found matching your criteria.</div>
+          <div className="empty-results">
+            <FaUserGraduate size={50} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+            <p>No students matching your search criteria.</p>
+          </div>
         ) : (
           <>
-            {/* Desktop Table View */}
+            {/* Desktop Table: Professional View */}
             <div className="table-responsive desktop-only">
               <table className="residents-table">
                 <thead>
@@ -205,7 +219,7 @@ const ViewHostelStudents: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Card View to fix squashed layout */}
+            {/* Mobile Cards: High-End Grid */}
             <div className="mobile-resident-grid">
               {paginatedData.map((student) => (
                 <div key={student.id} className="resident-mobile-card">

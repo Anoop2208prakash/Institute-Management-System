@@ -50,6 +50,13 @@ enum HostelStatus {
   VACATED
 }
 
+// NEW: Gate Pass Status Enum
+enum GatePassStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // --------------------------------------
 // 2. DYNAMIC ROLES & AUTH
 // --------------------------------------
@@ -120,19 +127,19 @@ model Teacher {
 }
 
 model Student {
-  id              String           @id @default(uuid())
-  userId          String           @unique
-  admissionNo     String           @unique
+  id              String            @id @default(uuid())
+  userId          String            @unique
+  admissionNo      String            @unique
   fullName        String
   dob             DateTime
   gender          Gender
   address         String?
   phone           String?
   bloodGroup      String?
-  needsHostel     Boolean          @default(false)
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  needsHostel      Boolean           @default(false)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   classId         String
-  class           Class            @relation(fields: [classId], references: [id])
+  class           Class             @relation(fields: [classId], references: [id])
   attendance      Attendance[]
   fees            FeeRecord[]
   results         Result[]
@@ -140,6 +147,8 @@ model Student {
   testSubmissions TestSubmission[]
   hostelRecord    HostelAdmission?
   complaints      Complaint[]
+  // NEW: Relation to GatePass
+  gatePasses      GatePass[]
 
   @@index([classId])
   @@map("students")
@@ -203,7 +212,7 @@ model Semester {
 model Exam {
   id         String   @id @default(uuid())
   name       String
-  date       DateTime // UPDATED: Changed from String to DateTime
+  date       DateTime 
   semesterId String
   semester   Semester @relation(fields: [semesterId], references: [id])
   classId    String
@@ -375,11 +384,27 @@ model HostelAdmission {
   student       Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   roomId        String
   room          Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  status        HostelStatus @default(OCCUPIED) // UPDATED: Using Enum
+  status        HostelStatus @default(OCCUPIED) 
   admissionDate DateTime     @default(now())
   checkoutDate  DateTime?
 
   @@map("hostel_admissions")
+}
+
+// NEW: GATE PASS MODEL
+model GatePass {
+  id        String          @id @default(uuid())
+  studentId String
+  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reason    String          @db.Text
+  date      DateTime
+  outTime   String          // Format: HH:mm
+  inTime    String          // Format: HH:mm
+  status    GatePassStatus  @default(PENDING)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("gate_passes")
 }
 
 // --------------------------------------
@@ -415,7 +440,7 @@ model Complaint {
 model Activity {
   id        Int      @id @default(autoincrement())
   action    String
-  message   String
+  message    String
   createdAt DateTime @default(now())
 
   @@map("activities")

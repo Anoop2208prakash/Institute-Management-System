@@ -1,19 +1,19 @@
 // client/src/pages/admin/hostel/HostelManagement.tsx
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  FaHotel, FaBuilding, FaBed, FaSearch,
+  FaHotel, FaBuilding, FaBed, FaSearch, FaExchangeAlt,
   FaDoorOpen, FaPlus, FaTimes, FaChevronRight, FaSync, FaUserFriends, FaTrash
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './HostelManagement.scss';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
-import CustomSelect from '../../../components/common/CustomSelect'; // Integrated
+import CustomSelect from '../../../components/common/CustomSelect';
 
 // --- DATA INTERFACES ---
 interface HostelStats {
   id: string;
   name: string;
-  type: string;
+  type: string; // 'BOYS' or 'GIRLS'
   roomCount: number;
   totalCapacity: number;
   occupied: number;
@@ -31,16 +31,17 @@ interface PendingStudent {
   name: string;
   className: string;
   admissionNo: string;
-  gender: string;
+  gender: string; // 'MALE' or 'FEMALE'
 }
 
 interface Resident {
-  id: string;
+  id: string; // This is the Student ID for transfer purposes
   name: string;
   admissionNo: string;
   className: string;
   roomNumber: string;
   floor: number;
+  gender: string;
 }
 
 const HostelManagement: React.FC = () => {
@@ -56,11 +57,12 @@ const HostelManagement: React.FC = () => {
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isResidentModalOpen, setIsResidentModalOpen] = useState(false);
   const [isManageRoomsModalOpen, setIsManageRoomsModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
-  // Selection, Search & Form State
+  // Selection & Form State
   const [selectedHostel, setSelectedHostel] = useState<HostelStats | null>(null);
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<PendingStudent | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [targetRoomId, setTargetRoomId] = useState('');
   const [roomSearchTerm, setRoomSearchTerm] = useState(''); 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,25 +100,30 @@ const HostelManagement: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // --- Memoized Options for CustomSelect ---
-  const genderOptions = [
-    { value: 'BOYS', label: 'Boys Hostel' },
-    { value: 'GIRLS', label: 'Girls Hostel' },
-    { value: 'MIXED', label: 'Mixed' }
-  ];
-
+  // --- Logic: Gender-Specific Room Options ---
   const availableRoomOptions = useMemo(() => {
+    if (!selectedStudent) return [];
+    
     const options: { value: string; label: string }[] = [];
+    const targetType = selectedStudent.gender === 'MALE' ? 'BOYS' : 'GIRLS';
+
     stats.forEach(hostel => {
-      hostel.rooms?.filter(r => r._count.allocations < r.capacity).forEach(room => {
-        options.push({
-          value: room.id,
-          label: `${hostel.name} - Room ${room.roomNumber} (${room.capacity - room._count.allocations} vacant)`
+      if (hostel.type === targetType) {
+        hostel.rooms?.filter(r => r._count.allocations < r.capacity).forEach(room => {
+          options.push({
+            value: room.id,
+            label: `${hostel.name} - Room ${room.roomNumber} (${room.capacity - room._count.allocations} vacant)`
+          });
         });
-      });
+      }
     });
     return options;
-  }, [stats]);
+  }, [stats, selectedStudent]);
+
+  const genderOptions = [
+    { value: 'BOYS', label: 'Boys Hostel' },
+    { value: 'GIRLS', label: 'Girls Hostel' }
+  ];
 
   // --- Handlers ---
   const handleViewResidents = async (hostel: HostelStats) => {
@@ -132,6 +139,28 @@ const HostelManagement: React.FC = () => {
     } catch (e) {
       setAlert({ show: true, msg: 'Error loading residents', type: 'error' });
     }
+  };
+
+  const handleTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedStudent || !targetRoomId) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/hostel/transfer', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId: selectedStudent.studentId, newRoomId: targetRoomId })
+      });
+      if (res.ok) {
+        setAlert({ show: true, msg: 'Resident transferred successfully!', type: 'success' });
+        setIsTransferModalOpen(false);
+        setIsResidentModalOpen(false);
+        fetchData();
+      } else {
+        const errorData = await res.json();
+        setAlert({ show: true, msg: errorData.message || 'Transfer failed', type: 'error' });
+      }
+    } finally { setIsSubmitting(false); }
   };
 
   const handleDeleteRoom = async (roomId: string) => {
@@ -337,7 +366,7 @@ const HostelManagement: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL: RESIDENTS LIST */}
+      {/* MODAL: RESIDENTS LIST WITH TRANSFER OPTION */}
       {isResidentModalOpen && (
         <div className="modal-overlay" onClick={() => setIsResidentModalOpen(false)}>
           <div className="glass-modal resident-list-modal" onClick={e => e.stopPropagation()}>
@@ -347,19 +376,55 @@ const HostelManagement: React.FC = () => {
             </div>
             <div className="resident-table-wrapper">
               <table className="modern-table">
-                <thead><tr><th>Student</th><th>Class</th><th>Room</th><th>ID</th></tr></thead>
+                <thead><tr><th>Student</th><th>Room</th><th>ID</th><th>Actions</th></tr></thead>
                 <tbody>
                   {residents.map(r => (
                     <tr key={r.id}>
-                      <td><strong>{r.name}</strong></td>
-                      <td>{r.className}</td>
+                      <td><strong>{r.name}</strong><br/><small>{r.className}</small></td>
                       <td>{r.roomNumber}</td>
                       <td><code>{r.admissionNo}</code></td>
+                      <td>
+                        <button 
+                           className="transfer-inline-btn"
+                           onClick={() => {
+                             setSelectedStudent({ studentId: r.id, name: r.name, gender: r.gender });
+                             setIsTransferModalOpen(true);
+                           }}
+                        >
+                          <FaExchangeAlt /> Transfer
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TRANSFER ROOM */}
+      {isTransferModalOpen && (
+        <div className="modal-overlay" onClick={() => { setIsTransferModalOpen(false); setTargetRoomId(''); }}>
+          <div className="glass-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3><FaExchangeAlt /> Room Transfer</h3>
+              <button onClick={() => setIsTransferModalOpen(false)}><FaTimes /></button>
+            </div>
+            <p>Transferring <strong>{selectedStudent?.name}</strong></p>
+            <form onSubmit={handleTransfer}>
+              <CustomSelect 
+                label={`Available ${selectedStudent?.gender === 'MALE' ? 'Boys' : 'Girls'} Rooms`}
+                placeholder="Choose new room..."
+                value={targetRoomId}
+                options={availableRoomOptions}
+                onChange={(e) => setTargetRoomId(e.target.value as string)}
+                required={true}
+              />
+              <button type="submit" className="confirm-btn" disabled={isSubmitting || !targetRoomId}>
+                {isSubmitting ? 'Transferring...' : 'Complete Transfer'}
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -371,14 +436,12 @@ const HostelManagement: React.FC = () => {
             <div className="modal-header"><h3>New Hostel Block</h3><button onClick={() => setIsHostelModalOpen(false)}><FaTimes /></button></div>
             <form onSubmit={handleCreateHostel}>
               <div className="form-group"><label>Block Name</label><input type="text" required onChange={e => setHostelData({ ...hostelData, name: e.target.value })} /></div>
-              
               <CustomSelect 
                 label="Gender Type"
                 value={hostelData.type}
                 options={genderOptions}
                 onChange={(e) => setHostelData({ ...hostelData, type: e.target.value as string })}
               />
-
               <button type="submit" className="confirm-btn" disabled={isSubmitting}>Create Block</button>
             </form>
           </div>
@@ -404,22 +467,22 @@ const HostelManagement: React.FC = () => {
 
       {/* MODAL: ALLOCATION */}
       {isAllocationModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsAllocationModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => { setIsAllocationModalOpen(false); setTargetRoomId(''); }}>
           <div className="glass-modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><h3>Allocate Room</h3><button onClick={() => setIsAllocationModalOpen(false)}><FaTimes /></button></div>
-            <p>Assigning <strong>{selectedStudent?.name}</strong></p>
+            <p>Assigning <strong>{selectedStudent?.name}</strong> ({selectedStudent?.gender === 'MALE' ? 'Male' : 'Female'})</p>
             <form onSubmit={handleAllocate}>
-              
               <CustomSelect 
-                label="Select Available Room"
-                placeholder="Choose an empty bed..."
+                label={`Select Available ${selectedStudent?.gender === 'MALE' ? 'Boys' : 'Girls'} Room`}
+                placeholder={availableRoomOptions.length > 0 ? "Choose an empty bed..." : "No matching rooms found"}
                 value={targetRoomId}
                 options={availableRoomOptions}
                 onChange={(e) => setTargetRoomId(e.target.value as string)}
                 required={true}
               />
-
-              <button type="submit" className="confirm-btn" disabled={isSubmitting || !targetRoomId}>Confirm Placement</button>
+              <button type="submit" className="confirm-btn" disabled={isSubmitting || !targetRoomId || availableRoomOptions.length === 0}>
+                Confirm Placement
+              </button>
             </form>
           </div>
         </div>

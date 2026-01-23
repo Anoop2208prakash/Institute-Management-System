@@ -5,7 +5,7 @@ import {
   FaHome, FaIdCard, FaUserPlus, FaUsers,
   FaChalkboardTeacher, FaLayerGroup, FaBook, FaCalendarAlt,
   FaBoxOpen, FaShoppingCart, FaBullhorn, FaClipboardList, FaIdBadge, FaCheckSquare, FaPenNib,
-  FaEnvelopeOpenText, FaHotel, FaBed, FaUserShield
+  FaEnvelopeOpenText, FaHotel, FaBed, FaUserShield, FaTicketAlt
 } from 'react-icons/fa';
 import './Sidebar.scss';
 import logo from '../assets/image/banner-logo.png';
@@ -15,7 +15,6 @@ interface MenuItem {
   label: string;
   icon: React.ReactNode;
   roles: string[];
-  // NEW: Optional flag to hide items based on logic other than role
   hideIf?: boolean;
 }
 
@@ -28,7 +27,6 @@ interface SidebarProps {
   isOpen: boolean;
   toggle: () => void;
   role: string;
-  // NEW PROP: Pass 'true' if the student has an active hostel allocation
   isHostelResident?: boolean;
 }
 
@@ -64,12 +62,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, isHostelResident = fals
     {
       title: "Hostel & Residence",
       items: [
+        // --- WARDEN / ADMIN ITEMS ---
         { path: '/hostel-management', label: 'Manage Hostel', icon: <FaHotel />, roles: ['super_admin', 'admin', 'warden'] },
         { path: '/room-allocation', label: 'Room Allocation', icon: <FaBed />, roles: ['super_admin', 'admin', 'warden'] },
         { path: '/view-students', label: 'Hostel Students', icon: <FaUsers />, roles: ['super_admin', 'admin', 'warden'] },
-        { path: '/gate-passes', label: 'Gate Passes', icon: <FaUserShield />, roles: ['super_admin', 'admin', 'warden'] },
+        { 
+          path: '/manage-gatepasses', // UPDATED: Points to the Admin Dashboard
+          label: 'Manage Gatepasses', 
+          icon: <FaUserShield />, 
+          roles: ['super_admin', 'admin', 'warden'] 
+        },
         { path: '/view-complaints', label: 'View Complaints', icon: <FaEnvelopeOpenText />, roles: ['super_admin', 'admin', 'warden'] },
-        // UPDATED LOGIC: Only show 'My Residence' if role is student AND they are a resident
+        
+        // --- STUDENT ITEMS ---
         {
           path: '/hostel-portal',
           label: 'My Residence',
@@ -78,6 +83,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, isHostelResident = fals
           hideIf: role === 'student' && !isHostelResident
         },
         { path: '/my-complaints', label: 'My Complaints', icon: <FaEnvelopeOpenText />, roles: ['student'] },
+        { 
+          path: '/apply-gatepass', 
+          label: 'Apply Gate Pass', 
+          icon: <FaTicketAlt />, // UPDATED: Specific icon for applying
+          roles: ['student'] 
+        },
       ]
     },
     {
@@ -126,7 +137,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, isHostelResident = fals
   ];
 
   const hasVisibleItems = (groupItems: MenuItem[]) => {
-    // Check if any item in the group is visible based on role AND not hidden by logic
     return groupItems.some(item => (item.roles.includes('all') || item.roles.includes(role)) && !item.hideIf);
   };
 

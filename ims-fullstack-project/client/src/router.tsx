@@ -23,8 +23,12 @@ import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
 import AdmissionList from './pages/admin/admission/AdmissionList';
 import InquiryList from './pages/admin/admission/InquiryList';
 
-// NEW: Admin Hostel Management Pages
+// Admin Hostel Management Pages
 import HostelManagement from './pages/admin/hostel/HostelManagement';
+import RoomAllocation from './pages/admin/hostel/RoomAllocation';
+import ViewHostelStudents from './pages/admin/hostel/ViewHostelStudents';
+import ManageGatePasses from './pages/admin/hostel/ManageGatePasses'; // NEW IMPORT
+import ViewComplaints from './pages/admin/hostel/ViewComplaints';
 
 // Librarian Pages
 import BookList from './pages/librarian/BookList';
@@ -35,6 +39,7 @@ import EnterMarks from './pages/teacher/EnterMarks';
 import AttendanceManager from './pages/teacher/AttendanceManager';
 import TeacherSubjects from './pages/teacher/TeacherSubjects';
 import OnlineTestManager from './pages/teacher/OnlineTestManager';
+import { AddQuestionsStepper } from './pages/teacher/AddQuestionsStepper';
 
 // Student Pages
 import StationeryStore from './pages/student/StationeryStore';
@@ -44,16 +49,12 @@ import MyAttendance from './pages/student/MyAttendance';
 import MyResults from './pages/student/MyResults';
 import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
-
-import LandingPage from './pages/LandingPage';
-import { AddQuestionsStepper } from './pages/teacher/AddQuestionsStepper';
-import NotFoundPage from './pages/NotFoundPage';
-import RoomAllocation from './pages/admin/hostel/RoomAllocation';
-import ViewHostelStudents from './pages/admin/hostel/ViewHostelStudents';
-import GatePassModal from './pages/admin/hostel/GatePassModal';
-import ViewComplaints from './pages/admin/hostel/ViewComplaints';
 import HostelPortal from './pages/student/HostelPortal';
 import MyComplaints from './pages/student/MyComplaints';
+import ApplyGatePass from './pages/student/ApplyGatePass'; // Ensure this is the correct path
+
+import LandingPage from './pages/LandingPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
   {
@@ -87,22 +88,10 @@ export const router = createBrowserRouter([
       },
 
       // --- ADMIN MODULES ---
-      {
-        path: '/roles',
-        element: <RoleManagement />
-      },
-      {
-        path: '/staff',
-        element: <StaffList />
-      },
-      {
-        path: '/new-admission',
-        element: <NewAdmissionPage />,
-      },
-      {
-        path: '/view-admission',
-        element: <AdmissionList />
-      },
+      { path: '/roles', element: <RoleManagement /> },
+      { path: '/staff', element: <StaffList /> },
+      { path: '/new-admission', element: <NewAdmissionPage /> },
+      { path: '/view-admission', element: <AdmissionList /> },
       { path: '/programs', element: <ClassManager /> },
       { path: '/semesters', element: <SemesterManager /> },
       { path: '/subjects', element: <SubjectManager /> },
@@ -111,30 +100,40 @@ export const router = createBrowserRouter([
       { path: '/orders', element: <OrderList /> },
       { path: '/announcements', element: <AnnouncementManager /> },
 
-      // --- NEW: HOSTEL MODULE ROUTES ---
+      // --- HOSTEL MODULE ROUTES ---
       {
         path: '/hostel-management',
         element: <HostelManagement />
       },
       {
         path: '/room-allocation',
-        element: <RoomAllocation /> // Currently using same component for allocation logic
+        element: <RoomAllocation />
       },
       {
         path: '/view-students',
         element: <ViewHostelStudents />
       },
       {
-        path: '/gate-passes',
-        element: <GatePassModal data={null} onClose={() => window.history.back()} />
+        path: '/manage-gatepasses', // UPDATED: Changed from gate-passes to ManageGatePasses
+        element: <ManageGatePasses />
       },
       {
         path: '/view-complaints',
-        element: <ViewComplaints /> // Placeholder, replace with ViewComplaints component
+        element: <ViewComplaints />
+      },
+
+      // --- STUDENT HOSTEL ROUTES ---
+      {
+        path: '/hostel-portal',
+        element: <HostelPortal />
       },
       {
         path: '/my-complaints',
-        element: <MyComplaints /> // Placeholder for Student Complaints view
+        element: <MyComplaints />
+      },
+      {
+        path: '/apply-gatepass',
+        element: <ApplyGatePass /> // UPDATED: Removed modal-specific props for standalone page
       },
 
       // --- LIBRARIAN ROUTES ---
@@ -147,8 +146,6 @@ export const router = createBrowserRouter([
       { path: '/attendance', element: <AttendanceManager /> },
       { path: '/enter-marks', element: <EnterMarks /> },
       { path: '/online-tests', element: <OnlineTestManager /> },
-
-      // Quiz Creator (Add Questions Page)
       {
         path: '/teacher/tests/:id/questions',
         element: <AddQuestionsStepper
@@ -167,8 +164,6 @@ export const router = createBrowserRouter([
       { path: '/my-results', element: <MyResults /> },
       { path: '/my-invoices', element: <MyInvoices /> },
       { path: '/my-orders', element: <MyOrders /> },
-      { path: '/hostel-portal', element: <HostelPortal /> }, // Placeholder for Student Residence view
-
       { path: '/inquiries', element: <InquiryList /> }
     ]
   },
