@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { FaExclamationTriangle, FaPlus, FaClock, FaCheckCircle, FaTools, FaTimes } from 'react-icons/fa';
 import './MyComplaints.scss';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
+import CustomSelect from '../../components/common/CustomSelect';
 
 interface Complaint {
     id: string;
@@ -23,12 +24,23 @@ const MyComplaints: React.FC = () => {
 
     const token = localStorage.getItem('token');
 
+    const categoryOptions = [
+        { value: 'Maintenance', label: 'Maintenance' },
+        { value: 'Electrical', label: 'Electrical' },
+        { value: 'Plumbing', label: 'Plumbing' },
+        { value: 'Cleanliness', label: 'Cleanliness' },
+        { value: 'Other', label: 'Other' },
+    ];
+
     const fetchComplaints = useCallback(async () => {
+        setLoading(true);
         try {
             const res = await fetch('http://localhost:5000/api/hostel/my-complaints', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) setComplaints(await res.json());
+        } catch (error) {
+            console.error("Fetch error:", error);
         } finally { setLoading(false); }
     }, [token]);
 
@@ -101,26 +113,37 @@ const MyComplaints: React.FC = () => {
                     <div className="glass-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>File a Complaint</h3>
-                            <button onClick={() => setIsModalOpen(false)}><FaTimes /></button>
+                            <button onClick={() => setIsModalOpen(false)} className="close-btn"><FaTimes /></button>
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Issue Subject</label>
-                                <input required type="text" value={formData.subject} onChange={e => setFormData({ ...formData, subject: e.target.value })} placeholder="e.g., Fan not working" />
+                                <input 
+                                    required 
+                                    type="text" 
+                                    value={formData.subject} 
+                                    onChange={e => setFormData({ ...formData, subject: e.target.value })} 
+                                />
                             </div>
+
                             <div className="form-group">
-                                <label>Category</label>
-                                <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
-                                    <option value="Maintenance">Maintenance</option>
-                                    <option value="Electrical">Electrical</option>
-                                    <option value="Plumbing">Plumbing</option>
-                                    <option value="Cleanliness">Cleanliness</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                                {/* FIX: CustomSelect uses direct value in onChange */}
+                                <CustomSelect 
+                                    label="Category"
+                                    options={categoryOptions}
+                                    value={formData.category}
+                                    onChange={(val: any) => setFormData({ ...formData, category: val })}
+                                />
                             </div>
+
                             <div className="form-group">
                                 <label>Description</label>
-                                <textarea required rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Provide details about the issue..." />
+                                <textarea 
+                                    required 
+                                    rows={4} 
+                                    value={formData.description} 
+                                    onChange={e => setFormData({ ...formData, description: e.target.value })} 
+                                />
                             </div>
                             <button type="submit" className="confirm-btn" disabled={isSubmitting}>
                                 {isSubmitting ? 'Submitting...' : 'Submit Complaint'}

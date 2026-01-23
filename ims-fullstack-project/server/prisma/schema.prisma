@@ -50,7 +50,6 @@ enum HostelStatus {
   VACATED
 }
 
-// NEW: Gate Pass Status Enum
 enum GatePassStatus {
   PENDING
   APPROVED
@@ -97,12 +96,14 @@ model User {
 // --------------------------------------
 
 model Admin {
-  id         String  @id @default(uuid())
-  userId     String  @unique
-  fullName   String
-  phone      String?
-  bloodGroup String?
-  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String     @id @default(uuid())
+  userId      String     @unique
+  fullName    String
+  phone       String?
+  bloodGroup  String?
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // NEW: Back-relation to GatePasses authorized by this Admin
+  gatePasses  GatePass[]
 
   @@map("admins")
 }
@@ -127,19 +128,19 @@ model Teacher {
 }
 
 model Student {
-  id              String            @id @default(uuid())
-  userId          String            @unique
-  admissionNo      String            @unique
+  id              String           @id @default(uuid())
+  userId          String           @unique
+  admissionNo     String           @unique
   fullName        String
   dob             DateTime
   gender          Gender
   address         String?
   phone           String?
   bloodGroup      String?
-  needsHostel      Boolean           @default(false)
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  needsHostel     Boolean          @default(false)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   classId         String
-  class           Class             @relation(fields: [classId], references: [id])
+  class           Class            @relation(fields: [classId], references: [id])
   attendance      Attendance[]
   fees            FeeRecord[]
   results         Result[]
@@ -147,7 +148,6 @@ model Student {
   testSubmissions TestSubmission[]
   hostelRecord    HostelAdmission?
   complaints      Complaint[]
-  // NEW: Relation to GatePass
   gatePasses      GatePass[]
 
   @@index([classId])
@@ -292,12 +292,12 @@ model InventoryItem {
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  orderBy   String
-  date      DateTime    @default(now())
-  status    String      @default("PENDING")
-  total     Float       @default(0.0)
-  items     OrderItem[]
+  id      String      @id @default(uuid())
+  orderBy String
+  date    DateTime    @default(now())
+  status  String      @default("PENDING")
+  total   Float       @default(0.0)
+  items   OrderItem[]
   feeRecord FeeRecord?
 
   @@map("orders")
@@ -391,7 +391,7 @@ model HostelAdmission {
   @@map("hostel_admissions")
 }
 
-// NEW: GATE PASS MODEL
+// --- UPDATED GATE PASS MODEL ---
 model GatePass {
   id        String          @id @default(uuid())
   studentId String
@@ -401,6 +401,11 @@ model GatePass {
   outTime   String          // Format: HH:mm
   inTime    String          // Format: HH:mm
   status    GatePassStatus  @default(PENDING)
+  
+  // NEW: Relation to Admin who Approved/Rejected
+  adminId   String?
+  admin     Admin?          @relation(fields: [adminId], references: [id])
+
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 

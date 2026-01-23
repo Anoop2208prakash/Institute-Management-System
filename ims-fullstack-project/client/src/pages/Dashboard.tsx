@@ -4,12 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FaUsers, FaChalkboardTeacher, FaLayerGroup, FaUserShield, 
   FaBook, FaCheckSquare, FaFileInvoiceDollar, FaBookReader, FaHandHolding,
-  FaCalendarAlt, FaBell, FaClipboardList, FaUserPlus
+  FaCalendarAlt, FaBell, FaClipboardList, FaUserPlus,
+  FaDoorOpen, FaTools, FaBed, FaHistory 
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './Dashboard.scss';
 import { useAuth } from '../context/AuthContext';
 import RecentActivity from '../components/Dashboard/RecentActivity';
+
+// --- Helper for Dynamic Greeting ---
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+};
 
 // --- Interfaces ---
 interface StatCard {
@@ -20,7 +29,7 @@ interface StatCard {
 }
 
 interface DashboardData {
-  type: string;
+  type: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'WARDEN';
   name?: string;
   cards: StatCard[];
 }
@@ -35,16 +44,21 @@ const iconMap: Record<string, React.ReactElement> = {
   'check-square': <FaCheckSquare />,
   'file-invoice-dollar': <FaFileInvoiceDollar />,
   'book-reader': <FaBookReader />,
-  'hand-holding': <FaHandHolding />
+  'hand-holding': <FaHandHolding />,
+  'gate-pass': <FaDoorOpen />,
+  'tools': <FaTools />,
+  'bed': <FaBed />,
+  'history': <FaHistory />
 };
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  // State
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Dynamic Greeting variable
+  const greeting = getGreeting();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -55,14 +69,11 @@ const Dashboard: React.FC = () => {
       };
 
       try {
-        // Fetch only Dashboard Stats (Cards)
         const dashboardRes = await fetch('http://localhost:5000/api/dashboard', { headers });
         if (dashboardRes.ok) {
             const jsonStats = await dashboardRes.json();
             if (!jsonStats.cards) jsonStats.cards = [];
             setData(jsonStats);
-        } else {
-            console.error("Failed to fetch dashboard stats");
         }
       } catch (error) {
         console.error("Network Error:", error);
@@ -74,7 +85,6 @@ const Dashboard: React.FC = () => {
     fetchStats();
   }, []);
 
-  // --- Skeleton Loader ---
   if (loading) {
       return (
         <div className="dashboard-page">
@@ -94,55 +104,48 @@ const Dashboard: React.FC = () => {
       );
   }
 
-  // --- Quick Actions Logic ---
   const renderQuickActions = () => {
       if (!data) return null;
       
       if (data.type === 'ADMIN') {
           return (
               <>
-                  <button onClick={() => navigate('/new-admission')}>
-                      <FaUserPlus /> <span>New Admission</span>
-                  </button>
-                  <button onClick={() => navigate('/staff')}>
-                      <FaChalkboardTeacher /> <span>Manage Staff</span>
-                  </button>
-                  <button onClick={() => navigate('/programs')}>
-                      <FaLayerGroup /> <span>Programs</span>
-                  </button>
-                  <button onClick={() => navigate('/announcements')}>
-                      <FaBell /> <span>Post Notice</span>
-                  </button>
+                  <button onClick={() => navigate('/new-admission')}><FaUserPlus /> <span>New Admission</span></button>
+                  <button onClick={() => navigate('/staff')}><FaChalkboardTeacher /> <span>Manage Staff</span></button>
+                  <button onClick={() => navigate('/programs')}><FaLayerGroup /> <span>Programs</span></button>
+                  <button onClick={() => navigate('/announcements')}><FaBell /> <span>Post Notice</span></button>
               </>
           );
       }
-      if (data.type === 'TEACHER') {
+
+      // WARDEN QUICK ACTIONS
+      if (data.type === 'WARDEN') {
         return (
             <>
-                <button onClick={() => navigate('/attendance')}>
-                    <FaCheckSquare /> <span>Attendance</span>
-                </button>
-                <button onClick={() => navigate('/online-tests')}>
-                    <FaClipboardList /> <span>Online Tests</span>
-                </button>
-                <button onClick={() => navigate('/teacher-subjects')}>
-                    <FaBook /> <span>My Subjects</span>
-                </button>
+                <button onClick={() => navigate('/admin/gatepasses')}><FaDoorOpen /> <span>Gate Passes</span></button>
+                <button onClick={() => navigate('/admin/hostel-complaints')}><FaTools /> <span>Maintenance</span></button>
+                <button onClick={() => navigate('/admin/room-allocation')}><FaBed /> <span>Allocations</span></button>
+                <button onClick={() => navigate('/admin/gatepass-history')}><FaHistory /> <span>Pass History</span></button>
             </>
         );
       }
+
+      if (data.type === 'TEACHER') {
+        return (
+            <>
+                <button onClick={() => navigate('/attendance')}><FaCheckSquare /> <span>Attendance</span></button>
+                <button onClick={() => navigate('/online-tests')}><FaClipboardList /> <span>Online Tests</span></button>
+                <button onClick={() => navigate('/teacher-subjects')}><FaBook /> <span>My Subjects</span></button>
+            </>
+        );
+      }
+
       if (data.type === 'STUDENT') {
           return (
             <>
-                <button onClick={() => navigate('/my-attendance')}>
-                    <FaCheckSquare /> <span>My Attendance</span>
-                </button>
-                <button onClick={() => navigate('/my-results')}>
-                    <FaClipboardList /> <span>Results</span>
-                </button>
-                <button onClick={() => navigate('/stationery')}>
-                    <FaBook /> <span>Stationery</span>
-                </button>
+                <button onClick={() => navigate('/my-attendance')}><FaCheckSquare /> <span>My Attendance</span></button>
+                <button onClick={() => navigate('/my-results')}><FaClipboardList /> <span>Results</span></button>
+                <button onClick={() => navigate('/stationery')}><FaBook /> <span>Stationery</span></button>
             </>
           );
       }
@@ -152,11 +155,15 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-page">
       
-      {/* 1. Welcome Banner */}
+      {/* 1. Welcome Banner with Dynamic Greeting */}
       <div className="welcome-banner">
         <div className="content">
-            <h1>Good Morning, {data?.name || user?.email?.split('@')[0]}!</h1>
-            <p>Here's what's happening in your institute today.</p>
+            <h1>{greeting}, {data?.name || user?.email?.split('@')[0]}!</h1>
+            <p>
+              {data?.type === 'WARDEN' 
+                ? "Manage hostel operations and student requests below." 
+                : "Here's what's happening in your institute today."}
+            </p>
         </div>
         <div className="date-badge">
             <FaCalendarAlt />
@@ -182,16 +189,14 @@ const Dashboard: React.FC = () => {
             </div>
             ))
         ) : (
-            <div style={{gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#888'}}>
-                No statistics available.
+            <div className="empty-stats">
+                <FaLayerGroup />
+                <p>No statistics available for this role yet.</p>
             </div>
         )}
       </div>
 
-      {/* 3. Main Content Split */}
       <div className="dashboard-content">
-          
-          {/* Left: Quick Actions */}
           <div className="main-column">
               <div className="quick-actions">
                   <h3>Quick Actions</h3>
@@ -201,11 +206,9 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          {/* Right: Activity Feed (NOW USING COMPONENT) */}
           <div className="side-column">
               <RecentActivity />
           </div>
-
       </div>
     </div>
   );

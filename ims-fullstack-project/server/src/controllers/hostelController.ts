@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 
-// 1. Custom interface to fix 'req.user' property error
+// 1. Custom interface for authenticated routes
 interface AuthenticatedRequest extends Request {
     user?: {
         id: string;
@@ -570,16 +570,24 @@ export const getMyGatePasses = async (req: AuthenticatedRequest, res: Response) 
         
         const history = await prisma.gatePass.findMany({
             where: { studentId: student?.id },
+            include: {
+                // FIX: Use 'admin' (relation name in schema) to fetch warden name
+                admin: {
+                    select: { fullName: true }
+                }
+            },
             orderBy: { createdAt: 'desc' },
-            take: 10
+            take: 20
         });
         res.json(history);
     } catch (error) {
+        // Log the error to debug the 500 issue
+        console.error("Fetch GatePass History Error:", error);
         res.status(500).json({ message: "Error fetching gate pass history" });
     }
 };
 
-// --- 19. ADMIN: GET ALL PENDING GATE PASSES ---
+// --- 19. ADMIN: GET ALL GATE PASSES ---
 export const getAllGatePasses = async (req: Request, res: Response) => {
     try {
         const requests = await prisma.gatePass.findMany({
@@ -589,6 +597,10 @@ export const getAllGatePasses = async (req: Request, res: Response) => {
                         class: { select: { name: true } },
                         user: { select: { avatar: true } }
                     }
+                },
+                // FIX: Use 'admin' (relation name in schema)
+                admin: {
+                    select: { fullName: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -600,18 +612,31 @@ export const getAllGatePasses = async (req: Request, res: Response) => {
 };
 
 // --- 20. ADMIN: APPROVE/REJECT GATE PASS ---
-export const updateGatePassStatus = async (req: Request, res: Response) => {
+export const updateGatePassStatus = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const { id } = req.params;
-        const { status } = req.body; // 'APPROVED' or 'REJECTED'
+        const { status } = req.body; 
+        const wardenUserId = req.user?.id; 
 
+        // 1. Find the Admin profile associated with the logged-in user
+        const adminProfile = await prisma.admin.findUnique({ where: { userId: wardenUserId } });
+
+        // 2. Update status and adminId (relation ID in schema)
         const updated = await prisma.gatePass.update({
             where: { id },
-            data: { status }
+            data: { 
+                status,
+                adminId: status === 'APPROVED' ? adminProfile?.id : null
+            },
+            include: {
+                // FIX: Use 'admin' to return the name for immediate UI feedback
+                admin: { select: { fullName: true } }
+            }
         });
 
         res.json({ message: `Gate pass status updated to ${status}`, updated });
     } catch (error) {
+        console.error("Update GatePass Status Error:", error);
         res.status(500).json({ message: "Failed to update gate pass status" });
     }
 };

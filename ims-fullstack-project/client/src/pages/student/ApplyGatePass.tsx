@@ -2,11 +2,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaTicketAlt, FaHistory, FaPrint, FaTimes,
+  FaCheckCircle, FaHourglassHalf, FaTimesCircle 
 } from 'react-icons/fa';
+import { QRCodeSVG } from 'qrcode.react'; 
 import './ApplyGatePass.scss';
 import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 
+// 1. Updated Interface to include Warden/Admin details
 interface GatePassRecord {
   id: string;
   reason: string;
@@ -14,6 +17,9 @@ interface GatePassRecord {
   inTime: string;
   date: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  approvedBy?: {
+    fullName: string; // The warden/admin who accepted the pass
+  };
 }
 
 const ApplyGatePass: React.FC = () => {
@@ -31,7 +37,7 @@ const ApplyGatePass: React.FC = () => {
   const token = localStorage.getItem('token');
   const printRef = useRef<HTMLDivElement>(null);
 
-  // HELPERS: Bridge string state to Date objects for component props
+  // --- HELPERS: Fix TypeScript Date mismatches ---
   const stringToDate = (val: string) => val ? new Date(val) : null;
   const stringToTime = (val: string) => {
     if (!val) return null;
@@ -43,20 +49,20 @@ const ApplyGatePass: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch history
+      // 1. Fetch History - Backend now includes approvedBy info
       const histRes = await fetch('http://localhost:5000/api/hostel/gatepass/my-requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (histRes.ok) setHistory(await histRes.json());
 
-      // FIX: Fetch profile using correct endpoint to avoid 404
-      const profileRes = await fetch('http://localhost:5000/api/users/profile', {
+      // 2. Fetch Profile: Aligned to resolve 404
+      const profileRes = await fetch('http://localhost:5000/api/profile', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
       if (profileRes.ok) {
         const data = await profileRes.json();
-        // Access nested studentProfile from your system structure
-        setStudentInfo(data.studentProfile); 
+        setStudentInfo(data); 
       }
     } catch { console.error("Failed to load data"); }
   }, [token]);
@@ -74,7 +80,7 @@ const ApplyGatePass: React.FC = () => {
       });
 
       if (res.ok) {
-        setAlert({ show: true, msg: 'Applied successfully!', type: 'success' });
+        setAlert({ show: true, msg: 'Gate pass applied successfully!', type: 'success' });
         setFormData({ reason: '', outTime: '', inTime: '', date: new Date().toISOString().split('T')[0] });
         fetchData();
       }
@@ -144,24 +150,28 @@ const ApplyGatePass: React.FC = () => {
         <section className="history-card">
           <h3><FaHistory /> Recent Passes</h3>
           <div className="history-list">
-            {history.map(pass => (
+            {history.length === 0 ? <p className="empty">No recent records.</p> : history.map((pass: any) => (
               <div key={pass.id} className={`history-item ${pass.status.toLowerCase()}`} onClick={() => setSelectedPass(pass)}>
                 <div className="pass-meta">
                   <strong>{new Date(pass.date).toLocaleDateString('en-GB')}</strong>
                   <span className="time">{pass.outTime} - {pass.inTime}</span>
                 </div>
-                <div className="status-indicator">{pass.status}</div>
+                <div className="status-indicator">
+                    {pass.status === 'PENDING' && <FaHourglassHalf />}
+                    {pass.status === 'APPROVED' && <FaCheckCircle />}
+                    {pass.status === 'REJECTED' && <FaTimesCircle />}
+                    {pass.status}
+                </div>
               </div>
             ))}
           </div>
         </section>
       </div>
 
-      {/* FIXED TICKET MODAL */}
+      {/* --- COMPLETE DIGITAL TICKET MODAL --- */}
       {selectedPass && (
         <div className="gatepass-modal-overlay">
           <div className="ticket-wrapper">
-            {/* Lowered close trigger for visibility */}
             <button className="modal-close-trigger no-print" onClick={() => setSelectedPass(null)}>
               <FaTimes />
             </button>
@@ -185,18 +195,17 @@ const ApplyGatePass: React.FC = () => {
               </div>
 
               <div className="ticket-body">
-                {/* POPULATED STUDENT INFO */}
                 <div className="profile-row">
                   <div className="student-avatar">
-                    {studentInfo?.user?.avatar ? (
-                      <img src={`http://localhost:5000${studentInfo.user.avatar}`} alt="Avatar" />
+                    {studentInfo?.avatar ? (
+                      <img src={`http://localhost:5000${studentInfo.avatar}`} alt="Avatar" />
                     ) : (
-                      <div className="avatar-placeholder">{studentInfo?.fullName?.charAt(0) || 'S'}</div>
+                      <div className="avatar-placeholder">{studentInfo?.name?.charAt(0) || 'S'}</div>
                     )}
                   </div>
                   <div className="student-meta">
-                    <h3>{studentInfo?.fullName || 'Student Name'}</h3>
-                    <p>ID: {studentInfo?.admissionNo || '00000'} • {studentInfo?.class?.name || 'Program'}</p>
+                    <h3>{studentInfo?.name || 'Student Name'}</h3>
+                    <p>ID: {studentInfo?.sID || '00000'} • {studentInfo?.className || 'Program'}</p>
                   </div>
                 </div>
 
@@ -225,14 +234,30 @@ const ApplyGatePass: React.FC = () => {
                     <p>This is a system-generated document. Unauthorized alteration is a punishable offense.</p>
                   </div>
                   <div className="auth-row">
-                    <div className="sig-box"><div className="line"></div><span>Warden Signature</span></div>
-                    <div className="qr-mock"><div className="qr-inner"></div><span>VERIFY</span></div>
+                    <div className="sig-box">
+                      {/* DYNAMIC AUTO-SIGNATURE: Shows warden's name if approved */}
+                      <div className="auto-signature">
+                        {selectedPass.status === 'APPROVED' ? selectedPass.approvedBy?.fullName : 'Warden'}
+                      </div>
+                      <div className="line"></div>
+                      <span>Warden Signature</span>
+                    </div>
+                    {/* Real QR Code Integration */}
+                    <div className="qr-section">
+                      <div className="qr-container">
+                        <QRCodeSVG 
+                          value={`http://localhost:5000/verify/${selectedPass.id}`} 
+                          size={60}
+                          level="H" 
+                        />
+                      </div>
+                      <span>VERIFY</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Visible print actions */}
             <div className="modal-footer-actions no-print">
               <button className="print-btn" onClick={() => window.print()}>
                 <FaPrint /> Print Official Pass
