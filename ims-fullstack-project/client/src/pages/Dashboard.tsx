@@ -29,7 +29,7 @@ interface StatCard {
 }
 
 interface DashboardData {
-  type: 'ADMIN' | 'TEACHER' | 'STUDENT' | 'WARDEN';
+  type: string; // Changed to string for flexible case checking
   name?: string;
   cards: StatCard[];
 }
@@ -57,7 +57,6 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Dynamic Greeting variable
   const greeting = getGreeting();
 
   useEffect(() => {
@@ -104,10 +103,14 @@ const Dashboard: React.FC = () => {
       );
   }
 
+  // --- Fixed Quick Actions Logic ---
   const renderQuickActions = () => {
       if (!data) return null;
       
-      if (data.type === 'ADMIN') {
+      // Normalize role to uppercase to fix "not working" issues
+      const userRole = data.type.toUpperCase();
+
+      if (userRole === 'ADMIN' || userRole === 'ADMINISTRATOR') {
           return (
               <>
                   <button onClick={() => navigate('/new-admission')}><FaUserPlus /> <span>New Admission</span></button>
@@ -118,19 +121,19 @@ const Dashboard: React.FC = () => {
           );
       }
 
-      // WARDEN QUICK ACTIONS
-      if (data.type === 'WARDEN') {
+      // WARDEN CASE: Now handles 'warden', 'WARDEN', etc.
+      if (userRole === 'WARDEN') {
         return (
             <>
-                <button onClick={() => navigate('/admin/gatepasses')}><FaDoorOpen /> <span>Gate Passes</span></button>
-                <button onClick={() => navigate('/admin/hostel-complaints')}><FaTools /> <span>Maintenance</span></button>
-                <button onClick={() => navigate('/admin/room-allocation')}><FaBed /> <span>Allocations</span></button>
-                <button onClick={() => navigate('/admin/gatepass-history')}><FaHistory /> <span>Pass History</span></button>
+                <button onClick={() => navigate('/manage-gatepasses')}><FaDoorOpen /> <span>Gate Passes</span></button>
+                <button onClick={() => navigate('/view-complaints')}><FaTools /> <span>Maintenance</span></button>
+                <button onClick={() => navigate('/room-allocation')}><FaBed /> <span>Allocations</span></button>
+                <button onClick={() => navigate('/gatepass-history')}><FaHistory /> <span>Pass History</span></button>
             </>
         );
       }
 
-      if (data.type === 'TEACHER') {
+      if (userRole === 'TEACHER') {
         return (
             <>
                 <button onClick={() => navigate('/attendance')}><FaCheckSquare /> <span>Attendance</span></button>
@@ -140,7 +143,7 @@ const Dashboard: React.FC = () => {
         );
       }
 
-      if (data.type === 'STUDENT') {
+      if (userRole === 'STUDENT') {
           return (
             <>
                 <button onClick={() => navigate('/my-attendance')}><FaCheckSquare /> <span>My Attendance</span></button>
@@ -154,13 +157,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard-page">
-      
-      {/* 1. Welcome Banner with Dynamic Greeting */}
       <div className="welcome-banner">
         <div className="content">
             <h1>{greeting}, {data?.name || user?.email?.split('@')[0]}!</h1>
             <p>
-              {data?.type === 'WARDEN' 
+              {data?.type?.toUpperCase() === 'WARDEN' 
                 ? "Manage hostel operations and student requests below." 
                 : "Here's what's happening in your institute today."}
             </p>
@@ -171,7 +172,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Stats Grid */}
       <div className="stats-grid">
         {data?.cards && data.cards.length > 0 ? (
             data.cards.map((card, idx) => (
