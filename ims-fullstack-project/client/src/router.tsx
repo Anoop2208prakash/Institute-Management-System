@@ -55,6 +55,7 @@ import ApplyGatePass from './pages/student/ApplyGatePass'; // Ensure this is the
 
 import LandingPage from './pages/LandingPage';
 import NotFoundPage from './pages/NotFoundPage';
+import GatePassHistory from './pages/admin/hostel/GatePassHistory';
 
 export const router = createBrowserRouter([
   {
@@ -120,6 +121,10 @@ export const router = createBrowserRouter([
       {
         path: '/view-complaints',
         element: <ViewComplaints />
+      },
+      {
+        path: '/gatepass-history',
+        element: <GatePassHistory />
       },
 
       // --- STUDENT HOSTEL ROUTES ---
