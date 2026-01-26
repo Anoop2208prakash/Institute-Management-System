@@ -8,7 +8,7 @@ interface StudentInfo {
   admissionNo: string;
   class: string;
   section: string | null;
-  avatar: string | null; // <--- Added this type
+  avatar: string | null; 
 }
 
 interface ExamInfo {
@@ -61,12 +61,16 @@ const AdmitCardPage: React.FC = () => {
 
             <div className="student-section">
                 <div className="photo-box">
-                    {/* FIX 2: Render Image if available, else placeholder */}
+                    {/* FIXED: Removed localhost prefix to support absolute Cloudinary URLs */}
                     {student.avatar ? (
                         <img 
-                            src={`http://localhost:5000${student.avatar}`} 
+                            src={student.avatar} 
                             alt="Student" 
-                            crossOrigin="anonymous" // Helps with some CORS issues on images
+                            crossOrigin="anonymous" 
+                            onError={(e) => {
+                                // Fallback if Cloudinary link is broken
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${student.name}&background=random`;
+                            }}
                         />
                     ) : (
                         <div className="placeholder"><FaUserGraduate /></div>

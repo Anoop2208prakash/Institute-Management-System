@@ -3,10 +3,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
 
-// GET Teacher's Tests
+// 1. GET Teacher's Tests
 export const getTeacherTests = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.id; // MongoDB ObjectId
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const teacher = await prisma.teacher.findUnique({ where: { userId } });
@@ -41,7 +41,45 @@ export const getTeacherTests = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// CREATE Test
+/**
+ * NEW: GET Test Results (Submissions)
+ * Updated to include Cloudinary avatars for students
+ */
+export const getTestSubmissions = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // Exam ID (ObjectId)
+
+    const submissions = await prisma.testSubmission.findMany({
+      where: { examId: id },
+      include: {
+        student: {
+          include: {
+            // FIXED: Include 'user' to get the full Cloudinary avatar URL
+            user: { select: { avatar: true } }
+          }
+        }
+      },
+      orderBy: { score: 'desc' }
+    });
+
+    const formatted = submissions.map(s => ({
+      id: s.id,
+      studentName: s.student.fullName,
+      admissionNo: s.student.admissionNo,
+      // Delivering the full Cloudinary URL directly
+      avatar: s.student.user.avatar, 
+      score: s.score,
+      submittedAt: s.submittedAt
+    }));
+
+    res.json(formatted);
+  } catch (e) {
+    console.error("Fetch Submissions Error:", e);
+    res.status(500).json({ error: "Failed to load submissions" });
+  }
+};
+
+// 2. CREATE Test
 export const createTest = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -58,7 +96,7 @@ export const createTest = async (req: AuthRequest, res: Response) => {
         description, 
         date: new Date(date), 
         duration: Number(duration),
-        classId, 
+        classId, // MongoDB ObjectId
         subjectId,
         teacherId: teacher.id
       }
@@ -70,17 +108,16 @@ export const createTest = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// ADD Single Question
+// 3. ADD Single Question
 export const addQuestion = async (req: Request, res: Response) => {
   try {
     const { examId, questionText, options, correctOption, marks } = req.body;
 
-    // Ensure options are stored as a string (if sent as array from frontend)
     const optionsString = typeof options === 'string' ? options : JSON.stringify(options);
 
     await prisma.question.create({
       data: {
-        examId,
+        examId, // MongoDB ObjectId
         questionText,
         options: optionsString,
         correctOption: Number(correctOption),
@@ -94,25 +131,23 @@ export const addQuestion = async (req: Request, res: Response) => {
   }
 };
 
-// NEW: ADD Bulk Questions
+// 4. ADD Bulk Questions
 export const addBulkQuestions = async (req: Request, res: Response) => {
   try {
-    const { examId, questions } = req.body; // Expecting an array of questions
+    const { examId, questions } = req.body; 
 
     if (!Array.isArray(questions) || questions.length === 0) {
         return res.status(400).json({ message: "No questions provided" });
     }
 
-    // Format data for Prisma
     const formattedData = questions.map((q: any) => ({
         examId,
         questionText: q.questionText,
-        options: JSON.stringify(q.options), // Convert array to string
+        options: JSON.stringify(q.options), 
         correctOption: Number(q.correctOption),
         marks: Number(q.marks)
     }));
 
-    // Bulk Insert
     await prisma.question.createMany({
         data: formattedData
     });
@@ -124,7 +159,7 @@ export const addBulkQuestions = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE Test
+// 5. DELETE Test
 export const deleteTest = async (req: Request, res: Response) => {
   try {
     await prisma.onlineExam.delete({ where: { id: req.params.id } });

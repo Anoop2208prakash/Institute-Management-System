@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   FaSearch, FaExclamationCircle, FaCheckCircle,
-  FaClock, FaTimes, FaUser, FaTag, FaCalendarAlt
+  FaClock, FaTimes, FaUser, FaTag, FaCalendarAlt, FaUserCircle
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './ViewComplaints.scss';
@@ -16,6 +16,7 @@ interface Complaint {
   id: string;
   studentName: string;
   admissionNo: string;
+  studentAvatar: string | null; // FIXED: Added field for Cloudinary integration
   subject: string;
   category: string;
   description: string;
@@ -49,7 +50,6 @@ const ViewComplaints: React.FC = () => {
     }
   }, [token]);
 
-  // Fix: Standard useEffect pattern for initial load
   useEffect(() => { 
     fetchComplaints(); 
   }, [fetchComplaints]);
@@ -69,7 +69,6 @@ const ViewComplaints: React.FC = () => {
 
       if (res.ok) {
         setAlert({ show: true, msg: 'Status updated successfully', type: 'success' });
-        // Fixed: Cast newStatus to ComplaintStatus instead of any
         setSelectedComplaint({ ...selectedComplaint, status: newStatus as ComplaintStatus });
         fetchComplaints(); 
       } else {
@@ -152,8 +151,25 @@ const ViewComplaints: React.FC = () => {
               {filteredData.map((item) => (
                 <tr key={item.id}>
                   <td className="user-info">
-                    <strong>{item.studentName}</strong>
-                    <span>{item.admissionNo}</span>
+                    {/* FIXED: Added Avatar circle in the table row */}
+                    <div className="complainant-cell">
+                      {item.studentAvatar ? (
+                        <img 
+                          src={item.studentAvatar} 
+                          alt="" 
+                          className="table-avatar"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${item.studentName}&background=random`;
+                          }}
+                        />
+                      ) : (
+                        <div className="table-avatar-placeholder"><FaUserCircle /></div>
+                      )}
+                      <div>
+                        <strong>{item.studentName}</strong>
+                        <span>{item.admissionNo}</span>
+                      </div>
+                    </div>
                   </td>
                   <td>{item.subject}</td>
                   <td><span className="cat-tag">{item.category}</span></td>
@@ -189,11 +205,20 @@ const ViewComplaints: React.FC = () => {
             </div>
 
             <div className="detail-body">
-              <div className="info-grid">
-                <div className="info-item">
-                  <FaUser className="icon" />
-                  <div><label>Complainant</label><p>{selectedComplaint.studentName}</p></div>
+              {/* FIXED: Modal Profile section to show Cloudinary Image */}
+              <div className="modal-profile-header">
+                {selectedComplaint.studentAvatar ? (
+                  <img src={selectedComplaint.studentAvatar} alt={selectedComplaint.studentName} className="modal-avatar" />
+                ) : (
+                  <div className="modal-avatar-placeholder"><FaUserCircle /></div>
+                )}
+                <div className="profile-text">
+                  <h4>{selectedComplaint.studentName}</h4>
+                  <p>Student ID: {selectedComplaint.admissionNo}</p>
                 </div>
+              </div>
+
+              <div className="info-grid">
                 <div className="info-item">
                   <FaTag className="icon" />
                   <div><label>Category</label><p>{selectedComplaint.category}</p></div>

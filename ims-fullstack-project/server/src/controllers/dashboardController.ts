@@ -5,21 +5,36 @@ import { AuthRequest } from '../middlewares/auth';
 
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const role = req.user?.role; // 'admin', 'teacher', 'student', 'librarian', 'administrator', 'warden'
+    const userId = req.user?.id; // MongoDB ObjectId string
+    
+    // Normalize role to handle variations like 'super_admin' or 'SUPER ADMIN'
+    const role = req.user?.role?.toUpperCase().replace(/_/g, ' ').trim(); 
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    let stats: any = { type: 'UNKNOWN', cards: [] }; 
+    // Fetch basic user data including Cloudinary avatar
+    const currentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { avatar: true }
+    });
+
+    let stats: any = { 
+        type: 'UNKNOWN', 
+        cards: [], 
+        avatar: currentUser?.avatar || null // Global avatar for dashboard header
+    }; 
 
     // --- ADMIN / SUPER ADMIN / ADMINISTRATOR ---
-    if (role === 'admin' || role === 'super_admin' || role === 'administrator') {
-        const studentCount = await prisma.student.count();
-        const teacherCount = await prisma.teacher.count();
-        const classCount = await prisma.class.count();
-        const userCount = await prisma.user.count();
+    if (role === 'ADMIN' || role === 'SUPER ADMIN' || role === 'ADMINISTRATOR') {
+        const [studentCount, teacherCount, classCount, userCount] = await Promise.all([
+            prisma.student.count(),
+            prisma.teacher.count(),
+            prisma.class.count(),
+            prisma.user.count()
+        ]);
         
         stats = {
+            ...stats,
             type: 'ADMIN',
             cards: [
                 { label: 'Total Students', value: studentCount, icon: 'users', color: '#1a7f37' },
@@ -30,13 +45,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         };
     } 
     
-    // --- WARDEN (NEW LOGIC) ---
-    else if (role === 'warden') {
-        const adminProfile = await prisma.admin.findUnique({
-            where: { userId }
-        });
+    // --- WARDEN ---
+    else if (role === 'WARDEN') {
+        const adminProfile = await prisma.admin.findUnique({ where: { userId } });
 
-        // FETCH REAL WARDEN METRICS
         const [pendingPasses, openComplaints, occupiedRooms, totalRooms] = await Promise.all([
             prisma.gatePass.count({ where: { status: 'PENDING' } }),
             prisma.complaint.count({ where: { status: 'PENDING' } }),
@@ -45,6 +57,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         ]);
 
         stats = {
+            ...stats,
             type: 'WARDEN',
             name: adminProfile?.fullName || 'Warden',
             cards: [
@@ -57,7 +70,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     }
 
     // --- TEACHER ---
-    else if (role === 'teacher') {
+    else if (role === 'TEACHER') {
         const teacher = await prisma.teacher.findUnique({
             where: { userId },
             include: { classes: { include: { _count: { select: { students: true } } } }, subjects: true }
@@ -66,6 +79,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
         if (teacher) {
             const totalStudents = teacher.classes.reduce((acc, curr) => acc + curr._count.students, 0);
             stats = {
+                ...stats,
                 type: 'TEACHER',
                 name: teacher.fullName,
                 cards: [
@@ -78,7 +92,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     } 
     
     // --- STUDENT ---
-    else if (role === 'student') {
+    else if (role === 'STUDENT') {
         const student = await prisma.student.findUnique({
             where: { userId },
             include: { 
@@ -98,6 +112,7 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
                 .reduce((acc, curr) => acc + Number(curr.amount), 0);
 
             stats = {
+                ...stats,
                 type: 'STUDENT',
                 name: student.fullName,
                 cards: [
@@ -110,11 +125,14 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     }
 
     // --- LIBRARIAN ---
-    else if (role === 'librarian') {
-        const totalBooks = await prisma.book.count();
-        const activeLoans = await prisma.loan.count({ where: { status: 'ISSUED' } });
+    else if (role === 'LIBRARIAN') {
+        const [totalBooks, activeLoans] = await Promise.all([
+            prisma.book.count(),
+            prisma.loan.count({ where: { status: 'ISSUED' } })
+        ]);
         
         stats = {
+            ...stats,
             type: 'LIBRARIAN',
             cards: [
                 { label: 'Total Books', value: totalBooks, icon: 'book', color: '#0969da' },
@@ -122,21 +140,11 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
             ]
         };
     }
-    
-    // --- FINANCE ---
-    else if (role === 'finance') {
-         stats = { type: 'FINANCE', cards: [] };
-    }
-
-    // --- DEFAULT FALLBACK ---
-    if (!stats.cards) {
-        stats.cards = [];
-    }
 
     res.json(stats);
 
   } catch (e) {
-    console.error(e);
+    console.error("Dashboard Stats Error:", e);
     res.status(500).json({ error: "Failed to load dashboard" });
   }
 };

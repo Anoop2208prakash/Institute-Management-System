@@ -2,16 +2,16 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// This interface allows us to attach 'user' to the Express Request object
+// Interface for Express Request object to include the user payload
 export interface AuthRequest extends Request {
   user?: { id: string; role: string };
 }
 
 /**
- * NAMED EXPORT: protect
- * Verifies the JWT token and attaches the user payload to the request object.
+ * NAMED EXPORT: authenticate
+ * FIXED: Renamed from 'protect' to 'authenticate' to resolve route import errors
  */
-export const protect = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
@@ -20,57 +20,34 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction): vo
   }
 
   try {
+    // Verifies the token using the secret from your .env file
     const verified = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string; role: string };
+    
+    // Attach user payload (id and role) to the request
     req.user = verified;
     next();
   } catch (err) {
-    // FIXED: Corrected catch variable logic for linting
     console.error("Token verification failed:", err);
-    res.status(400).json({ message: 'Invalid Token' });
-  }
-};
-
-/**
- * NAMED EXPORT: adminOnly
- * Restricts access to Admins, Wardens, or Super Admins using normalized role checks.
- */
-export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
-  if (!req.user || !req.user.role) {
-    res.status(403).json({ message: "Access denied. Authentication required." });
-    return;
-  }
-
-  // FIXED: Normalize role to handle spaces and underscores
-  // Converts "super_admin" or "SUPER ADMIN" into "SUPER ADMIN"
-  const userRole = req.user.role.toUpperCase().replace(/_/g, ' ').trim();
-
-  // Define allowed admin roles in normalized format
-  const allowedAdmins = ['ADMIN', 'WARDEN', 'SUPER ADMIN', 'ADMINISTRATOR'];
-
-  if (allowedAdmins.includes(userRole)) {
-    next();
-  } else {
-    // Log the attempted role to help debug future console errors
-    console.warn(`Unauthorized role attempted admin route: ${userRole}`);
-    res.status(403).json({ message: `Forbidden: ${userRole} does not have administrative privileges.` });
+    res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
 /**
  * NAMED EXPORT: authorize
- * Generic handler for Role-Based Access Control (RBAC) with string normalization.
+ * FIXED: Changed parameter to a single array 'roles: string[]' to resolve 
+ * "Expected 1 argument, but got 6" IDE errors
  */
-export const authorize = (...roles: string[]) => {
+export const authorize = (roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !req.user.role) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(403).json({ message: 'Forbidden: No role assigned to user.' });
       return;
     }
 
-    // FIXED: Normalize user role
+    // Normalize user role (e.g., "super_admin" -> "SUPER ADMIN")
     const userRole = req.user.role.toUpperCase().replace(/_/g, ' ').trim();
 
-    // FIXED: Normalize all allowed roles provided in the arguments
+    // Normalize input roles from the route definition
     const normalizedAllowedRoles = roles.map(r => r.toUpperCase().replace(/_/g, ' ').trim());
 
     if (!normalizedAllowedRoles.includes(userRole)) {
@@ -82,4 +59,24 @@ export const authorize = (...roles: string[]) => {
 
     next();
   };
+};
+
+/**
+ * NAMED EXPORT: adminOnly
+ * Quick middleware for general administrative access.
+ */
+export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (!req.user || !req.user.role) {
+    res.status(403).json({ message: "Access denied. Authentication required." });
+    return;
+  }
+
+  const userRole = req.user.role.toUpperCase().replace(/_/g, ' ').trim();
+  const allowedAdmins = ['ADMIN', 'WARDEN', 'SUPER ADMIN', 'ADMINISTRATOR'];
+
+  if (allowedAdmins.includes(userRole)) {
+    next();
+  } else {
+    res.status(403).json({ message: `Forbidden: ${userRole} lacks administrative privileges.` });
+  }
 };

@@ -8,21 +8,29 @@ export const getSubjects = async (req: Request, res: Response) => {
     const subjects = await prisma.subject.findMany({
       include: {
         class: true, 
-        teacher: true,
-        semester: true // <--- Include Semester Info
+        // FIXED: Include 'user' to fetch the 'avatar' URL from MongoDB
+        teacher: {
+          include: {
+            user: {
+              select: { avatar: true }
+            }
+          }
+        },
+        semester: true 
       },
       orderBy: { name: 'asc' }
     });
 
     const formatted = subjects.map(s => ({
-      id: s.id,
+      id: s.id, // MongoDB ObjectId string
       name: s.name,
       code: s.code,
-      classId: s.classId,         // <--- CRITICAL: Needed for Frontend Filtering
-      semesterId: s.semesterId,   // <--- CRITICAL: Needed for Frontend Filtering
-      // Note: 'section' was removed from Class model, using name only. 
+      classId: s.classId,
+      semesterId: s.semesterId,
       className: s.class ? s.class.name : 'Unassigned',
       teacherName: s.teacher?.fullName || 'Unassigned',
+      // FIXED: Delivering full Cloudinary URL directly to the frontend
+      teacherAvatar: s.teacher?.user?.avatar || null,
       semesterName: s.semester?.name || 'General / All Semesters' 
     }));
 
@@ -36,11 +44,10 @@ export const getSubjects = async (req: Request, res: Response) => {
 // CREATE Subject
 export const createSubject = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, code, classId, teacherId, semesterId } = req.body; // <--- Get semesterId
+    const { name, code, classId, teacherId, semesterId } = req.body; 
 
     console.log("📝 Creating Subject:", { name, code, classId, teacherId, semesterId });
 
-    // 1. Validation
     if (!name || !code || !classId) {
       res.status(400).json({ message: "Name, Code, and Class are required." });
       return;
@@ -48,8 +55,8 @@ export const createSubject = async (req: Request, res: Response): Promise<void> 
 
     let finalTeacherId = null;
 
-    // 2. Resolve User ID to Teacher Profile ID
     if (teacherId) {
+        // Resolve using the User's ObjectId string
         const teacherProfile = await prisma.teacher.findUnique({
             where: { userId: teacherId }
         });
@@ -57,19 +64,17 @@ export const createSubject = async (req: Request, res: Response): Promise<void> 
         if (teacherProfile) {
             finalTeacherId = teacherProfile.id;
         } else {
-             // If invalid teacher ID sent, proceed without assigning
              console.warn("Invalid Teacher User ID provided, subject will be unassigned.");
         }
     }
 
-    // 3. Create in DB
     const newSubject = await prisma.subject.create({
       data: {
         name,
         code,
-        classId,
+        classId, // MongoDB ObjectId
         teacherId: finalTeacherId,
-        semesterId: semesterId || null // <--- Save Semester Link (or null)
+        semesterId: semesterId || null 
       }
     });
     
@@ -84,6 +89,7 @@ export const createSubject = async (req: Request, res: Response): Promise<void> 
 // DELETE Subject
 export const deleteSubject = async (req: Request, res: Response) => {
   try {
+    // req.params.id is treated as a string matching a MongoDB ObjectId
     await prisma.subject.delete({ where: { id: req.params.id } });
     res.json({ message: 'Subject deleted' });
   } catch (error) {

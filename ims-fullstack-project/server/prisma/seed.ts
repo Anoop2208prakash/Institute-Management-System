@@ -13,7 +13,6 @@ async function main() {
     { name: 'student',       displayName: 'Student' }, // <--- ADDED THIS
     { name: 'administrator', displayName: 'Administrator' },
     { name: 'librarian',     displayName: 'Librarian' },
-    { name: 'finance',       displayName: 'Finance Manager' },
   ];
 
   for (const role of roles) {

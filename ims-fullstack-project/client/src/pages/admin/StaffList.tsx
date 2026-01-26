@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaSearch, FaUserPlus, FaTrash, FaEnvelope, FaPhone } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import { DeleteModal } from '../../components/common/DeleteModal';
 import './StaffList.scss';
 
@@ -22,12 +22,10 @@ const StaffList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- DELETE MODAL STATE ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [staffToDelete, setStaffToDelete] = useState<{ id: string, name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 1. Fetch Staff
   const fetchStaff = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -46,19 +44,16 @@ const StaffList: React.FC = () => {
     fetchStaff();
   }, [fetchStaff]);
 
-  // 2. Open Modal Logic
   const openDeleteModal = (id: string, name: string) => {
     setStaffToDelete({ id, name });
     setIsDeleteModalOpen(true);
   };
 
-  // 3. Close Modal Logic
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
     setStaffToDelete(null);
   };
 
-  // 4. Confirm Delete Logic (API Call)
   const handleConfirmDelete = async () => {
     if (!staffToDelete) return;
     setIsDeleting(true);
@@ -69,8 +64,8 @@ const StaffList: React.FC = () => {
       });
       
       if (res.ok) {
-        fetchStaff(); // Refresh list
-        closeDeleteModal(); // Close modal
+        fetchStaff();
+        closeDeleteModal();
       } else {
         alert('Failed to delete staff member');
       }
@@ -82,7 +77,6 @@ const StaffList: React.FC = () => {
     }
   };
 
-  // 5. Filter Logic
   const filteredStaff = staff.filter(member => 
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,7 +85,6 @@ const StaffList: React.FC = () => {
 
   return (
     <div className="staff-page">
-      {/* Header Section */}
       <div className="page-header">
         <div className="header-title">
             <h2><FaUsers /> Manage Staff</h2>
@@ -102,7 +95,6 @@ const StaffList: React.FC = () => {
         </button>
       </div>
 
-      {/* Search Bar */}
       <div className="toolbar">
         <div className="search-box">
             <FaSearch />
@@ -118,10 +110,7 @@ const StaffList: React.FC = () => {
         </div>
       </div>
 
-      {/* Staff Grid */}
       <div className="staff-grid">
-        
-        {/* --- SKELETON LOADER --- */}
         {isLoading ? (
             Array.from(new Array(6)).map((_, index) => (
                 <div key={index} className="staff-card">
@@ -145,10 +134,15 @@ const StaffList: React.FC = () => {
                 filteredStaff.map((member) => (
                 <div key={member.id} className="staff-card">
                     <div className="card-header">
+                        {/* FIXED: Using direct avatar URL for Cloudinary support */}
                         <img 
-                            src={member.avatar ? `http://localhost:5000${member.avatar}` : `https://ui-avatars.com/api/?name=${member.name}&background=random`} 
+                            src={member.avatar || `https://ui-avatars.com/api/?name=${member.name}&background=random`} 
                             alt={member.name} 
                             className="avatar"
+                            onError={(e) => {
+                                // Fallback if Cloudinary link is broken
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${member.name}&background=random`;
+                            }}
                         />
                         <div className="role-tag">{member.role}</div>
                     </div>
@@ -182,7 +176,6 @@ const StaffList: React.FC = () => {
         )}
       </div>
 
-      {/* Render Delete Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}

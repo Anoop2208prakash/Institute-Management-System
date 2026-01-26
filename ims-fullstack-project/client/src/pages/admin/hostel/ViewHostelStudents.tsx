@@ -29,7 +29,6 @@ const ViewHostelStudents: React.FC = () => {
   const [filterBlock, setFilterBlock] = useState('ALL');
   const [filterFloor, setFilterFloor] = useState('ALL');
   
-  // Pagination State
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -58,7 +57,6 @@ const ViewHostelStudents: React.FC = () => {
 
   useEffect(() => { fetchResidents(); }, [fetchResidents]);
 
-  // Combined Filtering Logic with Null Safety
   const filteredData = useMemo(() => {
     return residents.filter(r => {
       const name = r.name?.toLowerCase() || '';
@@ -68,7 +66,6 @@ const ViewHostelStudents: React.FC = () => {
       const matchesSearch = name.includes(search) || id.includes(search);
       const matchesBlock = filterBlock === 'ALL' || r.hostelName === filterBlock;
       
-      // FIXED: Null-safe check to prevent toString() of null error
       const currentFloorStr = r.floor !== null && r.floor !== undefined ? r.floor.toString() : 'N/A';
       const matchesFloor = filterFloor === 'ALL' || currentFloorStr === filterFloor;
       
@@ -76,13 +73,11 @@ const ViewHostelStudents: React.FC = () => {
     });
   }, [residents, searchTerm, filterBlock, filterFloor]);
 
-  // Paginated View
   const paginatedData = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filteredData.slice(start, start + pageSize);
   }, [filteredData, page]);
 
-  // Derived Filter Options
   const blockOptions = useMemo(() => [
     { value: 'ALL', label: 'All Blocks' },
     ...Array.from(new Set(residents.map(r => r.hostelName))).filter(Boolean).map(block => ({
@@ -105,10 +100,9 @@ const ViewHostelStudents: React.FC = () => {
     });
   };
 
-  // Pagination reset helper
   const handleFilterChange = (setter: (val: string) => void, value: string) => {
     setter(value);
-    setPage(1); // Always reset to page 1 on filter change
+    setPage(1);
   };
 
   return (
@@ -159,7 +153,6 @@ const ViewHostelStudents: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Desktop Table: Professional View */}
             <div className="table-responsive desktop-only">
               <table className="residents-table">
                 <thead>
@@ -178,11 +171,14 @@ const ViewHostelStudents: React.FC = () => {
                     <tr key={student.id}>
                       <td className="student-info-cell">
                         <div className="avatar-small">
+                          {/* FIXED: Using absolute Cloudinary URL directly */}
                           {student.avatar ? (
                             <img 
-                              src={`http://localhost:5000${student.avatar}`} 
+                              src={student.avatar} 
                               alt={student.name} 
-                              onError={(e) => { (e.target as HTMLImageElement).src = ''; }}
+                              onError={(e) => { 
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${student.name}&background=random`; 
+                              }}
                             />
                           ) : (
                             student.name?.charAt(0) || '?'
@@ -219,14 +215,20 @@ const ViewHostelStudents: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Cards: High-End Grid */}
             <div className="mobile-resident-grid">
               {paginatedData.map((student) => (
                 <div key={student.id} className="resident-mobile-card">
                   <div className="card-header">
                     <div className="avatar-small">
+                      {/* FIXED: Using absolute Cloudinary URL directly */}
                       {student.avatar ? (
-                        <img src={`http://localhost:5000${student.avatar}`} alt={student.name} />
+                        <img 
+                          src={student.avatar} 
+                          alt={student.name} 
+                          onError={(e) => { 
+                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${student.name}&background=random`; 
+                          }}
+                        />
                       ) : (student.name?.charAt(0) || '?')}
                     </div>
                     <div className="name-meta">

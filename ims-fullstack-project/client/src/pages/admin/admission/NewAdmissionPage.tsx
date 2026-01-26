@@ -37,20 +37,16 @@ const NewAdmissionPage: React.FC = () => {
         setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
     };
 
-    // --- 1. FIXED ADMINISTRATOR GUARD ---
     useEffect(() => {
         const userStr = localStorage.getItem('user');
         const user = userStr ? JSON.parse(userStr) : null;
 
-        // FIXED: Normalize the role string to handle spaces and underscores
         const rawRole = (typeof user?.role === 'string' ? user.role : user?.role?.name) || "";
         const roleNormalized = rawRole.toUpperCase().replace(/_/g, ' '); 
 
-        // Now checks for "SUPER ADMIN", "ADMIN", or "SUPER_ADMIN" (normalized to spaces)
         const isAuthorized = roleNormalized === 'SUPER ADMIN' || roleNormalized === 'ADMIN'|| roleNormalized === 'ADMINISTRATOR';
 
         if (!user || !isAuthorized) {
-            // This now correctly identifies "SUPER ADMIN" from your console
             console.error("Unauthorized Access attempt. Role detected:", rawRole);
             showAlert('error', "Access Denied: Administrative privileges required.");
             const timer = setTimeout(() => navigate('/dashboard'), 2000);
@@ -167,7 +163,9 @@ const NewAdmissionPage: React.FC = () => {
         try {
             const token = localStorage.getItem('token'); 
             const submissionData = new FormData();
-            submissionData.append('profileImage', imageFile);
+            
+            // FIXED: Key changed to 'avatar' to match Cloudinary middleware and database
+            submissionData.append('avatar', imageFile); 
             
             Object.entries(formData).forEach(([key, value]) => {
                 if(!['presentAddressDetails', 'presentAddressDistrict', 'presentAddressDivision', 'permanentAddressDetails'].includes(key)) {

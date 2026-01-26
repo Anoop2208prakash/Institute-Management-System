@@ -48,10 +48,17 @@ const GatePassModal: React.FC<GatePassProps> = ({ data, onClose }) => {
 
                     <div className="pass-body">
                         <div className="student-profile-section">
-                            {/* Student Image / Avatar Logic */}
+                            {/* FIXED: Student Image / Avatar Logic to support Cloudinary URLs */}
                             <div className="photo-frame">
                                 {data.photo ? (
-                                    <img src={`http://localhost:5000${data.photo}`} alt={data.name} />
+                                    <img 
+                                        src={data.photo} 
+                                        alt={data.name} 
+                                        onError={(e) => {
+                                            // Fallback for broken Cloudinary links
+                                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${data.name}&background=0D8ABC&color=fff`;
+                                        }}
+                                    />
                                 ) : (
                                     <div className="photo-placeholder">{data.name.charAt(0)}</div>
                                 )}

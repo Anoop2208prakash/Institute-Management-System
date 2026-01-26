@@ -51,9 +51,9 @@ const EditStudentModal: React.FC<EditModalProps> = ({ isOpen, onClose, student, 
 
     useEffect(() => {
         if (isOpen) {
-            const token = localStorage.getItem('token'); // ADDED: Get Token
+            const token = localStorage.getItem('token');
             fetch('http://localhost:5000/api/classes', {
-                headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header
+                headers: { 'Authorization': `Bearer ${token}` }
             })
                 .then(res => res.json())
                 .then(data => { if(Array.isArray(data)) setClasses(data); })
@@ -166,9 +166,9 @@ const AdmissionList: React.FC = () => {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token'); // ADDED: Get Token
+      const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:5000/api/students', {
-        headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header to fix 401
+        headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
@@ -195,12 +195,12 @@ const AdmissionList: React.FC = () => {
       if (!studentToEdit) return;
       setIsProcessing(true);
       try {
-          const token = localStorage.getItem('token'); // ADDED: Get Token
+          const token = localStorage.getItem('token');
           const res = await fetch(`http://localhost:5000/api/students/${studentToEdit.id}`, {
               method: 'PUT',
               headers: { 
                   'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}` // ADDED: Header
+                  'Authorization': `Bearer ${token}`
               },
               body: JSON.stringify(updatedData)
           });
@@ -229,10 +229,10 @@ const AdmissionList: React.FC = () => {
     if (!studentToDelete) return;
     setIsProcessing(true);
     try {
-      const token = localStorage.getItem('token'); // ADDED: Get Token
+      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:5000/api/students/${studentToDelete.id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` } // ADDED: Header
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (res.ok) {
@@ -303,10 +303,15 @@ const AdmissionList: React.FC = () => {
             filteredStudents.map(s => (
                 <div key={s.id} className="student-card">
                     <div className="card-header">
+                        {/* FIXED: avatar logic to support full Cloudinary URLs directly */}
                         <img 
-                            src={s.avatar ? `http://localhost:5000${s.avatar}` : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
+                            src={s.avatar ? s.avatar : `https://ui-avatars.com/api/?name=${s.name}&background=random`} 
                             className="avatar" 
                             alt={s.name} 
+                            onError={(e) => {
+                                // Fallback for broken Cloudinary links
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${s.name}&background=random`;
+                            }}
                         />
                         <span className="class-badge" style={{backgroundColor: '#6f42c1'}}>
                             {s.class}

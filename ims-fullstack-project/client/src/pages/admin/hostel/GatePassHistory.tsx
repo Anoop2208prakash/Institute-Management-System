@@ -1,7 +1,7 @@
-// client/src/pages/admin/hostel/GatePassHistory.tsx
+// client/src/features/hostel/GatePassHistory.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { 
-  FaHistory, FaSearch, FaUserClock, FaFilePdf, FaArrowLeft 
+    FaHistory, FaSearch, FaUserClock, FaFilePdf, FaArrowLeft, FaUserCircle 
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import './GatePassHistory.scss';
@@ -13,13 +13,12 @@ interface HistoryRecord {
     inTime: string;
     date: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED';
-    student: {
-        fullName: string;
-        admissionNo: string;
-        class: { name: string };
-    };
+    studentName: string; // Flattened from backend
+    admissionNo: string;
+    className: string;
+    studentAvatar: string | null; // FIXED: Direct Cloudinary URL
     admin?: {
-        fullName: string; // Dynamic Warden Name
+        fullName: string; 
     };
 }
 
@@ -32,6 +31,7 @@ const GatePassHistory: React.FC = () => {
     const token = localStorage.getItem('token');
 
     const fetchHistory = useCallback(async () => {
+        setLoading(true);
         try {
             const res = await fetch('http://localhost:5000/api/hostel/gatepass/all', {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -41,7 +41,7 @@ const GatePassHistory: React.FC = () => {
                 setHistory(data);
             }
         } catch (error) {
-            console.error("Failed to load pass history");
+            console.error("Failed to load pass history:", error);
         } finally {
             setLoading(false);
         }
@@ -54,8 +54,8 @@ const GatePassHistory: React.FC = () => {
     };
 
     const filteredHistory = history.filter(item => 
-        item.student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.student.admissionNo.includes(searchTerm)
+        item.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.admissionNo.includes(searchTerm)
     );
 
     return (
@@ -115,9 +115,25 @@ const GatePassHistory: React.FC = () => {
                             ) : filteredHistory.map(record => (
                                 <tr key={record.id}>
                                     <td>
-                                        <div className="student-info">
-                                            <strong>{record.student.fullName}</strong>
-                                            <span>{record.student.admissionNo} • {record.student.class?.name}</span>
+                                        <div className="student-cell">
+                                            {/* FIXED: Rendering Cloudinary Avatar with local fallback */}
+                                            {record.studentAvatar ? (
+                                                <img 
+                                                    src={record.studentAvatar} 
+                                                    alt="Student" 
+                                                    className="history-avatar"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                        (e.target as HTMLImageElement).parentElement?.querySelector('.placeholder')?.setAttribute('style', 'display: flex');
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="avatar-placeholder placeholder"><FaUserCircle /></div>
+                                            )}
+                                            <div className="student-info">
+                                                <strong>{record.studentName}</strong>
+                                                <span>{record.admissionNo} • {record.className}</span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>{new Date(record.date).toLocaleDateString('en-GB')}</td>
@@ -133,7 +149,6 @@ const GatePassHistory: React.FC = () => {
                                     </td>
                                     <td>
                                         <div className="warden-name">
-                                            {/* Fix: Linked to 'admin' schema relation */}
                                             {record.admin?.fullName || 'System'}
                                         </div>
                                     </td>

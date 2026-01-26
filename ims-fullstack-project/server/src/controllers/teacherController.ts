@@ -6,7 +6,7 @@ import { AuthRequest } from '../middlewares/auth';
 // GET My Assigned Subjects (Teacher)
 export const getMySubjects = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.id; // MongoDB ObjectId string
     
     // Find teacher and their subjects
     const teacher = await prisma.teacher.findUnique({
@@ -15,7 +15,8 @@ export const getMySubjects = async (req: AuthRequest, res: Response) => {
         subjects: { 
             include: { 
                 class: { 
-                    include: { students: { include: { user: true } } } 
+                    // FIXED: Including 'user' to fetch the student's 'avatar' field
+                    include: { students: { include: { user: { select: { avatar: true } } } } } 
                 } 
             } 
         } 
@@ -36,7 +37,8 @@ export const getMySubjects = async (req: AuthRequest, res: Response) => {
             id: stu.id,
             name: stu.fullName,
             admissionNo: stu.admissionNo,
-            avatar: stu.user.avatar,
+            // FIXED: Delivering the full Cloudinary URL directly to the teacher's view
+            avatar: stu.user.avatar, 
             phone: stu.phone
         }))
     }));

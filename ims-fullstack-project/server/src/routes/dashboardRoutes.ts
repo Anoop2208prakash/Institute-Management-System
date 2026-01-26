@@ -1,7 +1,7 @@
 // server/src/routes/dashboardRoutes.ts
 import { Router } from 'express';
 import { getDashboardStats } from '../controllers/dashboardController';
-import { protect } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
+import { authenticate } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
@@ -10,6 +10,6 @@ const router = Router();
  * @desc    Fetch aggregated statistics for the administrative dashboard
  * @access  Private
  */
-router.get('/', protect, getDashboardStats);
+router.get('/', authenticate, getDashboardStats);
 
 export default router;

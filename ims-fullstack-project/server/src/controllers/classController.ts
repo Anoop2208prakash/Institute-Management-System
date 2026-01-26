@@ -8,7 +8,16 @@ export const getClasses = async (req: Request, res: Response) => {
     const classes = await prisma.class.findMany({
       include: {
         _count: { select: { students: true } }, // Count students
-        teacher: true // Include assigned teacher details
+        // FIXED: Include 'user' to fetch the 'avatar' from MongoDB
+        teacher: {
+          include: {
+            user: {
+              select: {
+                avatar: true // The full Cloudinary URL
+              }
+            }
+          }
+        }
       },
       orderBy: { name: 'asc' }
     });
@@ -30,7 +39,7 @@ export const createClass = async (req: Request, res: Response): Promise<void> =>
         return;
     }
 
-    // 2. Check duplicate by Name
+    // 2. Check duplicate by Name (name is @unique in schema.prisma)
     const existing = await prisma.class.findUnique({
         where: { name }
     });
@@ -40,7 +49,7 @@ export const createClass = async (req: Request, res: Response): Promise<void> =>
         return;
     }
 
-    // 3. Create
+    // 3. Create (MongoDB generates the ObjectId automatically)
     const newClass = await prisma.class.create({
       data: { 
         name, 
@@ -58,23 +67,20 @@ export const createClass = async (req: Request, res: Response): Promise<void> =>
 // UPDATE Class (Edit or Assign Teacher)
 export const updateClass = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // MongoDB ObjectId string
     const { name, description, teacherId } = req.body; 
-    // Note: teacherId from frontend is usually the UserID, we need the TeacherProfileID
 
     let finalTeacherProfileId = undefined;
 
     // If a teacher is being assigned
     if (teacherId) {
+        // Find teacher profile using the User's ObjectId
         const teacherProfile = await prisma.teacher.findUnique({
             where: { userId: teacherId }
         });
         
         if (teacherProfile) {
             finalTeacherProfileId = teacherProfile.id;
-        } else {
-             // If passing raw Profile ID directly (rare but possible depending on frontend logic)
-             // You could add a check here, but usually userId lookup is safer
         }
     } else if (teacherId === null) {
         finalTeacherProfileId = null; // Explicit unassign
@@ -83,9 +89,8 @@ export const updateClass = async (req: Request, res: Response) => {
     const updatedClass = await prisma.class.update({
       where: { id },
       data: {
-        // Only update fields if they are present in the request
         ...(name && { name }),
-        ...(description !== undefined && { description }), // Allow empty string
+        ...(description !== undefined && { description }),
         ...(finalTeacherProfileId !== undefined && { teacherId: finalTeacherProfileId })
       }
     });
@@ -100,12 +105,11 @@ export const updateClass = async (req: Request, res: Response) => {
 // DELETE Class
 export const deleteClass = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // MongoDB ObjectId
     await prisma.class.delete({ where: { id } });
     res.json({ message: 'Class deleted' });
   } catch (error) {
     console.error("Delete Class Error:", error);
-    // Prisma error P2003 means foreign key constraint failed (e.g. class has students)
     res.status(500).json({ error: 'Failed to delete class. It might contain students or subjects.' });
   }
 };

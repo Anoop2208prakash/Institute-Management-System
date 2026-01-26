@@ -49,6 +49,15 @@ const Profile: React.FC = () => {
   if (loading) return <div style={{padding: '2rem'}}>Loading Profile...</div>;
   if (!profile) return <div style={{padding: '2rem'}}>Profile not found.</div>;
 
+  /**
+   * FIXED: Avatar source logic for Cloudinary integration.
+   * profile.avatar now contains the full absolute URL (https://res.cloudinary.com/...)
+   * Prepending 'http://localhost:5000' is removed to support remote hosting.
+   */
+  const avatarUrl = profile.avatar 
+    ? profile.avatar 
+    : `https://ui-avatars.com/api/?name=${profile.name}&background=0D8ABC&color=fff`;
+
   return (
     <div className="profile-page">
       
@@ -57,9 +66,14 @@ const Profile: React.FC = () => {
         <div className="banner"></div>
         <div className="header-content">
           <div className="avatar-wrapper">
+            {/* FIXED: Uses absolute URL directly and added error fallback */}
             <img 
-              src={profile.avatar ? `http://localhost:5000${profile.avatar}` : 'https://via.placeholder.com/150'} 
+              src={avatarUrl} 
               alt={profile.name} 
+              onError={(e) => {
+                // Fallback to UI Avatar if the Cloudinary link is broken or deleted
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.name}&background=0D8ABC&color=fff`;
+              }}
             />
             <span className="role-badge">{profile.roleDisplay}</span>
           </div>

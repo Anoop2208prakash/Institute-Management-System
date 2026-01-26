@@ -4,16 +4,18 @@ import { prisma } from '../utils/prisma';
 
 /**
  * --- 1. GET ALL COMPLAINTS (Admin View) ---
- * Fetches all grievances with student details.
+ * Fetches all grievances with student details and profile images.
  */
 export const getComplaints = async (req: Request, res: Response) => {
     try {
         const complaints = await prisma.complaint.findMany({
             include: { 
                 student: {
-                    select: {
-                        fullName: true,
-                        admissionNo: true
+                    include: {
+                        // FIXED: Include 'user' to get the avatar URL from MongoDB
+                        user: {
+                            select: { avatar: true }
+                        }
                     }
                 } 
             },
@@ -25,9 +27,10 @@ export const getComplaints = async (req: Request, res: Response) => {
             id: c.id,
             studentName: c.student.fullName,
             admissionNo: c.student.admissionNo,
+            // Delivering the full Cloudinary URL to the frontend
+            studentAvatar: c.student.user.avatar, 
             subject: c.subject,
             category: c.category,
-            // FIXED: Explicitly mapping description ensures the modal isn't empty
             description: c.description || "No detailed description provided.", 
             status: c.status,
             createdAt: c.createdAt
@@ -42,43 +45,42 @@ export const getComplaints = async (req: Request, res: Response) => {
 
 /**
  * --- 2. UPDATE COMPLAINT STATUS (Handles PATCH requests) ---
- * Updates status and returns the full object to sync frontend state.
+ * Updates status and returns the full object with avatar to sync frontend state.
  */
 export const updateComplaintStatus = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // MongoDB ObjectId string
         const { status } = req.body;
 
-        // 1. Validate status input
         const validStatuses = ['PENDING', 'IN_PROGRESS', 'RESOLVED'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: "Invalid status value" });
         }
 
-        // 2. Ensure the ID exists before attempting update
         const existing = await prisma.complaint.findUnique({ where: { id } });
         if (!existing) {
             return res.status(404).json({ message: "Complaint record not found" });
         }
 
-        // 3. Perform the update
         const updated = await prisma.complaint.update({
             where: { id },
             data: { status },
             include: { 
                 student: {
-                    select: { fullName: true, admissionNo: true }
+                    include: {
+                        user: { select: { avatar: true } }
+                    }
                 }
             }
         });
 
-        // 4. Return formatted data so frontend state can update immediately
         return res.status(200).json({ 
             message: "Status updated successfully", 
             complaint: {
                 id: updated.id,
                 studentName: updated.student.fullName,
                 admissionNo: updated.student.admissionNo,
+                studentAvatar: updated.student.user.avatar, // Updated avatar state
                 subject: updated.subject,
                 category: updated.category,
                 description: updated.description || "No detailed description provided.",
