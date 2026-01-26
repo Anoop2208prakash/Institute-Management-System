@@ -46,7 +46,6 @@ const StaffRegister: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // State for Form Data
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -55,7 +54,6 @@ const StaffRegister: React.FC = () => {
     dob: '', 
     roleId: '', 
     bloodGroup: '',
-    // This sets the default to "Today"
     joiningDate: new Date().toISOString().split('T')[0], 
   });
 
@@ -151,8 +149,10 @@ const StaffRegister: React.FC = () => {
           data.append(key, value);
       });
 
+      // FIXED: Changed key to 'avatar' to match the database column 
+      // and controller expectations for Cloudinary
       if (imageFile) {
-        data.append('profileImage', imageFile);
+        data.append('avatar', imageFile);
       }
       
       const response = await fetch('http://localhost:5000/api/staff/register', {
@@ -182,6 +182,7 @@ const StaffRegister: React.FC = () => {
 
   return (
     <div className="register-container">
+      {/* ... (FeedbackAlert and Cropper Modal logic remains unchanged) */}
       <FeedbackAlert 
         isOpen={alertInfo.show} 
         type={alertInfo.type} 
@@ -331,7 +332,6 @@ const StaffRegister: React.FC = () => {
                 />
             </div>
 
-            {/* JOINING DATE: Disabled so user cannot change it */}
             <div className="form-group">
                  <CustomDateTimePicker 
                     label="Joining Date"

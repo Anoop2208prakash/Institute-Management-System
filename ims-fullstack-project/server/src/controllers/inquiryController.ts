@@ -13,13 +13,14 @@ export const createInquiry = async (req: Request, res: Response) => {
         return res.status(400).json({ message: "All fields are required" });
     }
 
+    // MongoDB Atlas automatically handles the creation of the ObjectId string
     await prisma.inquiry.create({
         data: { fullName, email, phone, course, message }
     });
 
     res.status(201).json({ message: "Inquiry sent successfully! We will contact you soon." });
   } catch (e) {
-    console.error(e);
+    console.error("Create Inquiry Error:", e);
     res.status(500).json({ error: "Failed to send inquiry" });
   }
 };
@@ -29,9 +30,11 @@ export const createInquiry = async (req: Request, res: Response) => {
 // ------------------------------------------
 export const getInquiries = async (req: Request, res: Response) => {
     try {
+        // Fetches list sorted by latest date
         const inquiries = await prisma.inquiry.findMany({ orderBy: { date: 'desc' } });
         res.json(inquiries);
     } catch (e) {
+        console.error("Fetch Inquiries Error:", e);
         res.status(500).json({ error: "Failed to fetch inquiries" });
     }
 };
@@ -41,7 +44,7 @@ export const getInquiries = async (req: Request, res: Response) => {
 // ------------------------------------------
 export const updateInquiryStatus = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // MongoDB ObjectId string
         const { status } = req.body; // e.g. "CONTACTED"
 
         const updated = await prisma.inquiry.update({
@@ -60,7 +63,7 @@ export const updateInquiryStatus = async (req: Request, res: Response) => {
 // ------------------------------------------
 export const deleteInquiry = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // ID is a string representing a MongoDB ObjectId
         await prisma.inquiry.delete({ where: { id } });
         res.json({ message: "Inquiry deleted successfully" });
     } catch (e) {

@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   FaUserGraduate, FaArrowRight, FaSearch,
-  FaBuilding, FaDoorOpen, FaCheckCircle, FaLayerGroup, FaTimes, FaSyncAlt
+  FaBuilding, FaDoorOpen, FaCheckCircle, FaLayerGroup, FaTimes, FaSyncAlt, FaUserCircle
 } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton';
 import './RoomAllocation.scss';
@@ -25,6 +25,7 @@ interface Student {
   admissionNo: string;
   gender: string;
   className: string;
+  avatar: string | null; // FIXED: Added avatar field for Cloudinary support
 }
 
 const RoomAllocation: React.FC = () => {
@@ -40,7 +41,7 @@ const RoomAllocation: React.FC = () => {
 
   // --- PAGINATION STATE ---
   const [page, setPage] = useState(1);
-  const rowsPerPage = 4; // Constant now since the UI selector was removed
+  const rowsPerPage = 4;
 
   const token = localStorage.getItem('token');
 
@@ -91,7 +92,6 @@ const RoomAllocation: React.FC = () => {
     setPage(value);
   };
 
-  // Slicing logic for the 2x2 grid
   const currentRooms = filteredRooms.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const handleAllocate = async (roomId: string) => {
@@ -148,6 +148,20 @@ const RoomAllocation: React.FC = () => {
                   className={`student-item ${selectedStudent?.studentId === student.studentId ? 'selected' : ''}`}
                   onClick={() => setSelectedStudent(student)}
                 >
+                  {/* FIXED: Avatar logic for Cloudinary absolute URLs */}
+                  <div className="avatar-preview">
+                    {student.avatar ? (
+                      <img 
+                        src={student.avatar} 
+                        alt="" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${student.name}&background=random`;
+                        }}
+                      />
+                    ) : (
+                      <FaUserCircle className="placeholder-icon" />
+                    )}
+                  </div>
                   <div className="info">
                     <strong>{student.name}</strong>
                     <span>{student.admissionNo} • {student.gender}</span>
@@ -228,7 +242,6 @@ const RoomAllocation: React.FC = () => {
 
             {!loading && filteredRooms.length > 0 && (
               <div className="pagination-wrapper">
-                {/* FIXED: Removed onRowsPerPageChange and rowsPerPageOptions to match the new component */}
                 <CommonPagination
                   totalCount={filteredRooms.length}
                   pageSize={rowsPerPage}

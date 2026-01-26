@@ -1,12 +1,13 @@
 // server/src/routes/staffRoutes.ts
 import { Router } from 'express';
 import { registerStaff, getAllStaff, deleteStaff } from '../controllers/staffController';
-import { upload } from '../middlewares/upload';
+import { upload } from '../middlewares/upload'; // Use your Cloudinary upload middleware
 
 const router = Router();
 
-router.post('/register', upload.single('profileImage'), registerStaff);
+// FIXED: Use 'avatar' as the field name to match StaffRegister.tsx
+router.post('/register', upload.single('avatar'), registerStaff);
 router.get('/', getAllStaff);
-router.delete('/:id', deleteStaff); // <--- ADD THIS
+router.delete('/:id', deleteStaff);
 
 export default router;

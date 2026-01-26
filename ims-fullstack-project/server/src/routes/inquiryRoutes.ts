@@ -1,7 +1,7 @@
 // server/src/routes/inquiryRoutes.ts
 import { Router } from 'express';
 import { createInquiry, getInquiries, updateInquiryStatus, deleteInquiry } from '../controllers/inquiryController';
-import { protect } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
+import { authenticate } from '../middlewares/auth'; // UPDATED: Changed from authenticate to protect
 
 const router = Router();
 
@@ -15,18 +15,18 @@ router.post('/', createInquiry);
  * @route   GET /api/inquiries
  * @desc    Admin Only: Fetch all inquiries for lead management
  */
-router.get('/', protect, getInquiries); 
+router.get('/', authenticate, getInquiries); 
 
 /**
  * @route   PUT /api/inquiries/:id/status
  * @desc    Admin Only: Update the follow-up status of an inquiry
  */
-router.put('/:id/status', protect, updateInquiryStatus); 
+router.put('/:id/status', authenticate, updateInquiryStatus); 
 
 /**
  * @route   DELETE /api/inquiries/:id
  * @desc    Admin Only: Remove an inquiry record
  */
-router.delete('/:id', protect, deleteInquiry); 
+router.delete('/:id', authenticate, deleteInquiry); 
 
 export default router;

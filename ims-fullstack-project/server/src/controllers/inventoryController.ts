@@ -10,6 +10,7 @@ export const getInventory = async (req: Request, res: Response) => {
     });
     res.json(items);
   } catch (error) {
+    console.error("Fetch Inventory Error:", error);
     res.status(500).json({ error: 'Failed to fetch inventory' });
   }
 };
@@ -25,6 +26,7 @@ export const createItem = async (req: Request, res: Response) => {
         return;
     }
 
+    // MongoDB Atlas requires explicit number types for float/int fields
     const newItem = await prisma.inventoryItem.create({
       data: {
         name,
@@ -35,6 +37,7 @@ export const createItem = async (req: Request, res: Response) => {
     });
     res.status(201).json(newItem);
   } catch (error) {
+    console.error("Create Item Error:", error);
     res.status(500).json({ error: 'Failed to create item' });
   }
 };
@@ -42,9 +45,13 @@ export const createItem = async (req: Request, res: Response) => {
 // DELETE Item
 export const deleteItem = async (req: Request, res: Response) => {
   try {
-    await prisma.inventoryItem.delete({ where: { id: req.params.id } });
+    // req.params.id is treated as a string matching a MongoDB ObjectId
+    await prisma.inventoryItem.delete({ 
+      where: { id: req.params.id } 
+    });
     res.json({ message: 'Item deleted' });
   } catch (error) {
+    console.error("Delete Item Error:", error);
     res.status(500).json({ error: 'Failed to delete item' });
   }
 };

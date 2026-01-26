@@ -6,17 +6,16 @@ import { AuthRequest } from '../middlewares/auth';
 // 1. Get Exams assignable by this Teacher
 export const getTeacherExams = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.id; // MongoDB ObjectId string
     
-    // Find teacher profile
     const teacher = await prisma.teacher.findUnique({ where: { userId } });
     if (!teacher) return res.status(404).json({ message: "Teacher not found" });
 
     const exams = await prisma.exam.findMany({
       where: {
         OR: [
-          { subject: { teacherId: teacher.id } }, // Exams for subjects they teach
-          { class: { teacherId: teacher.id } }    // Exams for their homeroom class
+          { subject: { teacherId: teacher.id } }, 
+          { class: { teacherId: teacher.id } }    
         ]
       },
       include: {
@@ -42,10 +41,10 @@ export const getTeacherExams = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 2. Get Students & Marks for an Exam
+// 2. Get Students & Marks for an Exam (UPDATED for Avatars)
 export const getMarksSheet = async (req: AuthRequest, res: Response) => {
     try {
-        const { examId } = req.params;
+        const { examId } = req.params; // MongoDB ObjectId
         
         const exam = await prisma.exam.findUnique({ 
             where: { id: examId },
@@ -53,24 +52,25 @@ export const getMarksSheet = async (req: AuthRequest, res: Response) => {
         });
         if (!exam) return res.status(404).json({ message: "Exam not found" });
 
-        // Fetch Students in that class
+        // FIXED: Include 'user' to get the avatar URL from MongoDB
         const students = await prisma.student.findMany({
             where: { classId: exam.classId },
+            include: { user: { select: { avatar: true } } }, 
             orderBy: { admissionNo: 'asc' }
         });
 
-        // Fetch existing results
         const results = await prisma.result.findMany({
             where: { examId }
         });
 
-        // Merge
         const sheet = students.map(s => {
             const result = results.find(r => r.studentId === s.id);
             return {
                 studentId: s.id,
                 name: s.fullName,
                 admissionNo: s.admissionNo,
+                // Delivering full Cloudinary URL directly
+                avatar: s.user.avatar, 
                 marksObtained: result ? result.marksObtained : '',
                 totalMarks: result ? result.totalMarks : 100
             };
@@ -98,12 +98,11 @@ export const saveMarks = async (req: AuthRequest, res: Response) => {
     try {
         const { examId, marks } = req.body; 
 
-        // Use transaction for bulk update
         await prisma.$transaction(
             (marks as MarkInput[]).map((m) => 
                 prisma.result.upsert({
                     where: {
-                        // Matches @@unique([examId, studentId]) in schema
+                        // Composite unique key compatible with MongoDB
                         examId_studentId: {
                             examId,
                             studentId: m.studentId

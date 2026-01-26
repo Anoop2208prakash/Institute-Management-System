@@ -1,7 +1,7 @@
 // client/src/pages/IDCardPage.tsx
 import React, { useState, useEffect } from 'react';
 import { BsPersonSquare, BsPrinter } from 'react-icons/bs';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import styles from './IDCardPage.module.scss';
 import logo from '../assets/image/logo.png'; 
 
@@ -64,23 +64,19 @@ const IDCardPage: React.FC = () => {
     return date.toLocaleDateString('en-GB');
   }
 
-  // --- SKELETON LOADER COMPONENT ---
   const renderSkeleton = () => (
       <div className={styles.pageContainer}>
         <div className={styles.idCard}>
             <div className={styles.topClip}></div>
             <div className={styles.cardBody}>
-                {/* Photo Skeleton */}
                 <div className={styles.photo} style={{border: 'none', boxShadow:'none'}}>
                     <Skeleton variant="circular" width={120} height={120} />
                 </div>
 
                 <div className={styles.details} style={{width: '100%', display:'flex', flexDirection:'column', alignItems:'center'}}>
-                    {/* Name & Title */}
                     <Skeleton variant="text" width="70%" height={40} style={{marginBottom: 5}} />
                     <Skeleton variant="text" width="40%" height={25} style={{marginBottom: 20}} />
 
-                    {/* Info Grid */}
                     <div className={styles.infoGrid} style={{width:'100%'}}>
                         <Skeleton variant="text" width="100%" height={20} />
                         <Skeleton variant="text" width="100%" height={20} />
@@ -113,8 +109,18 @@ const IDCardPage: React.FC = () => {
         
         <div className={styles.cardBody}>
           <div className={styles.photo}>
+            {/* FIXED: Removed localhost prefix. 
+              profile.avatar now contains the full absolute URL from Cloudinary.
+            */}
             {profile.avatar ? (
-              <img src={`http://localhost:5000${profile.avatar}`} alt="Profile" />
+              <img 
+                src={profile.avatar} 
+                alt="Profile" 
+                onError={(e) => {
+                  // Fallback if Cloudinary link is broken
+                  (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.name}&background=0D8ABC&color=fff`;
+                }}
+              />
             ) : (
               <BsPersonSquare className={styles.photoIcon} />
             )}

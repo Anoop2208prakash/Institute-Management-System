@@ -1,7 +1,7 @@
 // client/src/layouts/Navbar.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
-import { FaMoon, FaSun, FaUser, FaSignOutAlt, FaBell, FaSearch, FaBars } from 'react-icons/fa'; // Added FaBars
+import { FaMoon, FaSun, FaUser, FaSignOutAlt, FaBell, FaSearch, FaBars } from 'react-icons/fa';
 import LinearProgress from '@mui/material/LinearProgress'; 
 import './Navbar.scss'; 
 
@@ -9,7 +9,7 @@ interface NavbarProps {
   theme: string;
   toggleTheme: () => void;
   isLoading: boolean;
-  toggleSidebar: () => void; // <--- ADDED THIS PROP
+  toggleSidebar: () => void;
 }
 
 interface UserProfile {
@@ -23,12 +23,10 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isLoading, toggleSi
   const navigate = useNavigate();
   const location = useLocation(); 
   
-  // ... (Keep existing state: isProfileOpen, user, etc.) ...
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ... (Keep existing useEffects for profile fetch and click outside) ...
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token');
@@ -64,30 +62,35 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isLoading, toggleSi
 
   const getPageTitle = (pathname: string) => {
       if (pathname === '/' || pathname.includes('/dashboard')) return 'Dashboard';
-      // ... (Keep your existing page title logic) ...
       const cleanPath = pathname.split('/').pop()?.replace(/-/g, ' ');
       return cleanPath ? cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1) : 'Home';
   };
 
   const currentTitle = getPageTitle(location.pathname);
-  const avatarUrl = user?.avatar ? `http://localhost:5000${user.avatar}` : `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0D8ABC&color=fff`;
+
+  /**
+   * FIXED: avatarUrl logic for Cloudinary integration.
+   * If user.avatar exists, it is used directly as it contains the full Cloudinary URL.
+   * Removed prepending 'http://localhost:5000' which was causing broken links.
+   */
+  const avatarUrl = user?.avatar 
+    ? user.avatar 
+    : `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0D8ABC&color=fff`;
 
   return (
     <header className="navbar">
       
-      {/* Left: Hamburger (Mobile Only) + Title */}
+      {/* Left Actions */}
       <div className="navbar-left" style={{display:'flex', alignItems:'center', gap:'10px'}}>
-        {/* Mobile Toggle Button */}
         <button className="icon-btn mobile-menu-btn" onClick={toggleSidebar}>
             <FaBars />
         </button>
-        
         <div>
             <span className="breadcrumb">IMS &gt; {currentTitle}</span>
         </div>
       </div>
 
-      {/* ... (Keep existing Center Search) ... */}
+      {/* Center Search */}
       <div className="navbar-center">
         <div className="global-search">
             <FaSearch />
@@ -95,7 +98,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isLoading, toggleSi
         </div>
       </div>
 
-      {/* ... (Keep existing Right Actions) ... */}
+      {/* Right Actions */}
       <div className="navbar-right">
         <button className="icon-btn" onClick={toggleTheme} title="Switch Theme">
           {theme === 'light' ? <FaMoon /> : <FaSun />}
@@ -109,7 +112,15 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isLoading, toggleSi
 
         <div className="profile-menu" ref={dropdownRef}>
           <div className="profile-trigger" onClick={() => setIsProfileOpen(!isProfileOpen)}>
-            <img src={avatarUrl} alt="Profile" />
+            {/* FIXED: Uses direct Cloudinary URL from the state */}
+            <img 
+              src={avatarUrl} 
+              alt="Profile" 
+              onError={(e) => {
+                // Fallback for broken links
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=0D8ABC&color=fff`;
+              }}
+            />
           </div>
 
           <div className={`dropdown-content ${isProfileOpen ? 'open' : ''}`}>

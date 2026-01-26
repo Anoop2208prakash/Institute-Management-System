@@ -23,7 +23,8 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
       return;
     }
     
-    const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
+    // FIXED: Capturing the full Cloudinary URL from req.file.path
+    const profileImage = req.file ? req.file.path : null;
 
     if (!email || !password || !fullName || !admissionNo) {
       res.status(400).json({ message: "Missing required fields" });
@@ -52,7 +53,7 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
           email,
           password: hashedPassword,
           roleId: studentRole.id,
-          avatar: profileImage,
+          avatar: profileImage, // Stores the full web URL
           isActive: true,
         },
       });
@@ -125,6 +126,7 @@ export const getStudents = async (req: Request, res: Response) => {
       class: s.class ? s.class.name : 'Unassigned',
       classId: s.classId,
       phone: s.phone,
+      // Returns full Cloudinary URL directly
       avatar: s.user.avatar,
       gender: s.gender,
       needsHostel: s.needsHostel
@@ -317,6 +319,7 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
                 admissionNo: student.admissionNo,
                 class: student.class?.name || "Unassigned",
                 section: student.class?.description || "N/A",
+                // Delivering Cloudinary URL for the admit card print view
                 avatar: student.user?.avatar || null
             },
             exams: exams.map(e => ({

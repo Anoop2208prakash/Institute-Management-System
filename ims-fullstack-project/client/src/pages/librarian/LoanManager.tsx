@@ -1,10 +1,10 @@
 // client/src/pages/librarian/LoanManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaClipboardList, FaUndo } from 'react-icons/fa';
+import { FaClipboardList, FaUndo, FaUserCircle } from 'react-icons/fa';
 import Skeleton from '@mui/material/Skeleton'; 
-import { type AlertColor } from '@mui/material/Alert'; // Import Alert Type
-import FeedbackAlert from '../../components/common/FeedbackAlert'; // Import FeedbackAlert
-import { DeleteModal } from '../../components/common/DeleteModal'; // Reusing DeleteModal for confirmation
+import { type AlertColor } from '@mui/material/Alert'; 
+import FeedbackAlert from '../../components/common/FeedbackAlert'; 
+import { DeleteModal } from '../../components/common/DeleteModal'; 
 import './LoanManager.scss'; 
 
 // 1. Define Interfaces
@@ -19,6 +19,7 @@ interface Loan {
   bookTitle: string;
   studentName: string;
   admissionNo: string;
+  avatar: string | null; // FIXED: Added for Cloudinary integration
   dueDate: string;
   status: 'ISSUED' | 'RETURNED' | 'OVERDUE';
 }
@@ -29,7 +30,6 @@ const LoanManager: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true); 
   
-  // --- Feedback & Confirmation State ---
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
   const [confirmReturnModal, setConfirmReturnModal] = useState<{show: boolean, loanId: string | null}>({ show: false, loanId: null });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -39,7 +39,6 @@ const LoanManager: React.FC = () => {
     setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
   };
 
-  // 2. Fetch Function
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -58,7 +57,6 @@ const LoanManager: React.FC = () => {
     }
   }, []);
 
-  // 3. Safe Effect Call
   useEffect(() => { 
     void fetchData();
   }, [fetchData]);
@@ -93,12 +91,10 @@ const LoanManager: React.FC = () => {
     }
   };
 
-  // Trigger Modal
   const requestReturn = (loanId: string) => {
       setConfirmReturnModal({ show: true, loanId });
   };
 
-  // Confirm Return Action
   const handleConfirmReturn = async () => {
     const loanId = confirmReturnModal.loanId;
     if (!loanId) return;
@@ -136,7 +132,6 @@ const LoanManager: React.FC = () => {
   return (
     <div className="loan-page"> 
       
-      {/* Feedback Alert Component */}
       <FeedbackAlert 
         isOpen={alertInfo.show} 
         type={alertInfo.type} 
@@ -144,7 +139,6 @@ const LoanManager: React.FC = () => {
         onClose={() => setAlertInfo({ ...alertInfo, show: false })} 
       />
 
-      {/* Reusing DeleteModal for Confirmation */}
       <DeleteModal 
         isOpen={confirmReturnModal.show}
         onClose={() => setConfirmReturnModal({ show: false, loanId: null })}
@@ -196,7 +190,6 @@ const LoanManager: React.FC = () => {
 
       <div className="loans-grid"> 
         
-        {/* --- SKELETON LOADER --- */}
         {loading ? (
             Array.from(new Array(5)).map((_, index) => (
                 <div key={index} className="loan-card">
@@ -221,9 +214,25 @@ const LoanManager: React.FC = () => {
                   <div key={loan.id} className={`loan-card ${loan.status.toLowerCase()}`}> 
                     <div className="card-content">
                       <h3>{loan.bookTitle}</h3>
-                      <div className="student-info">
-                        Student: <strong>{loan.studentName}</strong> 
-                        <span>({loan.admissionNo})</span>
+                      
+                      {/* FIXED: Added profile avatar section for borrowers */}
+                      <div className="borrower-profile">
+                        {loan.avatar ? (
+                          <img 
+                            src={loan.avatar} 
+                            alt={loan.studentName} 
+                            className="borrower-avatar"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${loan.studentName}&background=random`;
+                            }}
+                          />
+                        ) : (
+                          <FaUserCircle className="borrower-placeholder" />
+                        )}
+                        <div className="student-info">
+                          Student: <strong>{loan.studentName}</strong> 
+                          <span>({loan.admissionNo})</span>
+                        </div>
                       </div>
                       
                       <div className="due-date">

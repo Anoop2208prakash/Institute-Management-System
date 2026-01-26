@@ -5,7 +5,7 @@ import { prisma } from '../utils/prisma';
 // 1. Custom interface for authenticated routes
 interface AuthenticatedRequest extends Request {
     user?: {
-        id: string;
+        id: string; // MongoDB ObjectId
         role: string;
     };
 }
@@ -99,6 +99,7 @@ export const getHostelResidents = async (req: Request, res: Response) => {
                 student: {
                     include: { 
                         class: { select: { name: true } },
+                        // Fetches full Cloudinary URL from MongoDB Atlas
                         user: { select: { avatar: true, email: true } }
                     }
                 },
@@ -191,7 +192,7 @@ export const updateRoom = async (req: Request, res: Response) => {
     }
 };
 
-// --- 6. STUDENT PORTAL: GET ALLOCATION ---
+// --- 6. STUDENT PORTAL: GET ALLOCATION (UPDATED for Roommate Avatars) ---
 export const getMyAllocation = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -205,7 +206,17 @@ export const getMyAllocation = async (req: AuthenticatedRequest, res: Response) 
                                 hostel: true,
                                 allocations: {
                                     where: { status: 'OCCUPIED' },
-                                    include: { student: { select: { id: true, fullName: true, class: { select: { name: true } } } } }
+                                    include: { 
+                                        student: { 
+                                            select: { 
+                                                id: true, 
+                                                fullName: true, 
+                                                class: { select: { name: true } },
+                                                // FIXED: Including roommate avatar URL
+                                                user: { select: { avatar: true } } 
+                                            } 
+                                        } 
+                                    }
                                 }
                             }
                         }
@@ -224,7 +235,9 @@ export const getMyAllocation = async (req: AuthenticatedRequest, res: Response) 
             .map(a => ({
                 id: a.student.id,
                 name: a.student.fullName,
-                className: a.student.class?.name || 'N/A'
+                className: a.student.class?.name || 'N/A',
+                // Delivering full Cloudinary URL
+                avatar: a.student.user?.avatar 
             }));
 
         res.json({
@@ -290,7 +303,7 @@ export const checkoutStudent = async (req: Request, res: Response) => {
     }
 };
 
-// --- 10. GET GATE PASS DATA (For Admin Print/View) ---
+// --- 10. GET GATE PASS DATA ---
 export const getGatePassData = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -360,7 +373,7 @@ export const createRoom = async (req: Request, res: Response) => {
     }
 };
 
-// --- 13. GET PENDING REQUESTS ---
+// --- 13. GET PENDING REQUESTS (UPDATED for Avatars) ---
 export const getPendingAllocations = async (req: Request, res: Response) => {
     try {
         const pending = await prisma.student.findMany({
@@ -380,6 +393,7 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
             name: s.fullName,
             admissionNo: s.admissionNo,
             email: s.user.email,
+            // Delivering full Cloudinary URL
             avatar: s.user.avatar,
             className: s.class?.name || 'N/A',
             gender: s.gender
@@ -391,7 +405,7 @@ export const getPendingAllocations = async (req: Request, res: Response) => {
     }
 };
 
-// --- 14. ALLOCATE ROOM (WITH GENDER SECURITY) ---
+// --- 14. ALLOCATE ROOM ---
 export const allocateRoom = async (req: Request, res: Response) => {
     const { studentId, roomId } = req.body;
 
@@ -470,7 +484,7 @@ export const deleteRoom = async (req: Request, res: Response) => {
     }
 };
 
-// --- 16. TRANSFER STUDENT TO NEW ROOM (FIXED) ---
+// --- 16. TRANSFER STUDENT TO NEW ROOM ---
 export const transferResident = async (req: Request, res: Response) => {
     const { studentId, newRoomId } = req.body;
 
@@ -571,7 +585,6 @@ export const getMyGatePasses = async (req: AuthenticatedRequest, res: Response) 
         const history = await prisma.gatePass.findMany({
             where: { studentId: student?.id },
             include: {
-                // FIX: Use 'admin' (relation name in schema) to fetch warden name
                 admin: {
                     select: { fullName: true }
                 }
@@ -581,13 +594,12 @@ export const getMyGatePasses = async (req: AuthenticatedRequest, res: Response) 
         });
         res.json(history);
     } catch (error) {
-        // Log the error to debug the 500 issue
         console.error("Fetch GatePass History Error:", error);
         res.status(500).json({ message: "Error fetching gate pass history" });
     }
 };
 
-// --- 19. ADMIN: GET ALL GATE PASSES ---
+// --- 19. ADMIN: GET ALL GATE PASSES (UPDATED for Avatars) ---
 export const getAllGatePasses = async (req: Request, res: Response) => {
     try {
         const requests = await prisma.gatePass.findMany({
@@ -598,14 +610,23 @@ export const getAllGatePasses = async (req: Request, res: Response) => {
                         user: { select: { avatar: true } }
                     }
                 },
-                // FIX: Use 'admin' (relation name in schema)
                 admin: {
                     select: { fullName: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(requests);
+        
+        // Delivering flattened list with Cloudinary URLs
+        const formatted = requests.map(r => ({
+            ...r,
+            studentAvatar: r.student.user?.avatar,
+            studentName: r.student.fullName,
+            admissionNo: r.student.admissionNo,
+            className: r.student.class?.name || 'N/A'
+        }));
+        
+        res.json(formatted);
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch gate pass requests" });
     }
@@ -618,10 +639,8 @@ export const updateGatePassStatus = async (req: AuthenticatedRequest, res: Respo
         const { status } = req.body; 
         const wardenUserId = req.user?.id; 
 
-        // 1. Find the Admin profile associated with the logged-in user
         const adminProfile = await prisma.admin.findUnique({ where: { userId: wardenUserId } });
 
-        // 2. Update status and adminId (relation ID in schema)
         const updated = await prisma.gatePass.update({
             where: { id },
             data: { 
@@ -629,7 +648,6 @@ export const updateGatePassStatus = async (req: AuthenticatedRequest, res: Respo
                 adminId: status === 'APPROVED' ? adminProfile?.id : null
             },
             include: {
-                // FIX: Use 'admin' to return the name for immediate UI feedback
                 admin: { select: { fullName: true } }
             }
         });

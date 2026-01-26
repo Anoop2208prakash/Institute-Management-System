@@ -1,7 +1,7 @@
 // client/src/pages/ProfilePage.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaEdit, FaEnvelope, FaPhone, FaIdCard, FaCalendarAlt, FaTint, FaSave, FaTimes, FaCamera, FaLock, FaCheck } from 'react-icons/fa';
-import Cropper from 'react-easy-crop'; // Ensure 'react-easy-crop' is installed
+import Cropper from 'react-easy-crop'; 
 import { getCroppedImg } from '../utils/canvasUtils';
 import './ProfilePage.scss';
 
@@ -22,7 +22,6 @@ interface ProfileData {
   }
 }
 
-// Fix for "Unexpected any": Define the shape of the crop object from 'react-easy-crop'
 interface PixelCrop {
   x: number;
   y: number;
@@ -86,7 +85,6 @@ const ProfilePage: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 1. TRIGGER CROPPER ON FILE SELECT
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -99,12 +97,10 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // 2. CAPTURE CROP AREA
   const onCropComplete = useCallback((_croppedArea: PixelCrop, croppedAreaPixels: PixelCrop) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  // 3. FINALIZE CROP
   const showCroppedImage = async () => {
     if (!tempImageSrc || !croppedAreaPixels) return;
     try {
@@ -116,7 +112,7 @@ const ProfilePage: React.FC = () => {
       if (croppedFile) {
         setNewAvatar(croppedFile);
         setPreviewUrl(URL.createObjectURL(croppedFile));
-        setIsCropping(false); // Close Modal
+        setIsCropping(false); 
         setTempImageSrc(null);
       }
     } catch (e) {
@@ -133,7 +129,9 @@ const ProfilePage: React.FC = () => {
       data.append('phone', formData.phone);
       data.append('bloodGroup', formData.bloodGroup);
       if (formData.password) data.append('password', formData.password);
-      if (newAvatar) data.append('profileImage', newAvatar); // Note: Backend likely expects 'profileImage'
+      
+      // FIXED: Key changed to 'avatar' to match Cloudinary middleware and database field
+      if (newAvatar) data.append('avatar', newAvatar); 
 
       const res = await fetch('http://localhost:5000/api/profile/me', {
         method: 'PUT',
@@ -145,7 +143,8 @@ const ProfilePage: React.FC = () => {
         setIsEditing(false);
         fetchProfile(); 
       } else {
-        alert("Failed to update profile");
+        const errorData = await res.json();
+        alert(`Update Failed: ${errorData.message || 'Server error'}`);
       }
     } catch (error) {
       console.error("Update error", error);
@@ -160,10 +159,15 @@ const ProfilePage: React.FC = () => {
       return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  /**
+   * FIXED: currentAvatar logic for Cloudinary.
+   * profile.avatar now contains the full absolute URL from MongoDB Atlas.
+   * Prepending 'http://localhost:5000' has been removed to support remote hosting.
+   */
   const currentAvatar = previewUrl 
     ? previewUrl 
     : profile.avatar 
-        ? `http://localhost:5000${profile.avatar}` 
+        ? profile.avatar 
         : `https://ui-avatars.com/api/?name=${profile.name}&background=0D8ABC&color=fff`;
 
   return (
@@ -178,7 +182,7 @@ const ProfilePage: React.FC = () => {
                 image={tempImageSrc || ''}
                 crop={crop}
                 zoom={zoom}
-                aspect={1} // Square/Circular aspect ratio
+                aspect={1} 
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
                 onZoomChange={setZoom}
@@ -211,11 +215,17 @@ const ProfilePage: React.FC = () => {
       <div className="profile-cover"></div>
 
       <div className="profile-content">
-        {/* Left Column */}
         <div className="identity-column">
           <div className="avatar-card">
             <div className="avatar-wrapper">
-                <img src={currentAvatar} alt={profile.name} />
+                {/* FIXED: Uses absolute URL from Cloudinary directly */}
+                <img 
+                  src={currentAvatar} 
+                  alt={profile.name} 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${profile.name}&background=0D8ABC&color=fff`;
+                  }}
+                />
                 
                 {isEditing && (
                   <label htmlFor="avatar-upload" className="edit-overlay">
@@ -264,7 +274,6 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="details-column">
           <div className="info-card">
             <div className="card-header">

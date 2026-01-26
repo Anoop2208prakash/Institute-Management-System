@@ -5,14 +5,14 @@ import { AuthRequest } from '../middlewares/auth';
 
 // Define Interface for Attendance Record
 interface AttendanceRecord {
-    studentId: string;
+    studentId: string; // MongoDB ObjectId string
     status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
 }
 
-// 1. Get Teacher's Classes & Subjects (Unchanged)
+// 1. Get Teacher's Classes & Subjects
 export const getTeacherClasses = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.id; // MongoDB ObjectId
     const teacher = await prisma.teacher.findUnique({
         where: { userId },
         include: { 
@@ -33,16 +33,16 @@ export const getTeacherClasses = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// 2. Get Students & Existing Attendance (UPDATED)
+// 2. Get Students & Existing Attendance (UPDATED for Cloudinary)
 export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
     try {
         const { classId, subjectId, date } = req.query;
         
         if(!classId || !date) return res.status(400).json({message: "Class and Date required"});
 
-        // FIX: Include 'user' to get the avatar
+        // Include 'user' to fetch the 'avatar' field
         const students = await prisma.student.findMany({
-            where: { classId: String(classId) },
+            where: { classId: String(classId) }, // classId is a MongoDB ObjectId
             include: { user: true }, 
             orderBy: { admissionNo: 'asc' }
         });
@@ -66,7 +66,8 @@ export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
                 studentId: s.id,
                 name: s.fullName,
                 rollNo: s.admissionNo,
-                avatar: s.user.avatar, // <--- Sending Avatar now
+                // FIXED: Delivering full Cloudinary URL directly from MongoDB
+                avatar: s.user.avatar, 
                 status: record ? record.status : 'PRESENT' 
             };
         });
@@ -74,11 +75,12 @@ export const getAttendanceSheet = async (req: AuthRequest, res: Response) => {
         res.json(sheet);
 
     } catch (e) {
+        console.error("Attendance Sheet Error:", e);
         res.status(500).json({ error: "Failed to load attendance sheet" });
     }
 };
 
-// 3. Save Attendance (Unchanged)
+// 3. Save Attendance
 export const saveAttendance = async (req: AuthRequest, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -92,10 +94,12 @@ export const saveAttendance = async (req: AuthRequest, res: Response) => {
 
         const dbSubjectId = subjectId && subjectId !== "" ? subjectId : null;
 
+        // MongoDB Atlas Transaction Logic
         await prisma.$transaction(
             (records as AttendanceRecord[]).map((rec) => {
                 return prisma.attendance.upsert({
                     where: {
+                        // Composite unique key for MongoDB
                         date_studentId_subjectId: {
                             date: attendanceDate,
                             studentId: rec.studentId,
@@ -110,7 +114,7 @@ export const saveAttendance = async (req: AuthRequest, res: Response) => {
                         date: attendanceDate,
                         status: rec.status,
                         studentId: rec.studentId,
-                        classId,
+                        classId: String(classId),
                         subjectId: dbSubjectId,
                         markedBy: teacher.id
                     }

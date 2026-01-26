@@ -1,7 +1,7 @@
 // client/src/pages/teacher/AttendanceManager.tsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom'; 
-import { FaCheckSquare, FaSave, FaSearch, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCheckSquare, FaSave, FaSearch, FaCheckCircle, FaTimesCircle, FaUserCircle } from 'react-icons/fa';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 import { type AlertColor } from '@mui/material/Alert';
 import './AttendanceManager.scss';
@@ -15,7 +15,7 @@ interface StudentRecord {
   name: string;
   rollNo: string;
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
-  avatar?: string; // Avatar field
+  avatar?: string; 
 }
 
 const AttendanceManager: React.FC = () => {
@@ -192,11 +192,22 @@ const AttendanceManager: React.FC = () => {
                         {displayedRecords.map(student => (
                             <div key={student.studentId} className="student-row">
                                 <div className="student-info">
-                                    <img 
-                                        src={student.avatar ? `http://localhost:5000${student.avatar}` : `https://ui-avatars.com/api/?name=${student.name}&background=random`} 
-                                        alt={student.name} 
-                                        className="avatar"
-                                    />
+                                    {/* FIXED: avatar logic for Cloudinary absolute URLs */}
+                                    {student.avatar ? (
+                                        <img 
+                                            src={student.avatar} 
+                                            alt={student.name} 
+                                            className="avatar"
+                                            onError={(e) => {
+                                                // Fallback if Cloudinary link is broken
+                                                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${student.name}&background=random`;
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="avatar-placeholder">
+                                            <FaUserCircle />
+                                        </div>
+                                    )}
                                     <div className="details">
                                         <span className="name">{student.name}</span>
                                         <span className="sid">SID: {student.rollNo}</span>

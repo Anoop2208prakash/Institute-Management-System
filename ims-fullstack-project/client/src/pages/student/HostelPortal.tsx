@@ -11,7 +11,7 @@ interface Roommate {
     id: string;
     name: string;
     className: string;
-    avatar?: string;
+    avatar?: string; // This will now hold the full Cloudinary URL
 }
 
 interface StudentAllocation {
@@ -81,11 +81,11 @@ const HostelPortal: React.FC = () => {
                 </div>
             </header>
 
-            {!allocation ? (
+            {error || !allocation ? (
                 <div className="no-allocation-card">
                     <FaExclamationCircle className="warning-icon" />
-                    <h2>No Allocation Found</h2>
-                    <p>You haven't been assigned a room yet. Please contact the Warden's office for residential placement.</p>
+                    <h2>{error ? "Notice" : "No Allocation Found"}</h2>
+                    <p>{error || "You haven't been assigned a room yet. Please contact the Warden's office for residential placement."}</p>
                 </div>
             ) : (
                 <div className="portal-grid">
@@ -125,7 +125,20 @@ const HostelPortal: React.FC = () => {
                                 allocation.roommates.map(buddy => (
                                     <div key={buddy.id} className="buddy-row">
                                         <div className="buddy-avatar">
-                                            {buddy.name.charAt(0)}
+                                            {/* FIXED: Using direct absolute Cloudinary URL for roommate avatars */}
+                                            {buddy.avatar ? (
+                                                <img 
+                                                    src={buddy.avatar} 
+                                                    alt={buddy.name} 
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${buddy.name}&background=random`;
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="avatar-placeholder">
+                                                    {buddy.name.charAt(0)}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="buddy-info">
                                             <strong>{buddy.name}</strong>

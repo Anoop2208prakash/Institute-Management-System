@@ -11,7 +11,9 @@ import {
     getMyInvoices,
     getAdmitCard
 } from '../controllers/studentController';
-import { protect, authorize } from '../middlewares/auth'; 
+
+// FIXED: Changed 'protect' to 'authenticate'
+import { authenticate, authorize } from '../middlewares/auth'; 
 import { upload } from '../middlewares/upload';
 
 const router = Router();
@@ -19,14 +21,14 @@ const router = Router();
 /**
  * --- ADMIN & SUPER ADMIN ROUTES ---
  * Access restricted to Administrative roles. 
- * Updated role strings to handle variations seen in your screenshots.
+ * FIXED: Wrapped roles in a single array to resolve "Expected 1 argument, but got 6"
  */
 
-// POST: Student Registration
+// POST: Student Registration (Includes Cloudinary Upload)
 router.post(
     '/register', 
-    protect, 
-    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    authenticate, 
+    authorize(['SUPER ADMIN', 'ADMIN', 'ADMINISTRATOR', 'SUPER_ADMIN']), 
     upload.single('profileImage'), 
     registerStudent
 );
@@ -34,24 +36,24 @@ router.post(
 // GET: Fetch Student Directory
 router.get(
     '/', 
-    protect, 
-    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'  ), 
+    authenticate, 
+    authorize(['SUPER ADMIN', 'ADMIN', 'ADMINISTRATOR', 'SUPER_ADMIN']), 
     getStudents
 );
 
 // PUT: Update Student Record
 router.put(
     '/:id', 
-    protect, 
-    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    authenticate, 
+    authorize(['SUPER ADMIN', 'ADMIN', 'ADMINISTRATOR', 'SUPER_ADMIN']), 
     updateStudent
 );
 
 // DELETE: Remove Student
 router.delete(
     '/:id', 
-    protect, 
-    authorize('super_admin', 'admin', 'SUPER_ADMIN', 'ADMIN', 'administrator', 'ADMINISTRATOR'), 
+    authenticate, 
+    authorize(['SUPER ADMIN', 'ADMIN', 'ADMINISTRATOR', 'SUPER_ADMIN']), 
     deleteStudent
 );
 
@@ -59,10 +61,10 @@ router.delete(
  * --- STUDENT PORTAL ROUTES ---
  * Access restricted to students for viewing their own data.
  */
-router.get('/my-subjects', protect, authorize('student', 'STUDENT'), getMySubjects);
-router.get('/my-attendance', protect, authorize('student', 'STUDENT'), getMyAttendance);
-router.get('/my-results', protect, authorize('student', 'STUDENT'), getMyResults);
-router.get('/my-invoices', protect, authorize('student', 'STUDENT'), getMyInvoices);
-router.get('/admit-card', protect, authorize('student', 'STUDENT'), getAdmitCard);
+router.get('/my-subjects', authenticate, authorize(['STUDENT']), getMySubjects);
+router.get('/my-attendance', authenticate, authorize(['STUDENT']), getMyAttendance);
+router.get('/my-results', authenticate, authorize(['STUDENT']), getMyResults);
+router.get('/my-invoices', authenticate, authorize(['STUDENT']), getMyInvoices);
+router.get('/admit-card', authenticate, authorize(['STUDENT']), getAdmitCard);
 
 export default router;

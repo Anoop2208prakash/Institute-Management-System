@@ -22,39 +22,38 @@ import {
     getAllGatePasses,
     updateGatePassStatus
 } from '../controllers/hostelController';
-import { protect, authorize } from '../middlewares/auth';
+import { authenticate, authorize } from '../middlewares/auth';
 
 const router = Router();
 
 // --- Data Fetching ---
-router.get('/stats', protect, getHostelStats);
-router.get('/pending', protect, getPendingAllocations);
-router.get('/rooms/available', protect, getAvailableRooms);
+router.get('/stats', authenticate, getHostelStats);
+router.get('/pending', authenticate, getPendingAllocations);
+router.get('/rooms/available', authenticate, getAvailableRooms);
 
 // --- Student Specific Portal ---
-// Uses 'protect' to ensure the student is logged in
-router.get('/my-allocation', protect, getMyAllocation); 
-
+// Uses 'authenticate' to ensure the student is logged in
+router.get('/my-allocation', authenticate, getMyAllocation); 
 // --- Action Endpoints ---
-router.get('/all-residents', protect, getAllResidents);
-router.get('/:hostelId/residents', protect, getHostelResidents);
-router.get('/gate-pass/:id', protect, getGatePassData);
+router.get('/all-residents', authenticate, getAllResidents);
+router.get('/:hostelId/residents', authenticate, getHostelResidents);
+router.get('/gate-pass/:id', authenticate, getGatePassData);
 
 // --- Management Endpoints (Admin/Super Admin only) ---
-router.post('/allocate', protect, authorize('super_admin', 'admin','warden'), allocateRoom);
-router.post('/rooms', protect, authorize('super_admin', 'admin','warden'), createRoom);
-router.put('/room/:roomId', protect, authorize('super_admin', 'admin','warden'), updateRoom); // NEW: Edit Room Route
-router.post('/create-hostel', protect, authorize('super_admin', 'admin','warden'), createHostel);
-router.patch('/checkout/:id', protect, authorize('super_admin', 'admin','warden'), checkoutStudent); // NEW: Checkout Route
-router.delete('/room/:roomId', protect, authorize('super_admin', 'admin','warden'), deleteRoom);
-router.post('/transfer', protect, authorize('super_admin', 'admin','warden'), transferResident);
-router.get('/my-complaints', protect, getMyComplaints);
-router.post('/submit-complaint', protect, submitComplaint);
-router.post('/gatepass/apply', protect, applyGatePass);
-router.get('/gatepass/my-requests', protect, getMyGatePasses);
-router.get('/gatepass/all', protect, authorize('super_admin', 'admin', 'warden'), getAllGatePasses);
+router.post('/allocate', authenticate, authorize(['super_admin', 'admin','warden']), allocateRoom);
+router.post('/rooms', authenticate, authorize(['super_admin', 'admin','warden']), createRoom);
+router.put('/room/:roomId', authenticate, authorize(['super_admin', 'admin','warden']), updateRoom); // NEW: Edit Room Route
+router.post('/create-hostel', authenticate, authorize(['super_admin', 'admin','warden']), createHostel);
+router.patch('/checkout/:id', authenticate, authorize(['super_admin', 'admin','warden']), checkoutStudent); // NEW: Checkout Route
+router.delete('/room/:roomId', authenticate, authorize(['super_admin', 'admin','warden']), deleteRoom);
+router.post('/transfer', authenticate, authorize(['super_admin', 'admin','warden']), transferResident);
+router.get('/my-complaints', authenticate, getMyComplaints);
+router.post('/submit-complaint', authenticate, submitComplaint);
+router.post('/gatepass/apply', authenticate, applyGatePass);
+router.get('/gatepass/my-requests', authenticate, getMyGatePasses);
+router.get('/gatepass/all', authenticate, authorize(['super_admin', 'admin', 'warden']), getAllGatePasses);
 
 // Warden/Admin access to update status
-router.patch('/gatepass/:id/status', protect, authorize('super_admin', 'admin', 'warden'), updateGatePassStatus);
+router.patch('/gatepass/:id/status', authenticate, authorize(['super_admin', 'admin', 'warden']), updateGatePassStatus);
 
 export default router;

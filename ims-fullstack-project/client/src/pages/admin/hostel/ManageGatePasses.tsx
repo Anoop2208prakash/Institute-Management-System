@@ -119,10 +119,19 @@ const ManageGatePasses: React.FC = () => {
               <div className="card-top">
                 <div className="student-profile">
                   <div className="avatar">
-                    {req.student.user.avatar ? 
-                      <img src={`http://localhost:5000${req.student.user.avatar}`} alt="" /> : 
+                    {/* FIXED: Using direct avatar URL for Cloudinary support */}
+                    {req.student.user.avatar ? (
+                      <img 
+                        src={req.student.user.avatar} 
+                        alt={req.student.fullName} 
+                        onError={(e) => {
+                          // Fallback if Cloudinary link is broken
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${req.student.fullName}&background=random`;
+                        }}
+                      />
+                    ) : (
                       <FaUser />
-                    }
+                    )}
                   </div>
                   <div className="info">
                     <h3>{req.student.fullName}</h3>

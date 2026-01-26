@@ -10,7 +10,8 @@ import { AuthRequest } from '../middlewares/auth';
 export const getMyProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).send('Unauthorized');
+    // MongoDB Atlas uses string IDs (ObjectIds)
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -29,6 +30,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
       email: user.email,
       role: user.role.name,
       roleDisplay: user.role.displayName,
+      // Avatar is now the full Cloudinary URL from the database
       avatar: user.avatar, 
       name: '',
       sID: '',
@@ -37,7 +39,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
 
     if (user.teacherProfile) {
       profileData.name = user.teacherProfile.fullName;
-      profileData.sID = user.teacherProfile.id.substring(0, 8).toUpperCase();
+      profileData.sID = user.teacherProfile.id.substring(user.teacherProfile.id.length - 8).toUpperCase();
       profileData.details = {
         phone: user.teacherProfile.phone,
         bloodGroup: user.teacherProfile.bloodGroup,
@@ -55,7 +57,7 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
     }
     else if (user.adminProfile) {
         profileData.name = user.adminProfile.fullName;
-        profileData.sID = "ADM-" + user.adminProfile.id.substring(0, 5);
+        profileData.sID = "ADM-" + user.adminProfile.id.substring(user.adminProfile.id.length - 5);
         profileData.details = {
             phone: user.adminProfile.phone,
             bloodGroup: user.adminProfile.bloodGroup,
@@ -65,15 +67,11 @@ export const getMyProfile = async (req: AuthRequest, res: Response) => {
     res.json(profileData);
 
   } catch (error) {
-    console.error(error);
+    console.error("Profile Fetch Error:", error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
 
-/**
- * ALIAS: getProfile
- * Added to resolve 'undefined' errors in profileRoutes.ts
- */
 export const getProfile = getMyProfile;
 
 // ------------------------------------------
@@ -82,30 +80,27 @@ export const getProfile = getMyProfile;
 export const updateMyProfile = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).send('Unauthorized');
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-    // Extract fields from FormData
     const { fullName, phone, password, bloodGroup } = req.body;
     
-    const avatarPath = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
+    // Cloudinary engine saves the URL in req.file.path
+    const avatarUrl = req.file ? req.file.path : undefined;
 
-    // 1. Prepare User Table Updates (Auth & Identity)
     const userUpdates: any = {};
-    if (avatarPath) userUpdates.avatar = avatarPath;
+    if (avatarUrl) userUpdates.avatar = avatarUrl;
     if (password && password.trim() !== "") {
       userUpdates.password = await bcrypt.hash(password, 10);
     }
 
-    // 2. Prepare Profile Table Updates (Details)
     const profileUpdates: any = {};
     if (fullName) profileUpdates.fullName = fullName;
     if (phone) profileUpdates.phone = phone;
     if (bloodGroup) profileUpdates.bloodGroup = bloodGroup;
 
-    // 3. Execute Transaction
     await prisma.$transaction(async (tx) => {
       
-      // A. Update User Logic
+      // A. Update Core User (Avatar & Security)
       if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
           where: { id: userId },
@@ -113,7 +108,7 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
         });
       }
 
-      // B. Update Specific Profile Logic
+      // B. Fetch role for normalized conditional logic
       const user = await tx.user.findUnique({
         where: { id: userId },
         include: { role: true }
@@ -121,18 +116,21 @@ export const updateMyProfile = async (req: AuthRequest, res: Response) => {
 
       if (!user) throw new Error("User not found during update");
 
-      if (user.role.name === 'teacher') {
+      // Normalize role string (e.g., "super_admin" -> "SUPER ADMIN")
+      const normalizedRole = user.role.name.toUpperCase().replace(/_/g, ' ').trim();
+
+      if (normalizedRole === 'TEACHER') {
         await tx.teacher.update({
           where: { userId },
           data: profileUpdates,
         });
-      } else if (user.role.name === 'student') {
+      } else if (normalizedRole === 'STUDENT') {
         await tx.student.update({
           where: { userId },
           data: profileUpdates,
         });
       } else {
-        // Admin, Super Admin, Librarian, Finance etc.
+        // Covers ADMIN, SUPER ADMIN, ADMINISTRATOR, WARDEN
         await tx.admin.update({
           where: { userId },
           data: profileUpdates,

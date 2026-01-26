@@ -1,7 +1,7 @@
 // client/src/pages/admin/communication/AnnouncementManager.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaBullhorn, FaPlus, FaTrash, FaUserCircle, FaSearch, FaClock } from 'react-icons/fa';
-import Skeleton from '@mui/material/Skeleton'; // <--- Import Skeleton
+import Skeleton from '@mui/material/Skeleton';
 import FeedbackAlert from '../../../components/common/FeedbackAlert';
 import { DeleteModal } from '../../../components/common/DeleteModal';
 import { CreateAnnouncementModal, type AnnouncementData } from './CreateAnnouncementModal';
@@ -33,7 +33,6 @@ const AnnouncementManager: React.FC = () => {
   
   const [alertInfo, setAlertInfo] = useState<{show: boolean, type: AlertColor, msg: string}>({ show: false, type: 'success', msg: '' });
 
-  // Get Role Name safely
   const getRoleName = () => {
     if (!user || !user.role) return '';
     if (typeof user.role === 'object' && 'name' in user.role) {
@@ -42,11 +41,8 @@ const AnnouncementManager: React.FC = () => {
     return String(user.role);
   };
   const userRole = getRoleName().toLowerCase();
-  
-  // Can Post: Not a Student
   const canPost = userRole !== 'student';
 
-  // Can Delete Helper (Is Super Admin OR Is Owner)
   const canDelete = (authorId: string) => {
       if (userRole === 'super_admin') return true;
       return user?.id === authorId;
@@ -164,7 +160,6 @@ const AnnouncementManager: React.FC = () => {
                 />
             </div>
             
-            {/* HIDE BUTTON FOR STUDENTS */}
             {canPost && (
                 <button className="btn-add-primary" onClick={() => setIsCreateModalOpen(true)}>
                     <FaPlus /> Post New
@@ -176,8 +171,6 @@ const AnnouncementManager: React.FC = () => {
       <FeedbackAlert isOpen={alertInfo.show} type={alertInfo.type} message={alertInfo.msg} onClose={() => setAlertInfo({...alertInfo, show: false})} />
 
       <div className="feed-grid">
-        
-        {/* --- SKELETON LOADER --- */}
         {isLoading ? (
             Array.from(new Array(3)).map((_, index) => (
                 <div key={index} className="feed-card">
@@ -207,11 +200,17 @@ const AnnouncementManager: React.FC = () => {
                 <div key={item.id} className="feed-card">
                     <div className="card-header">
                         <div className="author-section">
+                            {/* FIXED: Using direct authorAvatar URL for Cloudinary support */}
                              {item.authorAvatar ? (
                                  <img 
-                                    src={`http://localhost:5000${item.authorAvatar}`} 
+                                    src={item.authorAvatar} 
                                     alt="Author" 
                                     className="author-avatar"
+                                    onError={(e) => {
+                                        // Fallback for broken Cloudinary links
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                        (e.target as HTMLImageElement).parentElement?.querySelector('.author-placeholder')?.setAttribute('style', 'display: flex');
+                                    }}
                                  />
                             ) : (
                                  <div className="author-placeholder"><FaUserCircle /></div>
@@ -229,7 +228,6 @@ const AnnouncementManager: React.FC = () => {
                         <div className="header-right">
                             {getTargetBadge(item.target)}
                             
-                            {/* Only show delete button if Super Admin OR Author */}
                             {canDelete(item.authorId) && (
                                 <button 
                                     className="delete-icon" 

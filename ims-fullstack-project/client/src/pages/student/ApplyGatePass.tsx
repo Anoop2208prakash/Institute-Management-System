@@ -2,14 +2,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaTicketAlt, FaHistory, FaPrint, FaTimes,
-  FaCheckCircle, FaHourglassHalf, FaTimesCircle 
+  FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaUserCircle 
 } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react'; 
 import './ApplyGatePass.scss';
 import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
 
-// 1. Updated Interface to include Warden/Admin details
 interface GatePassRecord {
   id: string;
   reason: string;
@@ -18,7 +17,7 @@ interface GatePassRecord {
   date: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   approvedBy?: {
-    fullName: string; // The warden/admin who accepted the pass
+    fullName: string; 
   };
 }
 
@@ -37,7 +36,6 @@ const ApplyGatePass: React.FC = () => {
   const token = localStorage.getItem('token');
   const printRef = useRef<HTMLDivElement>(null);
 
-  // --- HELPERS: Fix TypeScript Date mismatches ---
   const stringToDate = (val: string) => val ? new Date(val) : null;
   const stringToTime = (val: string) => {
     if (!val) return null;
@@ -49,14 +47,12 @@ const ApplyGatePass: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      // 1. Fetch History - Backend now includes approvedBy info
       const histRes = await fetch('http://localhost:5000/api/hostel/gatepass/my-requests', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (histRes.ok) setHistory(await histRes.json());
 
-      // 2. Fetch Profile: Aligned to resolve 404
-      const profileRes = await fetch('http://localhost:5000/api/profile', {
+      const profileRes = await fetch('http://localhost:5000/api/profile/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -168,7 +164,6 @@ const ApplyGatePass: React.FC = () => {
         </section>
       </div>
 
-      {/* --- COMPLETE DIGITAL TICKET MODAL --- */}
       {selectedPass && (
         <div className="gatepass-modal-overlay">
           <div className="ticket-wrapper">
@@ -197,15 +192,23 @@ const ApplyGatePass: React.FC = () => {
               <div className="ticket-body">
                 <div className="profile-row">
                   <div className="student-avatar">
+                    {/* FIXED: Removed localhost prefix to support absolute Cloudinary URLs */}
                     {studentInfo?.avatar ? (
-                      <img src={`http://localhost:5000${studentInfo.avatar}`} alt="Avatar" />
+                      <img 
+                        src={studentInfo.avatar} 
+                        alt="Avatar" 
+                        onError={(e) => {
+                          // Fallback if Cloudinary link is broken
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${studentInfo?.name || 'Student'}&background=random`;
+                        }}
+                      />
                     ) : (
                       <div className="avatar-placeholder">{studentInfo?.name?.charAt(0) || 'S'}</div>
                     )}
                   </div>
                   <div className="student-meta">
                     <h3>{studentInfo?.name || 'Student Name'}</h3>
-                    <p>ID: {studentInfo?.sID || '00000'} • {studentInfo?.className || 'Program'}</p>
+                    <p>ID: {studentInfo?.sID || '00000'} • {studentInfo?.details?.className || 'Program'}</p>
                   </div>
                 </div>
 
@@ -235,14 +238,12 @@ const ApplyGatePass: React.FC = () => {
                   </div>
                   <div className="auth-row">
                     <div className="sig-box">
-                      {/* DYNAMIC AUTO-SIGNATURE: Shows warden's name if approved */}
                       <div className="auto-signature">
                         {selectedPass.status === 'APPROVED' ? selectedPass.approvedBy?.fullName : 'Warden'}
                       </div>
                       <div className="line"></div>
                       <span>Warden Signature</span>
                     </div>
-                    {/* Real QR Code Integration */}
                     <div className="qr-section">
                       <div className="qr-container">
                         <QRCodeSVG 
