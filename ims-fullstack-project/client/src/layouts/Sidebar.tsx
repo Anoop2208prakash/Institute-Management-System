@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, role, isHostelResident = fals
       title: "System",
       items: [
         { path: '/roles', label: 'Roles & Permissions', icon: <FaIdBadge />, roles: ['super_admin'] },
-        { path: '/activity-logs', label: 'System Logs', icon: <FaUserShield />, roles: ['super_admin'] },
+        { path: '/system-logs', label: 'System Logs', icon: <FaUserShield />, roles: ['super_admin'] },
       ]
     }
   ];

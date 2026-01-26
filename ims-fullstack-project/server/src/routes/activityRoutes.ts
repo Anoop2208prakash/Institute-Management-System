@@ -1,20 +1,19 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
+// server/src/routes/activityRoutes.ts
+import { Router } from 'express';
+import { prisma } from '../utils/prisma';
+import { authenticate } from '../middlewares/auth';
 
-const router = express.Router();
-const prisma = new PrismaClient();
+const router = Router();
 
-// GET /api/activity
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
-    const activities = await prisma.activity.findMany({
-      take: 10,                      // Fetch top 10
-      orderBy: { createdAt: 'desc' } // Newest first
+    const logs = await prisma.activity.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Limit to last 100 entries for performance
     });
-    res.json(activities);
+    res.json(logs);
   } catch (error) {
-    console.error("Activity API Error:", error);
-    res.status(500).json({ error: 'Failed to fetch activities' });
+    res.status(500).json({ error: 'Failed to fetch logs' });
   }
 });
 

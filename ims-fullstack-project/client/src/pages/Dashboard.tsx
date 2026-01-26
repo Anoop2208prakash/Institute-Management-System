@@ -29,8 +29,8 @@ interface StatCard {
 }
 
 interface DashboardData {
-  type: string; // Changed to string for flexible case checking
-  name?: string;
+  type: string; 
+  name?: string; // This holds the profile name (e.g., "John Doe")
   cards: StatCard[];
 }
 
@@ -106,8 +106,6 @@ const Dashboard: React.FC = () => {
   // --- Fixed Quick Actions Logic ---
   const renderQuickActions = () => {
       if (!data) return null;
-      
-      // Normalize role to uppercase to fix "not working" issues
       const userRole = data.type.toUpperCase();
 
       if (userRole === 'ADMIN' || userRole === 'ADMINISTRATOR') {
@@ -121,7 +119,6 @@ const Dashboard: React.FC = () => {
           );
       }
 
-      // WARDEN CASE: Now handles 'warden', 'WARDEN', etc.
       if (userRole === 'WARDEN') {
         return (
             <>
@@ -152,6 +149,16 @@ const Dashboard: React.FC = () => {
             </>
           );
       }
+
+      if (userRole === 'LIBRARIAN') {
+        return (
+            <>
+                <button onClick={() => navigate('/manage-books')}><FaBook /> <span>Inventory</span></button>
+                <button onClick={() => navigate('/manage-loans')}><FaClipboardList /> <span>Manage Loans</span></button>
+            </>
+        );
+      }
+
       return null;
   };
 
@@ -159,7 +166,10 @@ const Dashboard: React.FC = () => {
     <div className="dashboard-page">
       <div className="welcome-banner">
         <div className="content">
-            <h1>{greeting}, {data?.name || user?.email?.split('@')[0]}!</h1>
+            {/* FIXED: Prioritizes data.name (The real profile name from the Admin Profile).
+              If for any reason that's missing, it falls back to the Auth context or email.
+            */}
+            <h1>{greeting}, {data?.name || user?.name || user?.email?.split('@')[0]}!</h1>
             <p>
               {data?.type?.toUpperCase() === 'WARDEN' 
                 ? "Manage hostel operations and student requests below." 

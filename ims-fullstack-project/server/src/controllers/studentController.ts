@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../utils/prisma';
 import { AuthRequest } from '../middlewares/auth';
+// FIXED: Import the deletion helper to automate Cloudinary cleanup
+import { deleteFromCloudinary } from '../middlewares/upload';
 
 // ------------------------------------------
 // 1. REGISTER STUDENT (Admin/Super Admin only)
@@ -15,7 +17,6 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
       needsHostel 
     } = req.body;
 
-    // --- ROLE AUTHORIZATION CHECK ---
     const userRole = req.user?.role?.toUpperCase().replace(/_/g, ' ');
     
     if (userRole !== 'SUPER ADMIN' && userRole !== 'ADMINISTRATOR') {
@@ -23,7 +24,7 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
       return;
     }
     
-    // FIXED: Capturing the full Cloudinary URL from req.file.path
+    // Capturing the full Cloudinary URL from req.file.path
     const profileImage = req.file ? req.file.path : null;
 
     if (!email || !password || !fullName || !admissionNo) {
@@ -53,7 +54,7 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
           email,
           password: hashedPassword,
           roleId: studentRole.id,
-          avatar: profileImage, // Stores the full web URL
+          avatar: profileImage,
           isActive: true,
         },
       });
@@ -84,7 +85,6 @@ export const registerStudent = async (req: AuthRequest, res: Response): Promise<
         },
       });
 
-      // --- LOG ACTIVITY ---
       await tx.activity.create({
         data: {
           action: "CREATE",
@@ -126,7 +126,6 @@ export const getStudents = async (req: Request, res: Response) => {
       class: s.class ? s.class.name : 'Unassigned',
       classId: s.classId,
       phone: s.phone,
-      // Returns full Cloudinary URL directly
       avatar: s.user.avatar,
       gender: s.gender,
       needsHostel: s.needsHostel
@@ -170,21 +169,39 @@ export const updateStudent = async (req: Request, res: Response) => {
 // ------------------------------------------
 export const deleteStudent = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; 
     
+    // 1. Fetch student info and avatar URL before deletion
+    // FIXED: Properly querying User with its relation
+    const studentUser = await prisma.user.findUnique({
+        where: { id },
+        include: { student: true }
+    });
+
+    if (!studentUser) {
+        return res.status(404).json({ message: "Student not found" });
+    }
+
+    // 2. Automated Cloudinary Cleanup before DB record is gone
+    if (studentUser.avatar) {
+        await deleteFromCloudinary(studentUser.avatar);
+    }
+
+    // 3. Database Deletion with Logging
     await prisma.$transaction(async (tx) => {
-        const student = await tx.student.findUnique({ where: { userId: id } });
+        // Deleting User automatically deletes Student due to 'onDelete: Cascade'
         await tx.user.delete({ where: { id } });
         
         await tx.activity.create({
             data: {
                 action: "DELETE",
-                message: `Removed student record for: ${student?.fullName || id}`
+                // FIXED: Safety check for student data to prevent 500 error
+                message: `Removed student record for: ${studentUser.student ? (studentUser.student as any).fullName : id}`
             }
         });
     });
 
-    res.json({ message: 'Student record deleted successfully' });
+    res.json({ message: 'Student and profile image deleted successfully' });
   } catch (error) {
     console.error("Delete Error:", error);
     res.status(500).json({ message: 'Failed to delete student' });
@@ -319,7 +336,6 @@ export const getAdmitCard = async (req: AuthRequest, res: Response) => {
                 admissionNo: student.admissionNo,
                 class: student.class?.name || "Unassigned",
                 section: student.class?.description || "N/A",
-                // Delivering Cloudinary URL for the admit card print view
                 avatar: student.user?.avatar || null
             },
             exams: exams.map(e => ({

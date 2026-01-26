@@ -56,6 +56,7 @@ import ApplyGatePass from './pages/student/ApplyGatePass'; // Ensure this is the
 import LandingPage from './pages/LandingPage';
 import NotFoundPage from './pages/NotFoundPage';
 import GatePassHistory from './pages/admin/hostel/GatePassHistory';
+import SystemLogs from './pages/admin/SystemLogs';
 
 export const router = createBrowserRouter([
   {
@@ -160,6 +161,10 @@ export const router = createBrowserRouter([
           onSave={async () => { }}
         />
       },
+      {
+    path: '/system-logs',
+    element: <SystemLogs />,
+  },
 
       // --- STUDENT ROUTES ---
       { path: '/stationery', element: <StationeryStore /> },
@@ -178,4 +183,5 @@ export const router = createBrowserRouter([
     path: '*',
     element: <NotFoundPage />,
   }
+
 ]);

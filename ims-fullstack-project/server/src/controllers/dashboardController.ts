@@ -6,8 +6,6 @@ import { AuthRequest } from '../middlewares/auth';
 export const getDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.id; // MongoDB ObjectId string
-    
-    // Normalize role to handle variations like 'super_admin' or 'SUPER ADMIN'
     const role = req.user?.role?.toUpperCase().replace(/_/g, ' ').trim(); 
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -21,28 +19,49 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
     let stats: any = { 
         type: 'UNKNOWN', 
         cards: [], 
-        avatar: currentUser?.avatar || null // Global avatar for dashboard header
+        avatar: currentUser?.avatar || null 
     }; 
 
-    // --- ADMIN / SUPER ADMIN / ADMINISTRATOR ---
-    if (role === 'ADMIN' || role === 'SUPER ADMIN' || role === 'ADMINISTRATOR') {
-        const [studentCount, teacherCount, classCount, userCount] = await Promise.all([
-            prisma.student.count(),
-            prisma.teacher.count(),
-            prisma.class.count(),
-            prisma.user.count()
-        ]);
+    // --- ADMIN / SUPER ADMIN / ADMINISTRATOR / LIBRARIAN ---
+    // These roles typically use the 'Admin' profile model in your schema
+    if (role === 'ADMIN' || role === 'SUPER ADMIN' || role === 'ADMINISTRATOR' || role === 'LIBRARIAN') {
+        const adminProfile = await prisma.admin.findUnique({ where: { userId } });
         
-        stats = {
-            ...stats,
-            type: 'ADMIN',
-            cards: [
-                { label: 'Total Students', value: studentCount, icon: 'users', color: '#1a7f37' },
-                { label: 'Total Teachers', value: teacherCount, icon: 'chalkboard-teacher', color: '#0969da' },
-                { label: 'Active Classes', value: classCount, icon: 'layer-group', color: '#8250df' },
-                { label: 'Total Users', value: userCount, icon: 'user-shield', color: '#cf222e' },
-            ]
-        };
+        if (role === 'LIBRARIAN') {
+            const [totalBooks, activeLoans] = await Promise.all([
+                prisma.book.count(),
+                prisma.loan.count({ where: { status: 'ISSUED' } })
+            ]);
+            
+            stats = {
+                ...stats,
+                type: 'LIBRARIAN',
+                name: adminProfile?.fullName || 'Librarian', // FIXED: Fetching name
+                cards: [
+                    { label: 'Total Books', value: totalBooks, icon: 'book', color: '#0969da' },
+                    { label: 'Active Loans', value: activeLoans, icon: 'hand-holding', color: '#9a6700' },
+                ]
+            };
+        } else {
+            const [studentCount, teacherCount, classCount, userCount] = await Promise.all([
+                prisma.student.count(),
+                prisma.teacher.count(),
+                prisma.class.count(),
+                prisma.user.count()
+            ]);
+            
+            stats = {
+                ...stats,
+                type: 'ADMIN',
+                name: adminProfile?.fullName || 'Administrator', // FIXED: Fetching name
+                cards: [
+                    { label: 'Total Students', value: studentCount, icon: 'users', color: '#1a7f37' },
+                    { label: 'Total Teachers', value: teacherCount, icon: 'chalkboard-teacher', color: '#0969da' },
+                    { label: 'Active Classes', value: classCount, icon: 'layer-group', color: '#8250df' },
+                    { label: 'Total Users', value: userCount, icon: 'user-shield', color: '#cf222e' },
+                ]
+            };
+        }
     } 
     
     // --- WARDEN ---
@@ -122,23 +141,6 @@ export const getDashboardStats = async (req: AuthRequest, res: Response) => {
                 ]
             };
         }
-    }
-
-    // --- LIBRARIAN ---
-    else if (role === 'LIBRARIAN') {
-        const [totalBooks, activeLoans] = await Promise.all([
-            prisma.book.count(),
-            prisma.loan.count({ where: { status: 'ISSUED' } })
-        ]);
-        
-        stats = {
-            ...stats,
-            type: 'LIBRARIAN',
-            cards: [
-                { label: 'Total Books', value: totalBooks, icon: 'book', color: '#0969da' },
-                { label: 'Active Loans', value: activeLoans, icon: 'hand-holding', color: '#9a6700' },
-            ]
-        };
     }
 
     res.json(stats);

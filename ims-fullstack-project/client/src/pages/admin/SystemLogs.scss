@@ -1,0 +1,269 @@
+// client/src/pages/admin/SystemLogs.scss
+
+.logs-page {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--font-color);
+  background-color: var(--bg-secondary-color);
+  min-height: 100vh;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+
+    .title-area {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+
+      .icon-box {
+        background: var(--card-bg-default);
+        padding: 1.25rem;
+        border-radius: 16px;
+        color: var(--primary-color);
+        box-shadow: var(--box-shadow-2);
+        border: 1px solid var(--card-border-color);
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      div {
+        h1 {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--text-color-h);
+          margin-bottom: 0.25rem;
+        }
+        p {
+          color: var(--text-muted-color);
+          font-size: 0.95rem;
+        }
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+
+      .search-bar {
+        position: relative;
+        background: var(--card-bg-default);
+        border: 1px solid var(--form-input-border-color);
+        border-radius: 10px;
+        padding: 0 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        height: 45px;
+        width: 300px;
+        transition: border-color 0.2s;
+
+        svg { color: var(--form-placeholder-text-color); }
+
+        input {
+          background: transparent;
+          border: none;
+          color: var(--form-input-field-color);
+          font-size: 0.9rem;
+          width: 100%;
+          outline: none;
+
+          &::placeholder { color: var(--form-placeholder-text-color); }
+        }
+
+        &:focus-within { border-color: var(--primary-color); }
+      }
+
+      .action-filter {
+        height: 45px;
+        background: var(--card-bg-default);
+        border: 1px solid var(--form-input-border-color);
+        border-radius: 10px;
+        color: var(--font-color);
+        padding: 0 1rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+        outline: none;
+
+        &:focus { border-color: var(--primary-color); }
+      }
+
+      .export-btn {
+        height: 45px;
+        padding: 0 1.25rem;
+        background: var(--card-bg-default);
+        border: 1px solid var(--btn-border-light-color);
+        color: var(--font-color);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+
+        &:hover {
+          background: var(--bg-secondary-color);
+          border-color: var(--primary-color);
+          color: var(--primary-color);
+        }
+      }
+    }
+  }
+
+  .logs-container {
+    background: var(--card-bg-default);
+    border: 1px solid var(--card-border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow-2);
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .audit-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+
+      thead {
+        background: var(--datagrid-column-header-bg-color);
+        
+        th {
+          text-align: left;
+          padding: 1.25rem;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--datagrid-column-header-text-color);
+          border-bottom: 1px solid var(--card-border-color);
+        }
+      }
+
+      tbody {
+        tr {
+          transition: background 0.2s;
+          &:hover { background: var(--dark-overlay-05); }
+
+          td {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--card-border-color);
+            vertical-align: middle;
+          }
+
+          .time-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            min-width: 180px;
+
+            .date-main { font-weight: 600; color: var(--text-color-h); }
+            .time-sub { font-size: 0.8rem; color: var(--text-muted-color); }
+          }
+
+          .action-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+
+            &.log-create { background: var(--toast-success-bg); color: var(--toast-success-text); border: 1px solid var(--toast-success-border); }
+            &.log-delete { background: var(--toast-danger-bg); color: var(--toast-danger-text); border: 1px solid var(--toast-danger-border); }
+            &.log-update { background: var(--toast-info-bg); color: var(--toast-info-text); border: 1px solid var(--toast-info-border); }
+            &.log-info { background: var(--toast-unavailable-bg); color: var(--toast-unavailable-text); border: 1px solid var(--toast-unavailable-border); }
+          }
+
+          .message-cell {
+            .message-text {
+              font-size: 0.95rem;
+              color: var(--font-color);
+              line-height: 1.5;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--card-border-color);
+  }
+
+  .empty-state {
+    padding: 4rem;
+    text-align: center;
+    color: var(--text-muted-color);
+    font-style: italic;
+  }
+}
+
+/* =========================================
+   MOBILE RESPONSIVE VIEW
+   ========================================= */
+@media (max-width: 992px) {
+  .logs-page {
+    padding: 1rem;
+
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      .header-actions {
+        flex-wrap: wrap;
+        
+        .search-bar { width: 100%; }
+        .action-filter { flex-grow: 1; }
+        .export-btn { flex-grow: 1; justify-content: center; }
+      }
+    }
+
+    .logs-container {
+      border-radius: 12px;
+      
+      .audit-table {
+        min-width: 100%;
+
+        // Transform table to cards for very small devices
+        @media (max-width: 600px) {
+          thead { display: none; }
+          
+          tbody tr {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            border-bottom: 8px solid var(--bg-secondary-color);
+
+            td {
+              padding: 0.5rem 0;
+              border: none;
+            }
+
+            .time-cell {
+              flex-direction: row;
+              justify-content: space-between;
+              width: 100%;
+              margin-bottom: 0.5rem;
+            }
+
+            .action-cell { margin-bottom: 0.5rem; }
+          }
+        }
+      }
+    }
+  }
+}

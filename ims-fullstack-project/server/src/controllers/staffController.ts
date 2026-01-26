@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../utils/prisma';
 import { logActivity } from '../utils/activityLogger';
+// FIXED: Import the deletion helper to automate Cloudinary cleanup
+import { deleteFromCloudinary } from '../middlewares/upload';
 
 // ------------------------------------------
 // 1. REGISTER STAFF
@@ -11,7 +13,7 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
   try {
     const { fullName, email, password, phone, roleId, bloodGroup, joiningDate } = req.body;
     
-    // FIXED: Cloudinary provides the full URL in req.file.path
+    // Cloudinary provides the full URL in req.file.path
     const avatarUrl = req.file ? req.file.path : null;
 
     if (!email || !password || !roleId) {
@@ -28,21 +30,17 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await prisma.$transaction(async (tx) => {
-      // A. Create User (MongoDB ObjectIds are handled as strings)
       const newUser = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
-          roleId, // Should be a valid string ObjectId
-          avatar: avatarUrl, // The full https://res.cloudinary.com URL
+          roleId, 
+          avatar: avatarUrl, 
           isActive: true,
         },
       });
 
-      // B. Create specific profile based on Role
       const role = await tx.role.findUnique({ where: { id: roleId } });
-      
-      // Normalize role name for consistent matching
       const normalizedRole = role?.name.toUpperCase().replace(/_/g, ' ').trim();
 
       if (normalizedRole === 'TEACHER') {
@@ -56,7 +54,6 @@ export const registerStaff = async (req: Request, res: Response): Promise<void> 
           },
         });
       } else {
-         // Defaults to Admin profile (Super Admin, Librarian, Finance, Warden, etc.)
          await tx.admin.create({
            data: {
                userId: newUser.id,
@@ -102,7 +99,6 @@ export const getAllStaff = async (req: Request, res: Response) => {
       id: u.id,
       email: u.email,
       role: u.role.displayName,
-      // Returning the full Cloudinary URL from MongoDB Atlas
       avatar: u.avatar,
       name: u.teacherProfile?.fullName || u.adminProfile?.fullName || 'N/A',
       phone: u.teacherProfile?.phone || u.adminProfile?.phone || 'N/A',
@@ -123,19 +119,29 @@ export const deleteStaff = async (req: Request, res: Response) => {
   try {
     const { id } = req.params; // MongoDB ObjectId string
 
+    // 1. Fetch user info including avatar URL before deletion
     const userToDelete = await prisma.user.findUnique({
         where: { id },
         include: { teacherProfile: true, adminProfile: true }
     });
 
-    if (userToDelete) {
-        const name = userToDelete.teacherProfile?.fullName || userToDelete.adminProfile?.fullName || userToDelete.email;
-        
-        await prisma.user.delete({ where: { id } });
-        await logActivity('Staff Removed', `Removed staff member: ${name}`);
+    if (!userToDelete) {
+        return res.status(404).json({ message: "Staff member not found" });
     }
 
-    res.json({ message: 'Staff member removed successfully' });
+    // 2. Automated Cloudinary Cleanup
+    // Removes the file from remote storage if a valid Cloudinary path exists
+    if (userToDelete.avatar) {
+        await deleteFromCloudinary(userToDelete.avatar);
+    }
+
+    // 3. Database Deletion with Activity Logging
+    const name = userToDelete.teacherProfile?.fullName || userToDelete.adminProfile?.fullName || userToDelete.email;
+    
+    await prisma.user.delete({ where: { id } });
+    await logActivity('Staff Removed', `Removed staff member and profile image: ${name}`);
+
+    res.json({ message: 'Staff member and associated image removed successfully' });
   } catch (error) {
     console.error("Delete Staff Error:", error);
     res.status(500).json({ message: 'Failed to delete staff member' });
