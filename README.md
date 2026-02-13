@@ -1,106 +1,23 @@
-# IMS Pro: Unified Institutional Management System
+🎓 Institute Management System (IMS) - 2026A comprehensive full-stack platform for academic administration, featuring automated Cloudinary media management, Prisma/MongoDB data persistence, and enhanced Security Audit Logging.🛠️ Tech StackFrontend: React (SCSS with CSS Variables)Backend: Node.js, Express, TypeScriptDatabase: MongoDB Atlas via Prisma ORMStorage: Cloudinary🚀 Step-by-Step Setup1. Environment ConfigurationCreate a .env file in the server/ directory. Crucial: You must include the database name in the URL to prevent the P1013 error encountered during setup.Code snippetPORT=5000
+# Ensure /school_management (or your db name) is present before the '?'
+DATABASE_URL="mongodb+srv://anoopprakash:Anoop123@cluster1.qyhgdsu.mongodb.net/school_management?retryWrites=true&w=majority"
+JWT_SECRET=your_secret_key
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+2. Backend InitializationExecute these commands in the server/ terminal to synchronize the schema and generate types for the new security audit fields (ipAddress and userId).Bash# 1. Install dependencies
+npm install
 
-**IMS Pro** is a professional-grade Institutional Management System (IMS) designed to digitize and unify educational operations. From student admissions and academic tracking to complex hostel allocations and financial management, this platform provides a seamless digital ecosystem for administrators, teachers, and students.
+# 2. Clear old SQL migration history (fixes P3019 provider mismatch)
+rm -rf prisma/migrations
 
----
-
-## 🚀 Key Features
-
-### 🏢 Administrative & Staff
-
-* **Secure Admission Portal:** Streamlined student registration with automated Admission ID generation and profile image cropping.
-* **Hostel Management:** Create blocks, manage room capacities, and track real-time occupancy rates through interactive analytics.
-* **System Audit Logs:** A comprehensive security trail tracking every administrative action (Create, Update, Delete) to ensure accountability.
-* **Role-Based Access Control (RBAC):** Granular permissions for Super Admins, Administrators, and Wardens with strict role normalization.
-
-### 🎓 Student Portal
-
-* **Digital Admit Cards:** View upcoming exam schedules, subjects, and semesters in a clean, printable format.
-* **Academic Tracking:** Self-service access to attendance statistics, exam results, and subject lists.
-* **Finance & Invoicing:** Real-time view of fee records and payment status.
-
----
-
-## 🛠️ Tech Stack
-
-* **Frontend:** React (TypeScript), SCSS (Modern Glassmorphism Design), Material UI.
-* **Backend:** Node.js, Express.js (TypeScript).
-* **Database:** MySQL with **Prisma ORM**.
-* **Authentication:** JWT (JSON Web Tokens) and Bcrypt.js password hashing.
-
----
-
-## 💻 Installation Guide
-
-### Prerequisites
-
-* Node.js (v16+)
-* MySQL Server
-* npm or yarn
-
-### Step 1: Clone the Repository
-
-```bash
-git clone <your-repo-url>
-cd ims-pro
-
-```
-
-### Step 2: Backend Configuration
-
-1. Navigate to the server directory: `cd server`
-2. Install dependencies: `npm install`
-3. Create a `.env` file in the root of the server folder:
-```env
-DATABASE_URL="mysql://username:password@localhost:3306/ims_db"
-JWT_SECRET="your_highly_secure_secret"
-PORT=5000
-
-```
-
-
-4. **Database Setup:**
-```bash
-npx prisma migrate dev --name init
+# 3. Generate Prisma Client with updated relations (studentProfile, teacherProfile)
 npx prisma generate
 
-```
+# 4. Sync schema with MongoDB Atlas (DNS resolution fix)
+npx prisma db push
 
-
-
-### Step 3: Frontend Configuration
-
-1. Navigate to the client directory: `cd ../client`
-2. Install dependencies: `npm install`
-3. Start the development server: `npm run dev`
-
----
-
-## 🏗️ Project Structure
-
-* **`server/prisma/schema.prisma`**: The core data blueprint defining 20+ models including Students, Teachers, Exams, and Hostel Admissions.
-* **`server/src/middlewares/auth.ts`**: The security gateway that normalizes roles (e.g., "SUPER ADMIN" vs "super_admin") to prevent unauthorized access.
-* **`client/src/pages/admin/hostel/`**: Contains the responsive hostel student directory which utilizes a "Card-Switch" design for mobile devices.
-
----
-
-## 🛡️ Role Normalization Note
-
-To ensure the system remains robust across different operating systems and database configurations, the system uses **Strict Role Normalization**.
-
-* All roles are converted to **UPPERCASE**.
-* Underscores (`_`) are automatically replaced with **Spaces** ( ).
-* *Example:* `super_admin` becomes `SUPER ADMIN` during validation.
-
----
-
-## 📧 Support
-
-For system logs verification or troubleshooting 403 Forbidden errors, please refer to the **System Audit Logs** page to identify which administrative account performed the action.
-
----
-
-Would you like me to add a section for **API Documentation** detailing the specific endpoints for the Student Portal?
-
-
-npm install qrcode.react
+# 5. Seed the database with default roles and Super Admin
+npx prisma db seed
+3. Frontend InitializationBashcd ../client
+npm install
+npm start
+🛡️ Security & Auditing FeaturesForensic Audit Logs: Every CREATE or DELETE action captures the administrator's IP Address and User ID for accountability.Automated Media Cleanup: Deleting a user profile automatically triggers a Cloudinary API call to remove the associated avatar, preventing "ghost" files.Modern Activity Feed: The System Logs page uses a chronological card-based design with "tech-style" tags for network metadata.🧩 Common TroubleshootingIssueResolutionError P1013Add /your_db_name to your DATABASE_URL string.DNS Resolution ErrorEnsure port 27017 is open and your IP is whitelisted in Atlas.TS Property 'student' not foundUse studentProfile as defined in the updated schema.prisma.Theme MismatchEnsure _themes.scss is imported to provide the required CSS variables.

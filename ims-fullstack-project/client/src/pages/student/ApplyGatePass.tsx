@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaTicketAlt, FaHistory, FaPrint, FaTimes,
-  FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaUserCircle 
+  FaCheckCircle, FaHourglassHalf, FaTimesCircle
 } from 'react-icons/fa';
-import { QRCodeSVG } from 'qrcode.react'; 
 import './ApplyGatePass.scss';
 import CustomDateTimePicker from '../../components/common/CustomDateTimePicker';
 import FeedbackAlert from '../../components/common/FeedbackAlert';
