@@ -17,6 +17,7 @@ import ExamManager from './pages/admin/academic/ExamManager';
 import InventoryManager from './pages/admin/inventory/InventoryManager';
 import OrderList from './pages/admin/inventory/OrderList';
 import AnnouncementManager from './pages/admin/communication/AnnouncementManager';
+import SystemLogsPage from './pages/admin/SystemLogsPage'; // NEW IMPORT
 
 // Admin Admission Pages
 import NewAdmissionPage from './pages/admin/admission/NewAdmissionPage';
@@ -27,7 +28,7 @@ import InquiryList from './pages/admin/admission/InquiryList';
 import HostelManagement from './pages/admin/hostel/HostelManagement';
 import RoomAllocation from './pages/admin/hostel/RoomAllocation';
 import ViewHostelStudents from './pages/admin/hostel/ViewHostelStudents';
-import ManageGatePasses from './pages/admin/hostel/ManageGatePasses'; // NEW IMPORT
+import ManageGatePasses from './pages/admin/hostel/ManageGatePasses';
 import ViewComplaints from './pages/admin/hostel/ViewComplaints';
 
 // Librarian Pages
@@ -51,7 +52,7 @@ import MyInvoices from './pages/student/MyInvoices';
 import MyOrders from './pages/student/MyOrders';
 import HostelPortal from './pages/student/HostelPortal';
 import MyComplaints from './pages/student/MyComplaints';
-import ApplyGatePass from './pages/student/ApplyGatePass'; // Ensure this is the correct path
+import ApplyGatePass from './pages/student/ApplyGatePass';
 
 import LandingPage from './pages/LandingPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -100,46 +101,20 @@ export const router = createBrowserRouter([
       { path: '/inventory', element: <InventoryManager /> },
       { path: '/orders', element: <OrderList /> },
       { path: '/announcements', element: <AnnouncementManager /> },
+      { path: '/activity-logs', element: <SystemLogsPage /> }, // NEW ROUTE
 
       // --- HOSTEL MODULE ROUTES ---
-      {
-        path: '/hostel-management',
-        element: <HostelManagement />
-      },
-      {
-        path: '/room-allocation',
-        element: <RoomAllocation />
-      },
-      {
-        path: '/view-students',
-        element: <ViewHostelStudents />
-      },
-      {
-        path: '/manage-gatepasses', // UPDATED: Changed from gate-passes to ManageGatePasses
-        element: <ManageGatePasses />
-      },
-      {
-        path: '/view-complaints',
-        element: <ViewComplaints />
-      },
-      {
-        path: '/gatepass-history',
-        element: <GatePassHistory />
-      },
+      { path: '/hostel-management', element: <HostelManagement /> },
+      { path: '/room-allocation', element: <RoomAllocation /> },
+      { path: '/view-students', element: <ViewHostelStudents /> },
+      { path: '/manage-gatepasses', element: <ManageGatePasses /> },
+      { path: '/view-complaints', element: <ViewComplaints /> },
+      { path: '/gatepass-history', element: <GatePassHistory /> },
 
       // --- STUDENT HOSTEL ROUTES ---
-      {
-        path: '/hostel-portal',
-        element: <HostelPortal />
-      },
-      {
-        path: '/my-complaints',
-        element: <MyComplaints />
-      },
-      {
-        path: '/apply-gatepass',
-        element: <ApplyGatePass /> // UPDATED: Removed modal-specific props for standalone page
-      },
+      { path: '/hostel-portal', element: <HostelPortal /> },
+      { path: '/my-complaints', element: <MyComplaints /> },
+      { path: '/apply-gatepass', element: <ApplyGatePass /> },
 
       // --- LIBRARIAN ROUTES ---
       { path: '/books', element: <BookList /> },

@@ -27,6 +27,7 @@ import libraryRoutes from './routes/libraryRoutes';
 import activityRoutes from './routes/activityRoutes';
 import hostelRoutes from './routes/hostelRoutes'; 
 import communicationRoutes from './routes/communicationRoutes';
+import logRoutes from './routes/logRoutes';
 
 dotenv.config();
 
@@ -68,6 +69,7 @@ app.use('/api/library', libraryRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/hostel', hostelRoutes); 
 app.use('/api/communication', communicationRoutes);
+app.use('/api/logs', logRoutes);
 
 // Health Check
 app.get('/api/health', (req: Request, res: Response) => {
