@@ -1,0 +1,163 @@
+// client/src/pages/admin/SystemLogsPage.scss
+
+.logs-container {
+  padding: 2rem;
+  background-color: var(--bg-secondary-color); // Dynamic background
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+
+  .logs-header {
+    margin-bottom: 3rem;
+    
+    h1 {
+      font-size: 1.8rem;
+      color: var(--title-text-color); // Dynamic heading color
+      margin-bottom: 0.5rem;
+    }
+    
+    p {
+      color: var(--text-muted-color); // Dynamic muted text
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.timeline-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.log-item {
+  display: flex;
+  gap: 1.5rem;
+
+  &:last-child {
+    .vertical-line {
+      display: none; 
+    }
+  }
+
+  // Use your theme's semantic colors for the different log types
+  &.system { --activity-color: var(--primary-color); }   
+  &.library { --activity-color: var(--toast-upsell-text); }  
+  &.complaint { --activity-color: var(--font-color-danger); } 
+
+  .indicator-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .status-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: var(--activity-color);
+      border: 3px solid var(--bg-color); // Matches current theme background
+      box-shadow: 0 0 0 2px var(--activity-color);
+      z-index: 2;
+    }
+
+    .vertical-line {
+      flex: 1;
+      width: 2px;
+      background-color: var(--border-light-color); // Dynamic border color
+      margin: 4px 0;
+    }
+  }
+
+  .log-body {
+    flex: 1;
+    padding-bottom: 2.5rem;
+
+    .log-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+
+      .type-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        background-color: var(--bg-color);
+        border: 1px solid var(--activity-color);
+        color: var(--activity-color);
+      }
+
+      .timestamp {
+        font-size: 0.8rem;
+        color: var(--secondary-text-color); // Dynamic secondary text
+      }
+    }
+
+    .log-msg {
+      font-size: 1rem;
+      color: var(--paragraph-text-color); // Dynamic paragraph color
+      font-weight: 500;
+      margin: 0;
+    }
+  }
+}
+
+// State messages
+.loading-state, .empty-state {
+  padding: 2rem;
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-muted-color);
+}
+
+.error-banner {
+  color: var(--font-color-danger);
+  background-color: var(--toast-danger-bg); // Dynamic error background
+  border: 1px solid var(--toast-danger-border);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+// ... (previous styles)
+
+.refresh-btn {
+  margin-top: 1rem;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.back-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: var(--dropdown-box-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: transform 0.2s, background-color 0.2s;
+
+  &:hover {
+    transform: scale(1.1);
+    background-color: var(--btn-primary-hover-bg);
+  }
+}
